@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Smod2;
 using Smod2.API;
 using Smod2.Attributes;
@@ -13,7 +14,7 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "5.2",
+    version = "6.0",
     SmodMajor = 3,
     SmodMinor = 1,
     SmodRevision = 12
@@ -44,6 +45,28 @@ namespace SanyaPlugin
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_infect_limit_time", 4, Smod2.Config.SettingType.NUMERIC, true, "sanya_infect_limit_time"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_warhead_dontlock", true, Smod2.Config.SettingType.BOOL, true, "sanya_warhead_dontlock"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_pocket_cleanup", false, Smod2.Config.SettingType.BOOL, true, "sanya_pocket_cleanup"));
+
+            //SCPごとの回復間隔&回復値
+            var durationsdic = new Dictionary<string, string>()
+            {
+                {"SCP173","-1" },
+                {"SCP106","-1" },
+                {"SCP049","-1" },
+                {"SCP049_2","-1" },
+                {"SCP096","-1" },
+                {"SCP939","-1" },
+            };
+            var amountsdic = new Dictionary<string, string>()
+            {
+                {"SCP173","-1" },
+                {"SCP106","-1" },
+                {"SCP049","-1" },
+                {"SCP049_2","-1" },
+                {"SCP096","-1" },
+                {"SCP939","-1" },
+            };
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp_recovery_durations", durationsdic, Smod2.Config.SettingType.DICTIONARY, true, "sanya_scp_recovery_durations"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp_recovery_amounts", amountsdic, Smod2.Config.SettingType.DICTIONARY, true, "sanya_scp_recovery_amounts"));
 
             //複製config   
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp173_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp173_duplicate_hp"));

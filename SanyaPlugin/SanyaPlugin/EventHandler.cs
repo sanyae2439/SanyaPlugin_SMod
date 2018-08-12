@@ -1,18 +1,31 @@
 ﻿using System;
+using System.Collections.Generic;
 using Smod2;
 using Smod2.API;
 using Smod2.Attributes;
 using Smod2.EventHandlers;
 using Smod2.Events;
 using Smod2.Config;
+using Smod2.EventSystem.Events;
 
 namespace SanyaPlugin
 {
+    class SCPList
+    {
+        public SCPList(Player ply, Vector p)
+        {
+            player = ply;
+            beforePos = p;
+        }
+        public Player player;
+        public Vector beforePos;
+    }
+
     class EventHandler :
         IEventHandlerRoundStart,
         IEventHandlerRoundEnd,
         IEventHandlerCheckEscape,
-        IEventHandlerSpawn,
+        IEventHandlerSetRole,
         IEventHandlerPocketDimensionDie,
         IEventHandlerInfected,
         IEventHandlerPlayerHurt,
@@ -23,7 +36,14 @@ namespace SanyaPlugin
         //-----------------var---------------------
         //GlobalStatus
         private bool roundduring = false;
-
+        private List<SCPList> scplist = new List<SCPList>();
+        private Dictionary<string, int> scpmaxhplist = new Dictionary<string, int>();
+        private int scp106counter = 0;
+        private int scp173counter = 0;
+        private int scp049counter = 0;
+        private int scp049_2counter = 0;
+        private int scp096counter = 0;
+        private int scp939counter = 0;
 
         //HurtChanger
         private Vector lastpos;
@@ -31,7 +51,6 @@ namespace SanyaPlugin
 
         //EscapeCheck
         private bool isEscaper = false;
-        private bool isDoubleSpawn = false;
         private Vector escape_pos;
         private int escape_player_id;
 
@@ -51,6 +70,12 @@ namespace SanyaPlugin
         public void OnRoundStart(RoundStartEvent ev)
         {
             updatecounter = 0;
+            scp106counter = 0;
+            scp173counter = 0;
+            scp049counter = 0;
+            scp049_2counter = 0;
+            scp096counter = 0;
+            scp939counter = 0;
             roundduring = true;
 
             plugin.Info("RoundStart!");
@@ -91,48 +116,59 @@ namespace SanyaPlugin
             plugin.Debug("OnCheckEscape " + ev.Player.Name + ":" + ev.Player.TeamRole.Role);
 
             isEscaper = true;
-            isDoubleSpawn = true;
             escape_player_id = ev.Player.PlayerId;
             escape_pos = ev.Player.GetPosition();
 
             plugin.Debug("escaper x:" + escape_pos.x + " y:" + escape_pos.y + " z:" + escape_pos.z);
         }
 
-        public void OnSpawn(PlayerSpawnEvent ev)
+        public void OnSetRole(PlayerSetRoleEvent ev)
         {
-            plugin.Debug("OnSpawn " + ev.Player.Name + ":" + ev.Player.TeamRole.Name + " x:" + ev.SpawnPos.x + " y:" + ev.SpawnPos.y + " z:" + ev.SpawnPos.z);
+            plugin.Debug("SetRole : " + ev.Player.Name + " " + ev.Role);
 
-            if (isEscaper)
+            if (scplist.Find(n => n.player.PlayerId == ev.Player.PlayerId) == null)
             {
-                if (isDoubleSpawn)
+                if (ev.TeamRole.Team == Team.SCP)
                 {
-                    plugin.Debug("isDoubleSpawn : " + isDoubleSpawn);
-                    isDoubleSpawn = false;
+                    scplist.Add(new SCPList(ev.Player, ev.Player.GetPosition()));
+                    plugin.Debug("addlist " + scplist.Count);
                 }
-                else
+            }
+            else
+            {
+                if (ev.TeamRole.Team != Team.SCP)
                 {
-                    plugin.Debug("isEscaper:" + isEscaper);
-                    if (escape_player_id == ev.Player.PlayerId)
-                    {
-                        if (this.plugin.GetConfigBool("sanya_escape_spawn") && ev.Player.TeamRole.Role != Role.CHAOS_INSUGENCY)
-                        {
-                            plugin.Debug("escaper_id:" + escape_player_id + " / spawn_id:" + ev.Player.PlayerId);
-                            plugin.Info("[EscapeChecker] Escape Successfully [" + ev.Player.Name + ":" + ev.Player.TeamRole.Role.ToString() + "]");
-                            ev.SpawnPos = escape_pos;
-                            isEscaper = false;
-                        }
-                        else
-                        {
-                            plugin.Info("[EscapeChecker] Disabled (config or CHAOS) [" + ev.Player.Name + ":" + ev.Player.TeamRole.Role.ToString() + "]");
-                            isEscaper = false;
-                            isDoubleSpawn = false;
-                        }
-                    }
+                    scplist.RemoveAll(n => n.player.PlayerId == ev.Player.PlayerId);
+                    plugin.Debug("removelist " + scplist.Count);
+                }else
+                {
+                    scplist.RemoveAll(n => n.player.PlayerId == ev.Player.PlayerId);
+                    plugin.Debug("removelist " + scplist.Count);
+                    scplist.Add(new SCPList(ev.Player, ev.Player.GetPosition()));
+                    plugin.Debug("addlist " + scplist.Count);
                 }
-
             }
 
 
+            //---------EscapeChecker---------
+            if (isEscaper)
+            {
+                if (escape_player_id == ev.Player.PlayerId)
+                {
+                    if (this.plugin.GetConfigBool("sanya_escape_spawn") && ev.Player.TeamRole.Role != Role.CHAOS_INSUGENCY)
+                    {
+                        plugin.Debug("escaper_id:" + escape_player_id + " / spawn_id:" + ev.Player.PlayerId);
+                        plugin.Info("[EscapeChecker] Escape Successfully [" + ev.Player.Name + ":" + ev.Player.TeamRole.Role.ToString() + "]");
+                        ev.Player.Teleport(escape_pos);
+                        isEscaper = false;
+                    }
+                    else
+                    {
+                        plugin.Info("[EscapeChecker] Disabled (config or CHAOS) [" + ev.Player.Name + ":" + ev.Player.TeamRole.Role.ToString() + "]");
+                        isEscaper = false;
+                    }
+                }
+            }
         }
 
         public void OnPlayerHurt(PlayerHurtEvent ev)
@@ -239,9 +275,176 @@ namespace SanyaPlugin
         {
             updatecounter += 1;
 
-            if (updatecounter % 60 == 0 && roundduring)
+            //if (updatecounter % 60 == 0 && roundduring)
+            if (updatecounter % 60 == 0)
             {
+                foreach (SCPList scp in scplist)
+                {
+                    try
+                    {
+                        if (scp.beforePos.x == scp.player.GetPosition().x &&
+                            scp.beforePos.y == scp.player.GetPosition().y &&
+                            scp.beforePos.z == scp.player.GetPosition().z)
+                        {
+                            plugin.Debug("NotMove " + scp.player.Name + "(" + scp.player.TeamRole.Role + ")");
 
+                            int amount = 0;
+                            switch (scp.player.TeamRole.Role)
+                            {
+                                case Role.SCP_173:
+                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP173"]);
+                                        break;
+                                case Role.SCP_106:
+                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP106"]);
+                                        break;
+                                case Role.SCP_049:
+                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP049"]);
+                                        break;
+                                case Role.SCP_049_2:
+                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP049_2"]);
+                                        break;
+                                case Role.SCP_096:
+                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP096"]);
+                                        break;
+                                case Role.SCP_939_53:
+                                case Role.SCP_939_89:
+                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP939"]);
+                                        break;
+                            }
+
+                            if(amount != -1)
+                            {
+                                if (amount + scp.player.GetHealth() <= scp.player.TeamRole.MaxHP)
+                                {
+                                    switch (scp.player.TeamRole.Role)
+                                    {
+                                        case Role.SCP_173:
+                                            if (scp173counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP173"])){
+                                                scp.player.AddHealth(amount);
+                                                scp173counter = 0;
+                                            }
+                                            break;
+                                        case Role.SCP_106:
+                                            if (scp106counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP106"]))
+                                            {
+                                                scp.player.AddHealth(amount);
+                                                scp106counter = 0;
+                                            }
+                                            break;
+                                        case Role.SCP_049:
+                                            if (scp049counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP049"]))
+                                            {
+                                                scp.player.AddHealth(amount);
+                                                scp049counter = 0;
+                                            }
+                                            break;
+                                        case Role.SCP_049_2:
+                                            if (scp049_2counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP049_2"]))
+                                            {
+                                                scp.player.AddHealth(amount);
+                                                scp049_2counter = 0;
+                                            }
+                                            break;
+                                        case Role.SCP_096:
+                                            if (scp096counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP096"]))
+                                            {
+                                                scp.player.AddHealth(amount);
+                                                scp096counter = 0;
+                                            }
+                                            break;
+                                        case Role.SCP_939_53:
+                                        case Role.SCP_939_89:
+                                            if (scp939counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP939"]))
+                                            {
+                                                scp.player.AddHealth(amount);
+                                                scp939counter = 0;
+                                            }
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    switch (scp.player.TeamRole.Role)
+                                    {
+                                        case Role.SCP_173:
+                                            if (scp173counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP173"]))
+                                            {
+                                                scp.player.SetHealth(scp.player.TeamRole.MaxHP);
+                                                scp939counter = 0;
+                                            }
+                                            break;
+                                        case Role.SCP_106:
+                                            if (scp106counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP106"]))
+                                            {
+                                                scp.player.SetHealth(scp.player.TeamRole.MaxHP);
+                                                scp939counter = 0;
+                                            }
+                                            break;
+                                        case Role.SCP_049:
+                                            if (scp049counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP049"]))
+                                            {
+                                                scp.player.SetHealth(scp.player.TeamRole.MaxHP);
+                                                scp939counter = 0;
+                                            }
+                                            break;
+                                        case Role.SCP_049_2:
+                                            if (scp049_2counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP049_2"]))
+                                            {
+                                                scp.player.SetHealth(scp.player.TeamRole.MaxHP);
+                                                scp939counter = 0;
+                                            }
+                                            break;
+                                        case Role.SCP_096:
+                                            if (scp096counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP096"]))
+                                            {
+                                                scp.player.SetHealth(scp.player.TeamRole.MaxHP);
+                                                scp939counter = 0;
+                                            }
+                                            break;
+                                        case Role.SCP_939_53:
+                                        case Role.SCP_939_89:
+                                            if (scp939counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP939"]))
+                                            {
+                                                scp.player.SetHealth(scp.player.TeamRole.MaxHP);
+                                                scp939counter = 0;
+                                            }
+                                            break;
+                                    }
+                                }
+                            }                         
+                        }
+                        scp.beforePos = scp.player.GetPosition();
+
+                        switch (scp.player.TeamRole.Role)
+                        {
+                            case Role.SCP_173:
+                                scp173counter++;
+                                break;
+                            case Role.SCP_106:
+                                scp106counter++;
+                                break;
+                            case Role.SCP_049:
+                                scp049counter++;
+                                break;
+                            case Role.SCP_049_2:
+                                scp049_2counter++;
+                                break;
+                            case Role.SCP_096:
+                                scp096counter++;
+                                break;
+                            case Role.SCP_939_53:
+                            case Role.SCP_939_89:
+                                scp939counter++;
+                                break;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        scplist.Remove(scp);
+                        plugin.Debug("list deleted " + scplist.Count);
+                        break;
+                    }
+                }
 
                 /*
                 try
