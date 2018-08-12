@@ -32,7 +32,7 @@
   <ItemGroup>
     <Reference Include="Smod2, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SCP Secret Laboratory_server\SCPSL_Data\Managed\Smod2.dll</HintPath>
+      <HintPath>lib\Smod2.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -44,21 +44,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Debugger\ConfigChecker.cs" />
-    <Compile Include="Debugger\EndChecker.cs" />
-    <Compile Include="Debugger\EndEventer.cs" />
-    <Compile Include="Event\EscapeHandler.cs" />
-    <Compile Include="Event\HurtChanger.cs" />
-    <Compile Include="Event\InfectChecker.cs" />
-    <Compile Include="Event\NukeDontLock.cs" />
-    <Compile Include="Event\Player106Lure.cs" />
-    <Compile Include="Event\PocketDimensionCleaner.cs" />
-    <Compile Include="Event\WarheadActivator.cs" />
-    <Compile Include="NotUse\KillChanger.cs" />
-    <Compile Include="NotUse\NukeDoorsOpener.cs" />
+    <Compile Include="EventHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SanyaPlugin.cs" />
-    <Compile Include="Event\SpawnChecker.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="lib\Assembly-CSharp.dll" />
+    <Content Include="lib\Smod2.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

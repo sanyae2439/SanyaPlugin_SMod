@@ -13,7 +13,7 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "5.1",
+    version = "6.0",
     SmodMajor = 3,
     SmodMinor = 1,
     SmodRevision = 10
@@ -35,6 +35,9 @@ namespace SanyaPlugin
 
         public override void Register()
         {
+            //EventHandler
+            this.AddEventHandlers(new EventHandler(this));
+
             //小物系
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_escape_spawn", true, Smod2.Config.SettingType.BOOL, true, "sanya_escape_spawn"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_infect_by_scp049_2", true, Smod2.Config.SettingType.BOOL, true, "sanya_infect"));
@@ -54,22 +57,6 @@ namespace SanyaPlugin
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp939_duplicate_hp", 200, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp939_duplicate_hp"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp106_duplicate", false, Smod2.Config.SettingType.BOOL, true, "sanya_scp106_duplicate"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp106_duplicate_hp", 50, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp106_duplicate_hp"));
-
-            this.AddEventHandlers(new EscapeHandler(this));
-            this.AddEventHandlers(new SpawnChecker(this));
-            this.AddEventHandlers(new HurtChanger(this));
-            this.AddEventHandlers(new InfectChecker(this));
-            this.AddEventHandlers(new PocketDimensionCleaner(this));
-
-            //this.AddEventHandlers(new Player106Lure(this));
-            //this.AddEventHandlers(new WarheadActivator(this));
-
-            this.AddEventHandlers(new NukeDontLock(this));
-            //this.AddEventHandlers(new NukeDoorsOpener(this));
-
-            this.AddEventHandlers(new ConfigChecker(this));
-            this.AddEventHandlers(new EndChecker(this));
-            this.AddEventHandlers(new EndEventer(this));
         }
     }
 }
