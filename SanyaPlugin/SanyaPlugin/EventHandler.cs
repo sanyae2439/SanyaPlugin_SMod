@@ -8,29 +8,38 @@ using Smod2.Config;
 
 namespace SanyaPlugin
 {
-    class EventHandler : 
+    class EventHandler :
         IEventHandlerRoundStart,
+        IEventHandlerRoundEnd,
         IEventHandlerCheckEscape,
         IEventHandlerSpawn,
         IEventHandlerPocketDimensionDie,
-        IEventHandlerInfected
+        IEventHandlerInfected,
+        IEventHandlerPlayerHurt,
+        IEventHandlerUpdate
     {
         private Plugin plugin;
 
         //-----------------var---------------------
+        //GlobalStatus
+        private bool roundduring = false;
+
 
         //HurtChanger
         private Vector lastpos;
         private Player targetplayer;
 
         //EscapeCheck
-        private static bool isEscaper = false;
-        private static bool isDoubleSpawn = false;
-        private static Vector escape_pos;
-        private static int escape_player_id;
+        private bool isEscaper = false;
+        private bool isDoubleSpawn = false;
+        private Vector escape_pos;
+        private int escape_player_id;
 
         //PocketCleaner
         private int temphealth;
+
+        //Update
+        private int updatecounter = 0;
 
 
         //-----------------------Event---------------------
@@ -41,22 +50,19 @@ namespace SanyaPlugin
 
         public void OnRoundStart(RoundStartEvent ev)
         {
-            plugin.Debug("RoundStart!");
+            updatecounter = 0;
+            roundduring = true;
+
+            plugin.Info("RoundStart!");
+
             plugin.Debug("sanya_escape_spawn :" + plugin.GetConfigBool("sanya_escape_spawn"));
             plugin.Debug("sanya_infect_by_scp049_2 :" + plugin.GetConfigBool("sanya_infect_by_scp049_2"));
             plugin.Debug("sanya_infect_limit_time :" + plugin.GetConfigInt("sanya_infect_limit_time"));
             plugin.Debug("sanya_warhead_dontlock :" + plugin.GetConfigBool("sanya_warhead_dontlock"));
-            //plugin.Debug("sanya_warhead_forceopen :" + plugin.GetConfigBool("sanya_warhead_forceopen"));
-
-            plugin.Debug("sanya_scp173_duplicate :" + plugin.GetConfigBool("sanya_scp173_duplicate"));
             plugin.Debug("sanya_scp173_duplicate_hp :" + plugin.GetConfigInt("sanya_scp173_duplicate_hp"));
-            plugin.Debug("sanya_scp049_duplicate :" + plugin.GetConfigBool("sanya_scp049_duplicate"));
             plugin.Debug("sanya_scp049_duplicate_hp :" + plugin.GetConfigInt("sanya_scp049_duplicate_hp"));
-            plugin.Debug("sanya_scp939_duplicate :" + plugin.GetConfigBool("sanya_scp939_duplicate"));
             plugin.Debug("sanya_scp939_duplicate_hp :" + plugin.GetConfigInt("sanya_scp939_duplicate_hp"));
-            plugin.Debug("sanya_scp049_2_duplicate :" + plugin.GetConfigBool("sanya_scp049_2_duplicate"));
             plugin.Debug("sanya_scp049_2_duplicate_hp :" + plugin.GetConfigInt("sanya_scp049_2_duplicate_hp"));
-            plugin.Debug("sanya_scp106_duplicate :" + plugin.GetConfigBool("sanya_scp106_duplicate"));
             plugin.Debug("sanya_scp106_duplicate_hp :" + plugin.GetConfigInt("sanya_scp106_duplicate_hp"));
 
             if (this.plugin.GetConfigBool("sanya_warhead_dontlock"))
@@ -67,6 +73,17 @@ namespace SanyaPlugin
                 }
                 plugin.Info("NukeOpenDoors Stopped");
             }
+        }
+
+        public void OnRoundEnd(RoundEndEvent ev)
+        {
+            if (roundduring)
+            {
+                plugin.Info("Round Ended [" + ev.Status + "]");
+                plugin.Info("Class-D:" + ev.Round.Stats.ClassDAlive + " Scientist:" + ev.Round.Stats.ScientistsAlive + " NTF:" + ev.Round.Stats.NTFAlive + " SCP:" + ev.Round.Stats.SCPAlive);
+            }
+            roundduring = false;
+
         }
 
         public void OnCheckEscape(PlayerCheckEscapeEvent ev)
@@ -123,7 +140,7 @@ namespace SanyaPlugin
             targetplayer = ev.Attacker;
 
             //----------------------------------------------------オールドマン複製------------------------------------------------
-            if (ev.DamageType == DamageType.SCP_106 && this.plugin.GetConfigBool("sanya_scp106_duplicate"))
+            if (ev.DamageType == DamageType.SCP_106 && this.plugin.GetConfigInt("sanya_scp106_duplicate_hp") != -1)
             {
                 plugin.Info("[Duplicator] 106 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
                 ev.Damage = 0.0f;
@@ -146,7 +163,7 @@ namespace SanyaPlugin
                 //----------------------------------------------------ペスト治療------------------------------------------------
 
                 //----------------------------------------------------複製-------------------------------------------------
-                if (ev.DamageType == DamageType.SCP_049_2 && this.plugin.GetConfigBool("sanya_scp049_2_duplicate"))
+                if (ev.DamageType == DamageType.SCP_049_2 && this.plugin.GetConfigInt("sanya_scp049_2_duplicate_hp") != -1)
                 {
                     plugin.Info("[Duplicator] 049-2 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
                     ev.Damage = 0.0f;
@@ -156,7 +173,7 @@ namespace SanyaPlugin
                     ev.Player.Teleport(lastpos);
                 }
 
-                if ((ev.DamageType == DamageType.SCP_939) && this.plugin.GetConfigBool("sanya_scp939_duplicate"))
+                if ((ev.DamageType == DamageType.SCP_939) && this.plugin.GetConfigInt("sanya_scp939_duplicate_hp") != -1)
                 {
                     plugin.Info("[Duplicator] 939 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
                     ev.Damage = 0.0f;
@@ -166,7 +183,7 @@ namespace SanyaPlugin
                     ev.Player.Teleport(lastpos);
                 }
 
-                if (ev.DamageType == DamageType.SCP_049 && this.plugin.GetConfigBool("sanya_scp049_duplicate"))
+                if (ev.DamageType == DamageType.SCP_049 && this.plugin.GetConfigInt("sanya_scp049_duplicate_hp") != -1)
                 {
                     plugin.Info("[Duplicator] 049 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
                     ev.Damage = 0.0f;
@@ -176,7 +193,7 @@ namespace SanyaPlugin
                     ev.Player.Teleport(lastpos);
                 }
 
-                if (ev.DamageType == DamageType.SCP_173 && this.plugin.GetConfigBool("sanya_scp173_duplicate"))
+                if (ev.DamageType == DamageType.SCP_173 && this.plugin.GetConfigInt("sanya_scp173_duplicate_hp") != -1)
                 {
                     plugin.Info("[Duplicator] 173 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
                     ev.Damage = 0.0f;
@@ -216,6 +233,50 @@ namespace SanyaPlugin
         {
             plugin.Info("[InfectChecker] 049 Infected!(Limit:" + this.plugin.GetConfigInt("sanya_infect_limit_time") + "s) [" + ev.Attacker.Name + "->" + ev.Player.Name + "]");
             ev.InfectTime = this.plugin.GetConfigInt("sanya_infect_limit_time");
+        }
+
+        public void OnUpdate(UpdateEvent ev)
+        {
+            updatecounter += 1;
+
+            if (updatecounter % 60 == 0 && roundduring)
+            {
+
+
+                /*
+                try
+                {
+                    foreach (Player ply in plugin.pluginManager.Server.GetPlayers())
+                    {
+                        int time = updatecounter / 60;
+
+                        if (ply.GetPosition().y >= -200 && ply.GetPosition().y <= 200)
+                        {
+                            ply.SetRank("red", "LCZ " + time.ToString() + "s", "");
+                        } else if (ply.GetPosition().y >= -1200 && ply.GetPosition().y <= -800)
+                        {
+                            ply.SetRank("yellow", "HCZ " + time.ToString() + "s", "");
+                        }
+                        else if (ply.GetPosition().y >= 800 && ply.GetPosition().y <= 1200)
+                        {
+                            ply.SetRank("light_green", "GRO " + time.ToString() + "s", "");
+                        }
+                        else if (ply.GetPosition().y >= -800 && ply.GetPosition().y <= -700)
+                        {
+                            ply.SetRank("orange", "049 " + time.ToString() + "s", "");
+                        }
+                        else if (ply.GetPosition().y >= -600 && ply.GetPosition().y <= -500)
+                        {
+                            ply.SetRank("pink", "NUK " + time.ToString() + "s", "");
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    plugin.Error(e.Message);
+                }
+                */
+            }
         }
     }
 }
