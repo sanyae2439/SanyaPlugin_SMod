@@ -24,11 +24,13 @@ namespace SanyaPlugin
     class EventHandler :
         IEventHandlerRoundStart,
         IEventHandlerRoundEnd,
+        IEventHandlerWarheadDetonate,
         IEventHandlerCheckEscape,
         IEventHandlerSetRole,
         IEventHandlerPocketDimensionDie,
         IEventHandlerInfected,
         IEventHandlerPlayerHurt,
+        IEventHandlerDoorAccess,
         IEventHandlerUpdate
     {
         private Plugin plugin;
@@ -57,6 +59,10 @@ namespace SanyaPlugin
         //PocketCleaner
         private int temphealth;
 
+        //079Breach
+        private bool scp079_contain = true;
+        private int scp079_opencounter = 0;
+
         //Update
         private int updatecounter = 0;
 
@@ -76,6 +82,8 @@ namespace SanyaPlugin
             scp049_2counter = 0;
             scp096counter = 0;
             scp939counter = 0;
+            scp079_contain = true;
+            scp079_opencounter = 0;
             roundduring = true;
 
             plugin.Info("RoundStart!");
@@ -84,6 +92,8 @@ namespace SanyaPlugin
             plugin.Debug("sanya_infect_by_scp049_2 :" + plugin.GetConfigBool("sanya_infect_by_scp049_2"));
             plugin.Debug("sanya_infect_limit_time :" + plugin.GetConfigInt("sanya_infect_limit_time"));
             plugin.Debug("sanya_warhead_dontlock :" + plugin.GetConfigBool("sanya_warhead_dontlock"));
+            plugin.Debug("sanya_scp079_enabled :" + plugin.GetConfigBool("sanya_scp079_enabled"));
+            plugin.Debug("sanya_scp079_doors_interval :" + plugin.GetConfigInt("sanya_scp079_doors_interval"));
             plugin.Debug("sanya_scp173_duplicate_hp :" + plugin.GetConfigInt("sanya_scp173_duplicate_hp"));
             plugin.Debug("sanya_scp049_duplicate_hp :" + plugin.GetConfigInt("sanya_scp049_duplicate_hp"));
             plugin.Debug("sanya_scp939_duplicate_hp :" + plugin.GetConfigInt("sanya_scp939_duplicate_hp"));
@@ -109,6 +119,21 @@ namespace SanyaPlugin
             }
             roundduring = false;
 
+        }
+
+        public void OnDetonate()
+        {
+            plugin.Info("AlphaWarhead Denotated");
+
+            if (this.plugin.GetConfigBool("sanya_scp079_enabled"))
+            {
+                if (!scp079_contain)
+                {
+                    scp079_contain = true;
+                    this.plugin.pluginManager.Server.Map.AnnounceScpKill("079",null);
+                    plugin.Info("[SCP-079]ReContainment");
+                }
+            }
         }
 
         public void OnCheckEscape(PlayerCheckEscapeEvent ev)
@@ -159,7 +184,7 @@ namespace SanyaPlugin
                     {
                         plugin.Debug("escaper_id:" + escape_player_id + " / spawn_id:" + ev.Player.PlayerId);
                         plugin.Info("[EscapeChecker] Escape Successfully [" + ev.Player.Name + ":" + ev.Player.TeamRole.Role.ToString() + "]");
-                        ev.Player.Teleport(escape_pos);
+                        ev.Player.Teleport(escape_pos,false);
                         isEscaper = false;
                     }
                     else
@@ -183,7 +208,7 @@ namespace SanyaPlugin
                 lastpos = ev.Player.GetPosition();
                 ev.Player.ChangeRole(Role.SCP_106, true, false);
                 ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp106_duplicate_hp"));
-                ev.Player.Teleport(lastpos);
+                ev.Player.Teleport(lastpos,false);
             }
             //----------------------------------------------------オールドマン複製------------------------------------------------
 
@@ -206,7 +231,7 @@ namespace SanyaPlugin
                     lastpos = ev.Player.GetPosition();
                     ev.Player.ChangeRole(Role.SCP_049_2, true, false);
                     ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp049_2_duplicate_hp"));
-                    ev.Player.Teleport(lastpos);
+                    ev.Player.Teleport(lastpos, false);
                 }
 
                 if ((ev.DamageType == DamageType.SCP_939) && this.plugin.GetConfigInt("sanya_scp939_duplicate_hp") != -1)
@@ -216,7 +241,7 @@ namespace SanyaPlugin
                     lastpos = ev.Player.GetPosition();
                     ev.Player.ChangeRole(Role.SCP_939_89, true, false);
                     ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp939_duplicate_hp"));
-                    ev.Player.Teleport(lastpos);
+                    ev.Player.Teleport(lastpos, false);
                 }
 
                 if (ev.DamageType == DamageType.SCP_049 && this.plugin.GetConfigInt("sanya_scp049_duplicate_hp") != -1)
@@ -226,7 +251,7 @@ namespace SanyaPlugin
                     lastpos = ev.Player.GetPosition();
                     ev.Player.ChangeRole(Role.SCP_049, true, false);
                     ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp049_duplicate_hp"));
-                    ev.Player.Teleport(lastpos);
+                    ev.Player.Teleport(lastpos, false);
                 }
 
                 if (ev.DamageType == DamageType.SCP_173 && this.plugin.GetConfigInt("sanya_scp173_duplicate_hp") != -1)
@@ -236,9 +261,10 @@ namespace SanyaPlugin
                     lastpos = ev.Player.GetPosition();
                     ev.Player.ChangeRole(Role.SCP_173, true, false);
                     ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp173_duplicate_hp"));
-                    ev.Player.Teleport(lastpos);
+                    ev.Player.Teleport(lastpos, false);
                 }
                 //----------------------------------------------------複製-------------------------------------------------
+
             }
         }
 
@@ -257,7 +283,7 @@ namespace SanyaPlugin
                 else
                 {
                     plugin.Info("[PocketCleaner] Cleaning Complete (" + ev.Player.Name + ")");
-                    ev.Player.Teleport(new Vector(0, 0, 0));
+                    ev.Player.Teleport(new Vector(0, 0, 0),false);
                     ev.Player.Kill(DamageType.POCKET);
                 }
 
@@ -271,6 +297,78 @@ namespace SanyaPlugin
             ev.InfectTime = this.plugin.GetConfigInt("sanya_infect_limit_time");
         }
 
+        public void OnDoorAccess(PlayerDoorAccessEvent ev)
+        {
+            //plugin.Info(ev.Door.Name + "(" + ev.Door.Open + "):" + ev.Door.Permission + "=" + ev.Allow);
+            if (this.plugin.GetConfigBool("sanya_scp079_enabled"))
+            {
+                if (ev.Door.Name == "079_FIRST")
+                {
+                    ev.Allow = true;
+                }
+
+                if (ev.Player.TeamRole.Team == Team.SCP &&
+                    !ev.Allow &&
+                    !scp079_contain &&
+                    scp079_opencounter >= this.plugin.GetConfigInt("sanya_scp079_doors_interval"))
+                {
+                    scp079_opencounter = 0;
+                    ev.Allow = true;
+                    plugin.Info("[SCP-079] Opened door:" + ev.Door.Name + " By " + ev.Player.Name);
+                }
+
+                if (ev.Player.TeamRole.Team == Team.SCP &&
+                    !ev.Door.Open &&
+                    !ev.Door.Locked &&
+                    ev.Door.Name == "079_SECOND" &&
+                    scp079_contain)
+                {
+                    ev.Allow = true;
+                    scp079_contain = false;
+
+                    foreach (Door door in plugin.pluginManager.Server.Map.GetDoors())
+                    {
+                        if (door.Name == "GATE_A" || door.Name == "GATE_B")
+                        {
+                            door.DontOpenOnWarhead = false;
+                        }
+                    }
+
+                    this.plugin.pluginManager.Server.Map.Shake();
+                    plugin.Info("[SCP-079] Activated");
+                }
+
+                if (ev.Player.TeamRole.Team != Team.SCP &&
+                    ev.Door.Name == "079_SECOND" &&
+                    !scp079_contain &&
+                    ev.Allow &&
+                    ev.Door.Open)
+                {
+                    scp079_contain = true;
+                    this.plugin.pluginManager.Server.Map.AnnounceScpKill("079", ev.Player);
+
+                    System.Timers.Timer t = new System.Timers.Timer
+                    {
+                        Interval = 1000,
+                        AutoReset = false,
+                        Enabled = true
+                    };
+                    t.Elapsed += delegate
+                    {
+                        ev.Door.Locked = true;
+                        foreach (Door door in plugin.pluginManager.Server.Map.GetDoors())
+                        {
+                            if (door.Name == "GATE_A" || door.Name == "GATE_B")
+                            {
+                                door.DontOpenOnWarhead = true;
+                            }
+                        }
+                        plugin.Info("[SCP-079] ReContainment");
+                    };
+                }
+            }
+        }
+
         public void OnUpdate(UpdateEvent ev)
         {
             updatecounter += 1;
@@ -278,6 +376,20 @@ namespace SanyaPlugin
             //if (updatecounter % 60 == 0 && roundduring)
             if (updatecounter % 60 == 0)
             {
+                if (!scp079_contain)
+                {
+                    if (scp079_opencounter == this.plugin.GetConfigInt("sanya_scp079_doors_interval"))
+                    {
+                        plugin.Info("[SCP-079] Ready");
+                    }
+
+                    if (scp079_opencounter <= this.plugin.GetConfigInt("sanya_scp079_doors_interval"))
+                    {
+                        scp079_opencounter++;
+                    }
+                }
+
+
                 foreach (SCPList scp in scplist)
                 {
                     try
