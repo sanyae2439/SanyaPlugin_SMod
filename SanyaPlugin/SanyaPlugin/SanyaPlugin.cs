@@ -14,7 +14,7 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "7.0",
+    version = "7.1",
     SmodMajor = 3,
     SmodMinor = 1,
     SmodRevision = 17

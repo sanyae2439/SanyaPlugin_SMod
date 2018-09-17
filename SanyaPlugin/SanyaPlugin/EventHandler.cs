@@ -131,7 +131,7 @@ namespace SanyaPlugin
                 {
                     scp079_contain = true;
                     this.plugin.pluginManager.Server.Map.AnnounceScpKill("079",null);
-                    plugin.Info("[SCP-079]ReContainment");
+                    plugin.Info("[SCP-079]ReContainment (AlphaWarhead)");
                 }
             }
         }
@@ -308,13 +308,14 @@ namespace SanyaPlugin
                 }
 
                 if (ev.Player.TeamRole.Team == Team.SCP &&
+                    ev.Door.Name != "079_SECOND" &&
                     !ev.Allow &&
                     !scp079_contain &&
                     scp079_opencounter >= this.plugin.GetConfigInt("sanya_scp079_doors_interval"))
                 {
                     scp079_opencounter = 0;
                     ev.Allow = true;
-                    plugin.Info("[SCP-079] Opened door:" + ev.Door.Name + " By " + ev.Player.Name);
+                    plugin.Info("[SCP-079] Opened door:[" + ev.Door.Name + "] (" + ev.Player.Name + ")");
                 }
 
                 if (ev.Player.TeamRole.Team == Team.SCP &&
@@ -335,7 +336,7 @@ namespace SanyaPlugin
                     }
 
                     this.plugin.pluginManager.Server.Map.Shake();
-                    plugin.Info("[SCP-079] Activated");
+                    plugin.Info("[SCP-079] Activated (" + ev.Player.Name + ")");
                 }
 
                 if (ev.Player.TeamRole.Team != Team.SCP &&
@@ -363,8 +364,14 @@ namespace SanyaPlugin
                                 door.DontOpenOnWarhead = true;
                             }
                         }
-                        plugin.Info("[SCP-079] ReContainment");
+                        plugin.Info("[SCP-079] ReContainment (" + ev.Player.Name + ")");
                     };
+                }
+                else if (ev.Player.TeamRole.Team != Team.SCP &&
+                         ev.Door.Name == "079_SECOND" &&
+                         scp079_contain)
+                {
+                    ev.Allow = false;
                 }
             }
         }
