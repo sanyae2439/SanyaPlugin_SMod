@@ -14,10 +14,10 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "7.1",
+    version = "8.0",
     SmodMajor = 3,
     SmodMinor = 1,
-    SmodRevision = 17
+    SmodRevision = 18
     )]
 
     class SanyaPlugin : Plugin
@@ -45,6 +45,9 @@ namespace SanyaPlugin
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_infect_limit_time", 4, Smod2.Config.SettingType.NUMERIC, true, "sanya_infect_limit_time"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_warhead_dontlock", true, Smod2.Config.SettingType.BOOL, true, "sanya_warhead_dontlock"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_pocket_cleanup", false, Smod2.Config.SettingType.BOOL, true, "sanya_pocket_cleanup"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_traitor_enabled", false, Smod2.Config.SettingType.BOOL, true, "sanya_traitor_enabled"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_traitor_limitter", 4, Smod2.Config.SettingType.NUMERIC, true, "sanya_traitor_limitter"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_traitor_chance_percent", 50, Smod2.Config.SettingType.NUMERIC, true, "sanya_traitor_chance_percent"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp079_enabled", false, Smod2.Config.SettingType.BOOL, true, "sanya_scp079_enabled"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp079_doors_interval", 30, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp079_doors_interval"));
 

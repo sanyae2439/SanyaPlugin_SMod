@@ -48,7 +48,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SanyaPlugin.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Content Include="lib\Assembly-CSharp.dll" />
     <Content Include="lib\Smod2.dll" />

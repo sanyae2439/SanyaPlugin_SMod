@@ -130,7 +130,7 @@ namespace SanyaPlugin
                 if (!scp079_contain)
                 {
                     scp079_contain = true;
-                    this.plugin.pluginManager.Server.Map.AnnounceScpKill("079",null);
+                    this.plugin.pluginManager.Server.Map.AnnounceScpKill("079", null);
                     plugin.Info("[SCP-079]ReContainment (AlphaWarhead)");
                 }
             }
@@ -153,7 +153,7 @@ namespace SanyaPlugin
 
             if (scplist.Find(n => n.player.PlayerId == ev.Player.PlayerId) == null)
             {
-                if (ev.TeamRole.Team == Team.SCP)
+                if (ev.TeamRole.Team == Team.SCP || ev.TeamRole.Role == Role.SCP_049_2)
                 {
                     scplist.Add(new SCPList(ev.Player, ev.Player.GetPosition()));
                     plugin.Debug("addlist " + scplist.Count);
@@ -165,7 +165,8 @@ namespace SanyaPlugin
                 {
                     scplist.RemoveAll(n => n.player.PlayerId == ev.Player.PlayerId);
                     plugin.Debug("removelist " + scplist.Count);
-                }else
+                }
+                else
                 {
                     scplist.RemoveAll(n => n.player.PlayerId == ev.Player.PlayerId);
                     plugin.Debug("removelist " + scplist.Count);
@@ -184,7 +185,7 @@ namespace SanyaPlugin
                     {
                         plugin.Debug("escaper_id:" + escape_player_id + " / spawn_id:" + ev.Player.PlayerId);
                         plugin.Info("[EscapeChecker] Escape Successfully [" + ev.Player.Name + ":" + ev.Player.TeamRole.Role.ToString() + "]");
-                        ev.Player.Teleport(escape_pos,false);
+                        ev.Player.Teleport(escape_pos, false);
                         isEscaper = false;
                     }
                     else
@@ -208,7 +209,7 @@ namespace SanyaPlugin
                 lastpos = ev.Player.GetPosition();
                 ev.Player.ChangeRole(Role.SCP_106, true, false);
                 ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp106_duplicate_hp"));
-                ev.Player.Teleport(lastpos,false);
+                ev.Player.Teleport(lastpos, false);
             }
             //----------------------------------------------------オールドマン複製------------------------------------------------
 
@@ -274,19 +275,22 @@ namespace SanyaPlugin
             {
                 plugin.Info("[PocketCleaner] Cleaning Start... (" + ev.Player.Name + ")");
 
-                temphealth = ev.Player.GetHealth();
-                ev.Player.Damage(1, DamageType.POCKET);
-                if (temphealth == ev.Player.GetHealth())
+                try
                 {
-                    plugin.Info("[PocketCleaner] Protection (" + ev.Player.Name + ")");
+                    temphealth = ev.Player.GetHealth();
+                    ev.Player.Damage(1, DamageType.POCKET);
+                    if (temphealth == ev.Player.GetHealth())
+                    {
+                        plugin.Info("[PocketCleaner] Protection (" + ev.Player.Name + ")");
+                    }
+                    else
+                    {
+                        plugin.Info("[PocketCleaner] Cleaning Complete (" + ev.Player.Name + ")");
+                        ev.Player.Teleport(new Vector(0, 0, 0), false);
+                        ev.Player.Kill(DamageType.POCKET);
+                    }
                 }
-                else
-                {
-                    plugin.Info("[PocketCleaner] Cleaning Complete (" + ev.Player.Name + ")");
-                    ev.Player.Teleport(new Vector(0, 0, 0),false);
-                    ev.Player.Kill(DamageType.POCKET);
-                }
-
+                catch (Exception) { }
             }
 
         }
@@ -411,34 +415,35 @@ namespace SanyaPlugin
                             switch (scp.player.TeamRole.Role)
                             {
                                 case Role.SCP_173:
-                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP173"]);
-                                        break;
+                                    amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP173"]);
+                                    break;
                                 case Role.SCP_106:
-                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP106"]);
-                                        break;
+                                    amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP106"]);
+                                    break;
                                 case Role.SCP_049:
-                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP049"]);
-                                        break;
+                                    amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP049"]);
+                                    break;
                                 case Role.SCP_049_2:
-                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP049_2"]);
-                                        break;
+                                    amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP049_2"]);
+                                    break;
                                 case Role.SCP_096:
-                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP096"]);
-                                        break;
+                                    amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP096"]);
+                                    break;
                                 case Role.SCP_939_53:
                                 case Role.SCP_939_89:
-                                        amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP939"]);
-                                        break;
+                                    amount = int.Parse(plugin.GetConfigDict("sanya_scp_recovery_amounts")["SCP939"]);
+                                    break;
                             }
 
-                            if(amount != -1)
+                            if (amount != -1)
                             {
                                 if (amount + scp.player.GetHealth() <= scp.player.TeamRole.MaxHP)
                                 {
                                     switch (scp.player.TeamRole.Role)
                                     {
                                         case Role.SCP_173:
-                                            if (scp173counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP173"])){
+                                            if (scp173counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP173"]))
+                                            {
                                                 scp.player.AddHealth(amount);
                                                 scp173counter = 0;
                                             }
@@ -530,7 +535,7 @@ namespace SanyaPlugin
                                             break;
                                     }
                                 }
-                            }                         
+                            }
                         }
                         scp.beforePos = scp.player.GetPosition();
 
@@ -565,39 +570,81 @@ namespace SanyaPlugin
                     }
                 }
 
-                /*
-                try
+                if (this.plugin.GetConfigBool("sanya_traitor_enabled"))
                 {
-                    foreach (Player ply in plugin.pluginManager.Server.GetPlayers())
+                    try
                     {
-                        int time = updatecounter / 60;
+                        foreach (Player ply in plugin.pluginManager.Server.GetPlayers())
+                        {
+                            if ((ply.TeamRole.Role == Role.NTF_CADET ||
+                                ply.TeamRole.Role == Role.FACILITY_GUARD ||
+                                ply.TeamRole.Role == Role.CHAOS_INSUGENCY) && ply.IsHandcuffed())
+                            {
+                                Vector pos = ply.GetPosition();
+                                int ntfcount = plugin.pluginManager.Server.Round.Stats.NTFAlive;
+                                int cicount = 0;
+                                foreach (Player plycount in plugin.pluginManager.Server.GetPlayers())
+                                {
+                                    if (plycount.TeamRole.Role == Role.CHAOS_INSUGENCY)
+                                    {
+                                        cicount++;
+                                    }
+                                }
 
-                        if (ply.GetPosition().y >= -200 && ply.GetPosition().y <= 200)
-                        {
-                            ply.SetRank("red", "LCZ " + time.ToString() + "s", "");
-                        } else if (ply.GetPosition().y >= -1200 && ply.GetPosition().y <= -800)
-                        {
-                            ply.SetRank("yellow", "HCZ " + time.ToString() + "s", "");
-                        }
-                        else if (ply.GetPosition().y >= 800 && ply.GetPosition().y <= 1200)
-                        {
-                            ply.SetRank("light_green", "GRO " + time.ToString() + "s", "");
-                        }
-                        else if (ply.GetPosition().y >= -800 && ply.GetPosition().y <= -700)
-                        {
-                            ply.SetRank("orange", "049 " + time.ToString() + "s", "");
-                        }
-                        else if (ply.GetPosition().y >= -600 && ply.GetPosition().y <= -500)
-                        {
-                            ply.SetRank("pink", "NUK " + time.ToString() + "s", "");
+                                //plugin.Info("NTF:" + ntfcount + " CI:" + cicount + " LIMIT:" + plugin.GetConfigInt("sanya_traitor_limitter"));
+                                //plugin.Info(ply.Name + "(" + ply.TeamRole.Role.ToString() + ") x:" + pos.x + " y:" + pos.y + " z:" + pos.z + " cuff:" + ply.IsHandcuffed());
+
+                                if ((pos.x >= 172 && pos.x <= 176) &&
+                                    (pos.y >= 980 && pos.y <= 990) &&
+                                    (pos.z >= 26 && pos.z <= 30))
+                                {
+                                    if ((ply.TeamRole.Role == Role.CHAOS_INSUGENCY && cicount <= plugin.GetConfigInt("sanya_traitor_limitter")) ||
+                                        (ply.TeamRole.Role != Role.CHAOS_INSUGENCY && ntfcount <= plugin.GetConfigInt("sanya_traitor_limitter")))
+                                    {
+                                        ply.Teleport(new Vector(0, 0, 0), false);
+                                        System.Timers.Timer t = new System.Timers.Timer
+                                        {
+                                            Interval = 2000,
+                                            AutoReset = false,
+                                            Enabled = true
+                                        };
+                                        t.Elapsed += delegate
+                                        {
+                                            Random rnd = new Random();
+                                            int rndresult = rnd.Next(0, 100);
+                                            plugin.Info("[Traitor] Traitoring... [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + ">" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
+                                            if (rndresult > plugin.GetConfigInt("sanya_traitor_chance_percent"))
+                                            {
+                                                if (ply.TeamRole.Role == Role.CHAOS_INSUGENCY)
+                                                {
+                                                    ply.ChangeRole(Role.NTF_CADET, true, false);
+                                                    ply.Teleport(pos, true);
+                                                }
+                                                else
+                                                {
+                                                    ply.ChangeRole(Role.CHAOS_INSUGENCY, true, false);
+                                                    ply.Teleport(pos, true);
+                                                }
+                                                plugin.Info("[Traitor] Success [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + ">" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
+                                            }
+                                            else
+                                            {
+                                                ply.Teleport(pos, true);
+                                                ply.Kill(DamageType.TESLA);
+                                                plugin.Info("[Traitor] Failed [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + ">" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
+                                            }
+                                        };
+                                    }
+                                }
+                            }
                         }
                     }
+                    catch (Exception e)
+                    {
+                        plugin.Error(e.Message);
+                    }
                 }
-                catch (Exception e)
-                {
-                    plugin.Error(e.Message);
-                }
-                */
+
             }
         }
     }
