@@ -92,6 +92,10 @@ namespace SanyaPlugin
             plugin.Debug("sanya_infect_by_scp049_2 :" + plugin.GetConfigBool("sanya_infect_by_scp049_2"));
             plugin.Debug("sanya_infect_limit_time :" + plugin.GetConfigInt("sanya_infect_limit_time"));
             plugin.Debug("sanya_warhead_dontlock :" + plugin.GetConfigBool("sanya_warhead_dontlock"));
+            plugin.Debug("sanya_pocket_cleanup :" + plugin.GetConfigBool("sanya_pocket_cleanup"));
+            plugin.Debug("sanya_traitor_enabled :" + plugin.GetConfigBool("sanya_traitor_enabled"));
+            plugin.Debug("sanya_traitor_chance_percent :" + plugin.GetConfigInt("sanya_traitor_chance_percent"));
+            plugin.Debug("sanya_traitor_limitter :" + plugin.GetConfigInt("sanya_traitor_limitter"));
             plugin.Debug("sanya_scp079_enabled :" + plugin.GetConfigBool("sanya_scp079_enabled"));
             plugin.Debug("sanya_scp079_doors_interval :" + plugin.GetConfigInt("sanya_scp079_doors_interval"));
             plugin.Debug("sanya_scp173_duplicate_hp :" + plugin.GetConfigInt("sanya_scp173_duplicate_hp"));
@@ -303,7 +307,7 @@ namespace SanyaPlugin
 
         public void OnDoorAccess(PlayerDoorAccessEvent ev)
         {
-            //plugin.Info(ev.Door.Name + "(" + ev.Door.Open + "):" + ev.Door.Permission + "=" + ev.Allow);
+            plugin.Debug(ev.Door.Name + "(" + ev.Door.Open + "):" + ev.Door.Permission + "=" + ev.Allow);
             if (this.plugin.GetConfigBool("sanya_scp079_enabled"))
             {
                 if (ev.Door.Name == "079_FIRST")
@@ -591,8 +595,8 @@ namespace SanyaPlugin
                                     }
                                 }
 
-                                //plugin.Info("NTF:" + ntfcount + " CI:" + cicount + " LIMIT:" + plugin.GetConfigInt("sanya_traitor_limitter"));
-                                //plugin.Info(ply.Name + "(" + ply.TeamRole.Role.ToString() + ") x:" + pos.x + " y:" + pos.y + " z:" + pos.z + " cuff:" + ply.IsHandcuffed());
+                                plugin.Debug("NTF:" + ntfcount + " CI:" + cicount + " LIMIT:" + plugin.GetConfigInt("sanya_traitor_limitter"));
+                                plugin.Debug(ply.Name + "(" + ply.TeamRole.Role.ToString() + ") x:" + pos.x + " y:" + pos.y + " z:" + pos.z + " cuff:" + ply.IsHandcuffed());
 
                                 if ((pos.x >= 172 && pos.x <= 176) &&
                                     (pos.y >= 980 && pos.y <= 990) &&
