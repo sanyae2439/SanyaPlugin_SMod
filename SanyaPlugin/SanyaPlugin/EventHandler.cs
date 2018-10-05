@@ -616,8 +616,8 @@ namespace SanyaPlugin
                                         {
                                             Random rnd = new Random();
                                             int rndresult = rnd.Next(0, 100);
-                                            plugin.Info("[Traitor] Traitoring... [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + ">" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
-                                            if (rndresult > plugin.GetConfigInt("sanya_traitor_chance_percent"))
+                                            plugin.Info("[Traitor] Traitoring... [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + "<=" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
+                                            if (rndresult <= plugin.GetConfigInt("sanya_traitor_chance_percent"))
                                             {
                                                 if (ply.TeamRole.Role == Role.CHAOS_INSUGENCY)
                                                 {
@@ -629,13 +629,13 @@ namespace SanyaPlugin
                                                     ply.ChangeRole(Role.CHAOS_INSUGENCY, true, false);
                                                     ply.Teleport(pos, true);
                                                 }
-                                                plugin.Info("[Traitor] Success [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + ">" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
+                                                plugin.Info("[Traitor] Success [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + "<=" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
                                             }
                                             else
                                             {
                                                 ply.Teleport(pos, true);
                                                 ply.Kill(DamageType.TESLA);
-                                                plugin.Info("[Traitor] Failed [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + ">" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
+                                                plugin.Info("[Traitor] Failed [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + "<=" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
                                             }
                                         };
                                     }
