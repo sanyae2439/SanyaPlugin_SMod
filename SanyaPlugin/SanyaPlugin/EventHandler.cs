@@ -65,6 +65,7 @@ namespace SanyaPlugin
 
         //Update
         private int updatecounter = 0;
+        private Vector traitor_pos = new Vector(173, 984, 28);
 
 
         //-----------------------Event---------------------
@@ -391,6 +392,9 @@ namespace SanyaPlugin
             //if (updatecounter % 60 == 0 && roundduring)
             if (updatecounter % 60 == 0)
             {
+                string title = this.plugin.GetConfigString("sanya_title_string") + " RoundTime: " + plugin.pluginManager.Server.Round.Duration/60 + ":" + plugin.pluginManager.Server.Round.Duration%60;
+                plugin.pluginManager.Server.PlayerListTitle = title;
+
                 if (!scp079_contain)
                 {
                     if (scp079_opencounter == this.plugin.GetConfigInt("sanya_scp079_doors_interval"))
@@ -598,9 +602,9 @@ namespace SanyaPlugin
                                 plugin.Debug("NTF:" + ntfcount + " CI:" + cicount + " LIMIT:" + plugin.GetConfigInt("sanya_traitor_limitter"));
                                 plugin.Debug(ply.Name + "(" + ply.TeamRole.Role.ToString() + ") x:" + pos.x + " y:" + pos.y + " z:" + pos.z + " cuff:" + ply.IsHandcuffed());
 
-                                if ((pos.x >= 172 && pos.x <= 176) &&
+                                if ((pos.x >= 172 && pos.x <= 182) &&
                                     (pos.y >= 980 && pos.y <= 990) &&
-                                    (pos.z >= 26 && pos.z <= 30))
+                                    (pos.z >= 25 && pos.z <= 34))
                                 {
                                     if ((ply.TeamRole.Role == Role.CHAOS_INSUGENCY && cicount <= plugin.GetConfigInt("sanya_traitor_limitter")) ||
                                         (ply.TeamRole.Role != Role.CHAOS_INSUGENCY && ntfcount <= plugin.GetConfigInt("sanya_traitor_limitter")))
@@ -622,18 +626,18 @@ namespace SanyaPlugin
                                                 if (ply.TeamRole.Role == Role.CHAOS_INSUGENCY)
                                                 {
                                                     ply.ChangeRole(Role.NTF_CADET, true, false);
-                                                    ply.Teleport(pos, true);
+                                                    ply.Teleport(traitor_pos, true);
                                                 }
                                                 else
                                                 {
                                                     ply.ChangeRole(Role.CHAOS_INSUGENCY, true, false);
-                                                    ply.Teleport(pos, true);
+                                                    ply.Teleport(traitor_pos, true);
                                                 }
                                                 plugin.Info("[Traitor] Success [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + "<=" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
                                             }
                                             else
                                             {
-                                                ply.Teleport(pos, true);
+                                                ply.Teleport(traitor_pos, true);
                                                 ply.Kill(DamageType.TESLA);
                                                 plugin.Info("[Traitor] Failed [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + "<=" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
                                             }

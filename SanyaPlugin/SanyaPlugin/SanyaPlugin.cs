@@ -14,7 +14,7 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "8.1",
+    version = "8.2",
     SmodMajor = 3,
     SmodMinor = 1,
     SmodRevision = 18
@@ -40,6 +40,7 @@ namespace SanyaPlugin
             this.AddEventHandlers(new EventHandler(this));
 
             //小物系
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_title_string", "No-Titled Server", Smod2.Config.SettingType.STRING, true, "sanya_title_string"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_escape_spawn", true, Smod2.Config.SettingType.BOOL, true, "sanya_escape_spawn"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_infect_by_scp049_2", true, Smod2.Config.SettingType.BOOL, true, "sanya_infect"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_infect_limit_time", 4, Smod2.Config.SettingType.NUMERIC, true, "sanya_infect_limit_time"));
