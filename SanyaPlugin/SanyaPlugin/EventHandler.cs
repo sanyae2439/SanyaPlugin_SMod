@@ -24,6 +24,7 @@ namespace SanyaPlugin
     class EventHandler :
         IEventHandlerRoundStart,
         IEventHandlerRoundEnd,
+        IEventHandlerLCZDecontaminate,
         IEventHandlerWarheadDetonate,
         IEventHandlerCheckEscape,
         IEventHandlerSetRole,
@@ -137,6 +138,19 @@ namespace SanyaPlugin
                     scp079_contain = true;
                     this.plugin.pluginManager.Server.Map.AnnounceScpKill("079", null);
                     plugin.Info("[SCP-079]ReContainment (AlphaWarhead)");
+                }
+            }
+        }
+
+        public void OnDecontaminate()
+        {
+            plugin.Info("LCZ Decontaminated");
+
+            if (this.plugin.GetConfigBool("sanya_scp079_enabled"))
+            {
+                if (!scp079_contain)
+                {
+                    plugin.pluginManager.Server.Map.Shake();
                 }
             }
         }
@@ -316,16 +330,34 @@ namespace SanyaPlugin
                     ev.Allow = true;
                 }
 
-                if (ev.Player.TeamRole.Team == Team.SCP &&
-                    ev.Door.Name != "079_SECOND" &&
-                    !ev.Allow &&
-                    !scp079_contain &&
-                    scp079_opencounter >= this.plugin.GetConfigInt("sanya_scp079_doors_interval"))
+                if (!plugin.pluginManager.Server.Map.LCZDecontaminated)
                 {
-                    scp079_opencounter = 0;
-                    ev.Allow = true;
-                    plugin.Info("[SCP-079] Opened door:[" + ev.Door.Name + "] (" + ev.Player.Name + ")");
+                    if (ev.Player.TeamRole.Team == Team.SCP &&
+                        ev.Door.Name != "079_SECOND" &&
+                        !ev.Allow &&
+                        !scp079_contain &&
+                        scp079_opencounter >= (this.plugin.GetConfigInt("sanya_scp079_doors_interval") * 2))
+                    {
+                        scp079_opencounter = 0;
+                        ev.Allow = true;
+                        plugin.Info("[SCP-079] Opened door:[" + ev.Door.Name + "] (" + ev.Player.Name + ")(LCZ-NOT-Decontaminated)");
+                    }
                 }
+                else
+                {
+                    if (ev.Player.TeamRole.Team == Team.SCP &&
+                        ev.Door.Name != "079_SECOND" &&
+                        !ev.Allow &&
+                        !scp079_contain &&
+                        scp079_opencounter >= this.plugin.GetConfigInt("sanya_scp079_doors_interval"))
+                    {
+                        scp079_opencounter = 0;
+                        ev.Allow = true;
+                        plugin.Info("[SCP-079] Opened door:[" + ev.Door.Name + "] (" + ev.Player.Name + ")(LCZ-Decontaminated)");
+                    }
+                }
+
+
 
                 if (ev.Player.TeamRole.Team == Team.SCP &&
                     !ev.Door.Open &&
@@ -397,14 +429,29 @@ namespace SanyaPlugin
 
                 if (!scp079_contain)
                 {
-                    if (scp079_opencounter == this.plugin.GetConfigInt("sanya_scp079_doors_interval"))
+                    if(!plugin.pluginManager.Server.Map.LCZDecontaminated)
                     {
-                        plugin.Info("[SCP-079] Ready");
-                    }
+                        if (scp079_opencounter == this.plugin.GetConfigInt("sanya_scp079_doors_interval") * 2)
+                        {
+                            plugin.Info("[SCP-079] Ready(LCZ-NOT-Decontaminated)");
+                        }
 
-                    if (scp079_opencounter <= this.plugin.GetConfigInt("sanya_scp079_doors_interval"))
+                        if (scp079_opencounter <= this.plugin.GetConfigInt("sanya_scp079_doors_interval") * 2)
+                        {
+                            scp079_opencounter++;
+                        }
+                    }
+                    else
                     {
-                        scp079_opencounter++;
+                        if (scp079_opencounter == (this.plugin.GetConfigInt("sanya_scp079_doors_interval")))
+                        {
+                            plugin.Info("[SCP-079] Ready(LCZ-Decontaminated)");
+                        }
+
+                        if (scp079_opencounter <= (this.plugin.GetConfigInt("sanya_scp079_doors_interval")))
+                        {
+                            scp079_opencounter++;
+                        }
                     }
                 }
 
