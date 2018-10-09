@@ -406,6 +406,7 @@ namespace SanyaPlugin
                             }
                         }
                         plugin.Info("[SCP-079] ReContainment (" + ev.Player.Name + ")");
+                        t.Enabled = false;
                     };
                 }
                 else if (ev.Player.TeamRole.Team != Team.SCP &&
@@ -688,6 +689,7 @@ namespace SanyaPlugin
                                                 ply.Kill(DamageType.TESLA);
                                                 plugin.Info("[Traitor] Failed [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + "<=" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
                                             }
+                                            t.Enabled = false;
                                         };
                                     }
                                 }
