@@ -14,7 +14,7 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "8.5",
+    version = "8.6",
     SmodMajor = 3,
     SmodMinor = 1,
     SmodRevision = 19
@@ -31,7 +31,7 @@ namespace SanyaPlugin
         public override void OnEnable()
         {
             this.Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            this.Info("ずりずり");
+            this.Info("ずりねこ");
         }
 
         public override void Register()
