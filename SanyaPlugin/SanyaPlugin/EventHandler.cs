@@ -633,6 +633,9 @@ namespace SanyaPlugin
                         foreach (Player ply in plugin.pluginManager.Server.GetPlayers())
                         {
                             if ((ply.TeamRole.Role == Role.NTF_CADET ||
+                                ply.TeamRole.Role == Role.NTF_LIEUTENANT ||
+                                ply.TeamRole.Role == Role.NTF_SCIENTIST ||
+                                ply.TeamRole.Role == Role.NTF_COMMANDER ||
                                 ply.TeamRole.Role == Role.FACILITY_GUARD ||
                                 ply.TeamRole.Role == Role.CHAOS_INSUGENCY) && ply.IsHandcuffed())
                             {
@@ -657,15 +660,6 @@ namespace SanyaPlugin
                                     if ((ply.TeamRole.Role == Role.CHAOS_INSUGENCY && cicount <= plugin.GetConfigInt("sanya_traitor_limitter")) ||
                                         (ply.TeamRole.Role != Role.CHAOS_INSUGENCY && ntfcount <= plugin.GetConfigInt("sanya_traitor_limitter")))
                                     {
-                                        ply.Teleport(new Vector(0, 0, 0), false);
-                                        System.Timers.Timer t = new System.Timers.Timer
-                                        {
-                                            Interval = 2000,
-                                            AutoReset = false,
-                                            Enabled = true
-                                        };
-                                        t.Elapsed += delegate
-                                        {
                                             Random rnd = new Random();
                                             int rndresult = rnd.Next(0, 100);
                                             plugin.Info("[Traitor] Traitoring... [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + "<=" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
@@ -673,12 +667,12 @@ namespace SanyaPlugin
                                             {
                                                 if (ply.TeamRole.Role == Role.CHAOS_INSUGENCY)
                                                 {
-                                                    ply.ChangeRole(Role.NTF_CADET, true, false);
+                                                    ply.ChangeRole(Role.NTF_CADET, true, false,true);
                                                     ply.Teleport(traitor_pos, true);
                                                 }
                                                 else
                                                 {
-                                                    ply.ChangeRole(Role.CHAOS_INSUGENCY, true, false);
+                                                    ply.ChangeRole(Role.CHAOS_INSUGENCY, true, false,true);
                                                     ply.Teleport(traitor_pos, true);
                                                 }
                                                 plugin.Info("[Traitor] Success [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + "<=" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
@@ -689,12 +683,10 @@ namespace SanyaPlugin
                                                 ply.Kill(DamageType.TESLA);
                                                 plugin.Info("[Traitor] Failed [" + ply.Name + ":" + ply.TeamRole.Role + ":" + rndresult + "<=" + plugin.GetConfigInt("sanya_traitor_chance_percent") + "]");
                                             }
-                                            t.Enabled = false;
                                         };
                                     }
                                 }
                             }
-                        }
                     }
                     catch (Exception e)
                     {
