@@ -14,7 +14,7 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "8.6",
+    version = "8.7",
     SmodMajor = 3,
     SmodMinor = 1,
     SmodRevision = 19
@@ -74,12 +74,14 @@ namespace SanyaPlugin
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp_recovery_durations", durationsdic, Smod2.Config.SettingType.DICTIONARY, true, "sanya_scp_recovery_durations"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp_recovery_amounts", amountsdic, Smod2.Config.SettingType.DICTIONARY, true, "sanya_scp_recovery_amounts"));
 
-            //複製config   
+            //複製config 
+            /*  
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp173_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp173_duplicate_hp"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp049_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp049_duplicate_hp"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp049_2_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp049_2_duplicate_hp"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp939_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp939_duplicate_hp"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp106_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp106_duplicate_hp"));
+            */
 
             //旧config
             /*
