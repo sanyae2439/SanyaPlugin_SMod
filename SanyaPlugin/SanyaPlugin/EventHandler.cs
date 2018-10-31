@@ -28,6 +28,7 @@ namespace SanyaPlugin
         {
             players = new List<string>();
         }
+        public string time { get; set; }
 
         public string name { get; set; }
 
@@ -124,6 +125,8 @@ namespace SanyaPlugin
                     Serverinfo cinfo = new Serverinfo();
                     Server server = this.plugin.Server;
 
+                    DateTime dt = DateTime.Now;
+                    cinfo.time = dt.ToString("yyyy-MM-ddTHH:mm:sszzzz");
                     cinfo.name = server.Name;
                     cinfo.ip = server.IpAddress;
                     cinfo.port = server.Port;
@@ -145,7 +148,8 @@ namespace SanyaPlugin
 
                     cinfo.name = cinfo.name.Replace("$number", (cinfo.port - 7776).ToString());
 
-                    string json = "{\"name\":\"" + cinfo.name +
+                    string json = "{\"time\":\"" + cinfo.time +
+                        "\",\"name\":\"" + cinfo.name +
                         "\",\"ip\":\"" + cinfo.ip +
                         "\",\"port\":" + cinfo.port +
                         ",\"playing\":" + cinfo.playing +
