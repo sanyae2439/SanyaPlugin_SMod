@@ -1,12 +1,14 @@
 ﻿using System;
+using System.IO;
+using System.Text;
+using System.Threading;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using Smod2;
 using Smod2.API;
-using Smod2.Attributes;
-using Smod2.EventHandlers;
 using Smod2.Events;
-using Smod2.Config;
-using Smod2.EventSystem.Events;
+using Smod2.EventHandlers;
+
 
 namespace SanyaPlugin
 {
@@ -19,6 +21,27 @@ namespace SanyaPlugin
         }
         public Player player;
         public Vector beforePos;
+    }
+
+    class Serverinfo {
+        public Serverinfo()
+        {
+            players = new List<string>();
+        }
+
+        public string serverName { get; set; }
+
+        public string ip { get; set; }
+
+        public int port { get; set; }
+
+        public int playing { get; set; }
+
+        public int maxplayer { get; set; }
+
+        public int duration { get; set; }
+
+        public IList<string> players { get; private set; }
     }
 
     class EventHandler :
@@ -35,6 +58,10 @@ namespace SanyaPlugin
         IEventHandlerUpdate
     {
         private Plugin plugin;
+        private Thread infosender;
+        private bool running = false;
+        private bool sender_live = true;
+
 
         //-----------------var---------------------
         //GlobalStatus
@@ -73,6 +100,91 @@ namespace SanyaPlugin
         public EventHandler(Plugin plugin)
         {
             this.plugin = plugin;
+            infosender = new Thread(new ThreadStart(Sender));
+            infosender.Start();
+            running = true;
+        }
+
+        private void Sender() {
+            string ip = plugin.GetConfigString("sanya_info_sender_to");
+            int port = 37813;
+            UdpClient client = new UdpClient();
+
+            while (running)
+            {
+                try
+                {
+                    if (ip == "none")
+                    {
+                        plugin.Info("InfoSender to Disabled(config:" + plugin.GetConfigString("sanya_info_sender_to") + ")");
+                        running = false;
+                        break;
+                    }
+
+                    Serverinfo cinfo = new Serverinfo();
+                    Server server = this.plugin.Server;
+
+                    cinfo.serverName = server.Name;
+                    cinfo.ip = server.IpAddress;
+                    cinfo.port = server.Port;
+                    cinfo.playing = server.NumPlayers - 1;
+                    cinfo.maxplayer = server.MaxPlayers;
+                    cinfo.duration = server.Round.Duration;
+
+                    if (cinfo.playing > 0)
+                    {
+                        try
+                        {
+                            foreach (Player player in server.GetPlayers())
+                            {
+                                cinfo.players.Add(player.Name);
+                            }
+                        }
+                        catch (Exception) { }
+                    }
+
+                    cinfo.serverName = cinfo.serverName.Replace("$number", (cinfo.port - 7776).ToString());
+
+                    string json = "{\"serverName\":\"" + cinfo.serverName +
+                        "\",\"ip\":\"" + cinfo.ip +
+                        "\",\"port\":" + cinfo.port +
+                        ",\"playing\":" + cinfo.playing +
+                        ",\"maxplayer\":" + cinfo.maxplayer +
+                        ",\"duration\":" + cinfo.duration +
+                        ",\"players\":[";
+
+                    if (cinfo.players.Count > 0)
+                    {
+                        int counter = 0;
+                        foreach (String name in cinfo.players)
+                        {
+                            counter++;
+                            json += "\"" + name + "\"";
+
+                            if (counter != cinfo.players.Count)
+                            {
+                                json += ",";
+                            }
+                        }
+                    }
+
+                    json += "]}";
+
+                    byte[] sendBytes = Encoding.UTF8.GetBytes(json);
+
+                    client.Send(sendBytes, sendBytes.Length, ip, port);
+
+                    plugin.Debug("info sended to " + ip + ":" + port);
+
+                    Thread.Sleep(30000);
+                }
+                catch (Exception e)
+                {
+                    plugin.Error(e.ToString());
+                    sender_live = false;
+                }
+            }
+
         }
 
         public void OnRoundStart(RoundStartEvent ev)
@@ -614,6 +726,20 @@ namespace SanyaPlugin
                     }
                 }
 
+            }
+
+            if (!sender_live)
+            {
+                plugin.Error("InfoSender Rebooting...");
+                infosender.Abort();
+                running = false;
+                infosender = null;
+
+                infosender = new Thread(new ThreadStart(Sender));
+                infosender.Start();
+                running = true;
+                sender_live = true;
+                plugin.Warn("InfoSender Rebooting Completed");
             }
         }
 

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Smod2;
-using Smod2.API;
 using Smod2.Attributes;
-using Smod2.EventHandlers;
-using Smod2.Events;
-using Smod2.Config;
 
 namespace SanyaPlugin
 {
@@ -14,10 +9,10 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "8.7",
+    version = "9.0",
     SmodMajor = 3,
     SmodMinor = 1,
-    SmodRevision = 19
+    SmodRevision = 21
     )]
 
     class SanyaPlugin : Plugin
@@ -31,13 +26,16 @@ namespace SanyaPlugin
         public override void OnEnable()
         {
             this.Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            this.Info("ずりねこ");
+            this.Info("ずりにゃん");
         }
 
         public override void Register()
         {
             //EventHandler
             this.AddEventHandlers(new EventHandler(this));
+
+            //InfoSender
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_info_sender_to", "hatsunemiku24.ddo.jp", Smod2.Config.SettingType.STRING, true, "sanya_info_sender_to"));
 
             //小物系
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_title_string", "No-Titled Server", Smod2.Config.SettingType.STRING, true, "sanya_title_string"));
