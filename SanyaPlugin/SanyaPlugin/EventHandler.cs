@@ -29,7 +29,7 @@ namespace SanyaPlugin
             players = new List<string>();
         }
 
-        public string serverName { get; set; }
+        public string name { get; set; }
 
         public string ip { get; set; }
 
@@ -124,7 +124,7 @@ namespace SanyaPlugin
                     Serverinfo cinfo = new Serverinfo();
                     Server server = this.plugin.Server;
 
-                    cinfo.serverName = server.Name;
+                    cinfo.name = server.Name;
                     cinfo.ip = server.IpAddress;
                     cinfo.port = server.Port;
                     cinfo.playing = server.NumPlayers - 1;
@@ -143,9 +143,9 @@ namespace SanyaPlugin
                         catch (Exception) { }
                     }
 
-                    cinfo.serverName = cinfo.serverName.Replace("$number", (cinfo.port - 7776).ToString());
+                    cinfo.name = cinfo.name.Replace("$number", (cinfo.port - 7776).ToString());
 
-                    string json = "{\"serverName\":\"" + cinfo.serverName +
+                    string json = "{\"name\":\"" + cinfo.name +
                         "\",\"ip\":\"" + cinfo.ip +
                         "\",\"port\":" + cinfo.port +
                         ",\"playing\":" + cinfo.playing +
@@ -176,7 +176,7 @@ namespace SanyaPlugin
 
                     plugin.Debug("info sended to " + ip + ":" + port);
 
-                    Thread.Sleep(20000);
+                    Thread.Sleep(15000);
                 }
                 catch (Exception e)
                 {
