@@ -176,7 +176,7 @@ namespace SanyaPlugin
 
                     plugin.Debug("info sended to " + ip + ":" + port);
 
-                    Thread.Sleep(30000);
+                    Thread.Sleep(20000);
                 }
                 catch (Exception e)
                 {
