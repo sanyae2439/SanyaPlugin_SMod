@@ -9,7 +9,7 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "9.2",
+    version = "10.0",
     SmodMajor = 3,
     SmodMinor = 1,
     SmodRevision = 21
@@ -26,19 +26,20 @@ namespace SanyaPlugin
         public override void OnEnable()
         {
             this.Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            this.Info("ずりにゃん");
+            this.Info("ずりぱい");
         }
 
         public override void Register()
         {
-            //EventHandler
-            this.AddEventHandlers(new EventHandler(this));
-
             //InfoSender
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_info_sender_to", "hatsunemiku24.ddo.jp", Smod2.Config.SettingType.STRING, true, "sanya_info_sender_to"));
 
             //小物系
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_title_string", "No-Titled Server", Smod2.Config.SettingType.STRING, true, "sanya_title_string"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_tablet_lockable", false, Smod2.Config.SettingType.BOOL, true, "sanya_tablet_locker"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_handcuffed_cantopen", true, Smod2.Config.SettingType.BOOL, true, "sanya_handcuff_notopen"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_radio_enhance", false, Smod2.Config.SettingType.BOOL, true, "sanya_radio_enhance"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_intercom_information", true, Smod2.Config.SettingType.BOOL, true, "sanya_intercom_information"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_escape_spawn", true, Smod2.Config.SettingType.BOOL, true, "sanya_escape_spawn"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_infect_by_scp049_2", true, Smod2.Config.SettingType.BOOL, true, "sanya_infect"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_infect_limit_time", 4, Smod2.Config.SettingType.NUMERIC, true, "sanya_infect_limit_time"));
@@ -71,6 +72,9 @@ namespace SanyaPlugin
             };
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp_recovery_durations", durationsdic, Smod2.Config.SettingType.DICTIONARY, true, "sanya_scp_recovery_durations"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp_recovery_amounts", amountsdic, Smod2.Config.SettingType.DICTIONARY, true, "sanya_scp_recovery_amounts"));
+
+            //EventHandler
+            this.AddEventHandlers(new EventHandler(this));
 
             //複製config 
             /*  

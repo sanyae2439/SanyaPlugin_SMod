@@ -8,7 +8,7 @@ using Smod2;
 using Smod2.API;
 using Smod2.Events;
 using Smod2.EventHandlers;
-
+using Smod2.EventSystem.Events;
 
 namespace SanyaPlugin
 {
@@ -55,7 +55,8 @@ namespace SanyaPlugin
         IEventHandlerPlayerDie,
         IEventHandlerInfected,
         IEventHandlerDoorAccess,
-
+        IEventHandlerRadioSwitch,
+        IEventHandlerElevatorUse,
         IEventHandlerUpdate
     {
         private Plugin plugin;
@@ -366,6 +367,38 @@ namespace SanyaPlugin
         public void OnDoorAccess(PlayerDoorAccessEvent ev)
         {
             plugin.Debug(ev.Door.Name + "(" + ev.Door.Open + "):" + ev.Door.Permission + "=" + ev.Allow);
+
+            if (this.plugin.GetConfigBool("sanya_tablet_lockable"))
+            {
+                if (ev.Player.GetCurrentItemIndex() > -1)
+                {
+                    if (ev.Player.GetCurrentItem().ItemType == ItemType.WEAPON_MANAGER_TABLET)
+                    {
+                        if (!ev.Door.Name.Contains("CHECKPOINT") && !ev.Door.Name.Contains("GATE_"))
+                        {
+                            if (ev.Door.Locked == true)
+                            {
+                                ev.Allow = true;
+                                ev.Door.Locked = false;
+                            }
+                            else
+                            {
+                                ev.Allow = false;
+                                ev.Door.Locked = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (this.plugin.GetConfigBool("sanya_handcuffed_cantopen"))
+            {
+                if (ev.Player.IsHandcuffed())
+                {
+                    ev.Allow = false;
+                }
+            }
+
             if (this.plugin.GetConfigBool("sanya_scp079_enabled"))
             {
                 if (ev.Door.Name == "079_FIRST")
@@ -383,6 +416,7 @@ namespace SanyaPlugin
                     {
                         scp079_opencounter = 0;
                         ev.Allow = true;
+                        ev.Door.Locked = false;
                         plugin.Info("[SCP-079] Opened door:[" + ev.Door.Name + "] (" + ev.Player.Name + ")(LCZ-NOT-Decontaminated)");
                     }
                 }
@@ -396,6 +430,7 @@ namespace SanyaPlugin
                     {
                         scp079_opencounter = 0;
                         ev.Allow = true;
+                        ev.Door.Locked = false;
                         plugin.Info("[SCP-079] Opened door:[" + ev.Door.Name + "] (" + ev.Player.Name + ")(LCZ-Decontaminated)");
                     }
                 }
@@ -461,6 +496,46 @@ namespace SanyaPlugin
             }
         }
 
+        public void OnPlayerRadioSwitch(PlayerRadioSwitchEvent ev)
+        {
+            plugin.Debug(ev.Player.Name + ":" + ev.ChangeTo);
+
+            if (this.plugin.GetConfigBool("sanya_radio_enhance"))
+            {
+                if (ev.ChangeTo == RadioStatus.ULTRA_RANGE)
+                {
+                    if (null == plugin.Server.Map.GetIntercomSpeaker())
+                    {
+                        plugin.Server.Map.SetIntercomSpeaker(ev.Player);
+                    }
+                }
+                else
+                {
+                    if (plugin.Server.Map.GetIntercomSpeaker() != null)
+                    {
+                        if (ev.Player.Name == plugin.Server.Map.GetIntercomSpeaker().Name)
+                        {
+                            plugin.Server.Map.SetIntercomSpeaker(null);
+                        }
+                    }
+                }
+            }
+
+        }
+
+        public void OnElevatorUse(PlayerElevatorUseEvent ev)
+        {
+            plugin.Debug(ev.Elevator.ElevatorType + "[" + ev.Elevator.ElevatorStatus + "] => " + ev.Elevator.MovingSpeed);
+
+            if (this.plugin.GetConfigBool("sanya_handcuffed_cantopen"))
+            {
+                if (ev.Player.IsHandcuffed())
+                {
+                    ev.AllowUse = false;
+                }
+            }
+        }
+
         public void OnUpdate(UpdateEvent ev)
         {
             updatecounter += 1;
@@ -468,6 +543,11 @@ namespace SanyaPlugin
             //if (updatecounter % 60 == 0 && roundduring)
             if (updatecounter % 60 == 0)
             {
+                if (this.plugin.GetConfigBool("sanya_intercom_information"))
+                {
+                    plugin.pluginManager.Server.Map.SetIntercomContent(IntercomStatus.Ready, "READY\nSCP LEFT:" + plugin.pluginManager.Server.Round.Stats.SCPAlive + "\nCLASS-D LEFT:" + plugin.pluginManager.Server.Round.Stats.ClassDAlive + "\nSCIENTIST LEFT:" + plugin.pluginManager.Server.Round.Stats.ScientistsAlive);
+                }
+
                 string title = this.plugin.GetConfigString("sanya_title_string") + " RoundTime: " + plugin.pluginManager.Server.Round.Duration / 60 + ":" + plugin.pluginManager.Server.Round.Duration % 60;
                 plugin.pluginManager.Server.PlayerListTitle = title;
 
@@ -749,94 +829,94 @@ namespace SanyaPlugin
 
         /*
 
-        public void OnPocketDimensionDie(PlayerPocketDimensionDieEvent ev)
-        {
-            
-            if (ev.Die && this.plugin.GetConfigBool("sanya_pocket_cleanup"))
-            {
-                plugin.Info("[PocketCleaner] Cleaning Start... (" + ev.Player.Name + ")");
+public void OnPocketDimensionDie(PlayerPocketDimensionDieEvent ev)
+{
 
-                try
-                {
-                    temphealth = ev.Player.GetHealth();
-                    ev.Player.Damage(1, DamageType.POCKET);
-                    if (temphealth == ev.Player.GetHealth())
-                    {
-                        plugin.Info("[PocketCleaner] Protection (" + ev.Player.Name + ")");
-                    }
-                    else
-                    {
-                        plugin.Info("[PocketCleaner] Cleaning Complete (" + ev.Player.Name + ")");
-                        ev.Player.Teleport(new Vector(0, 0, 0), false);
-                        ev.Player.Kill(DamageType.POCKET);
-                    }
-                }
-                catch (Exception) { }
-            }
-            
-        }
+   if (ev.Die && this.plugin.GetConfigBool("sanya_pocket_cleanup"))
+   {
+       plugin.Info("[PocketCleaner] Cleaning Start... (" + ev.Player.Name + ")");
 
-        public void OnPlayerHurt(PlayerHurtEvent ev)
-        {
-            targetplayer = ev.Attacker;
+       try
+       {
+           temphealth = ev.Player.GetHealth();
+           ev.Player.Damage(1, DamageType.POCKET);
+           if (temphealth == ev.Player.GetHealth())
+           {
+               plugin.Info("[PocketCleaner] Protection (" + ev.Player.Name + ")");
+           }
+           else
+           {
+               plugin.Info("[PocketCleaner] Cleaning Complete (" + ev.Player.Name + ")");
+               ev.Player.Teleport(new Vector(0, 0, 0), false);
+               ev.Player.Kill(DamageType.POCKET);
+           }
+       }
+       catch (Exception) { }
+   }
 
-            //----------------------------------------------------オールドマン複製------------------------------------------------
-            if (ev.DamageType == DamageType.SCP_106 && this.plugin.GetConfigInt("sanya_scp106_duplicate_hp") != -1)
-            {
-                plugin.Info("[Duplicator] 106 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
-                ev.Damage = 0.0f;
-                lastpos = ev.Player.GetPosition();
-                ev.Player.ChangeRole(Role.SCP_106, true, false);
-                ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp106_duplicate_hp"));
-                ev.Player.Teleport(lastpos, false);
-            }
-            //----------------------------------------------------オールドマン複製------------------------------------------------
+}
 
-            if ((ev.Player.GetHealth() - ev.Damage) < 0) //HP0になる被弾時
-            {
-                //----------------------------------------------------複製-------------------------------------------------
-                if (ev.DamageType == DamageType.SCP_049_2 && this.plugin.GetConfigInt("sanya_scp049_2_duplicate_hp") != -1)
-                {
-                    plugin.Info("[Duplicator] 049-2 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
-                    ev.Damage = 0.0f;
-                    lastpos = ev.Player.GetPosition();
-                    ev.Player.ChangeRole(Role.SCP_049_2, true, false);
-                    ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp049_2_duplicate_hp"));
-                    ev.Player.Teleport(lastpos, false);
-                }
+public void OnPlayerHurt(PlayerHurtEvent ev)
+{
+   targetplayer = ev.Attacker;
 
-                if ((ev.DamageType == DamageType.SCP_939) && this.plugin.GetConfigInt("sanya_scp939_duplicate_hp") != -1)
-                {
-                    plugin.Info("[Duplicator] 939 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
-                    ev.Damage = 0.0f;
-                    lastpos = ev.Player.GetPosition();
-                    ev.Player.ChangeRole(Role.SCP_939_89, true, false);
-                    ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp939_duplicate_hp"));
-                    ev.Player.Teleport(lastpos, false);
-                }
+   //----------------------------------------------------オールドマン複製------------------------------------------------
+   if (ev.DamageType == DamageType.SCP_106 && this.plugin.GetConfigInt("sanya_scp106_duplicate_hp") != -1)
+   {
+       plugin.Info("[Duplicator] 106 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
+       ev.Damage = 0.0f;
+       lastpos = ev.Player.GetPosition();
+       ev.Player.ChangeRole(Role.SCP_106, true, false);
+       ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp106_duplicate_hp"));
+       ev.Player.Teleport(lastpos, false);
+   }
+   //----------------------------------------------------オールドマン複製------------------------------------------------
 
-                if (ev.DamageType == DamageType.SCP_049 && this.plugin.GetConfigInt("sanya_scp049_duplicate_hp") != -1)
-                {
-                    plugin.Info("[Duplicator] 049 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
-                    ev.Damage = 0.0f;
-                    lastpos = ev.Player.GetPosition();
-                    ev.Player.ChangeRole(Role.SCP_049, true, false);
-                    ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp049_duplicate_hp"));
-                    ev.Player.Teleport(lastpos, false);
-                }
+   if ((ev.Player.GetHealth() - ev.Damage) < 0) //HP0になる被弾時
+   {
+       //----------------------------------------------------複製-------------------------------------------------
+       if (ev.DamageType == DamageType.SCP_049_2 && this.plugin.GetConfigInt("sanya_scp049_2_duplicate_hp") != -1)
+       {
+           plugin.Info("[Duplicator] 049-2 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
+           ev.Damage = 0.0f;
+           lastpos = ev.Player.GetPosition();
+           ev.Player.ChangeRole(Role.SCP_049_2, true, false);
+           ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp049_2_duplicate_hp"));
+           ev.Player.Teleport(lastpos, false);
+       }
 
-                if (ev.DamageType == DamageType.SCP_173 && this.plugin.GetConfigInt("sanya_scp173_duplicate_hp") != -1)
-                {
-                    plugin.Info("[Duplicator] 173 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
-                    ev.Damage = 0.0f;
-                    lastpos = ev.Player.GetPosition();
-                    ev.Player.ChangeRole(Role.SCP_173, true, false);
-                    ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp173_duplicate_hp"));
-                    ev.Player.Teleport(lastpos, false);
-                }
-                //----------------------------------------------------複製-------------------------------------------------
-            }
-        }
-        */
+       if ((ev.DamageType == DamageType.SCP_939) && this.plugin.GetConfigInt("sanya_scp939_duplicate_hp") != -1)
+       {
+           plugin.Info("[Duplicator] 939 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
+           ev.Damage = 0.0f;
+           lastpos = ev.Player.GetPosition();
+           ev.Player.ChangeRole(Role.SCP_939_89, true, false);
+           ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp939_duplicate_hp"));
+           ev.Player.Teleport(lastpos, false);
+       }
+
+       if (ev.DamageType == DamageType.SCP_049 && this.plugin.GetConfigInt("sanya_scp049_duplicate_hp") != -1)
+       {
+           plugin.Info("[Duplicator] 049 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
+           ev.Damage = 0.0f;
+           lastpos = ev.Player.GetPosition();
+           ev.Player.ChangeRole(Role.SCP_049, true, false);
+           ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp049_duplicate_hp"));
+           ev.Player.Teleport(lastpos, false);
+       }
+
+       if (ev.DamageType == DamageType.SCP_173 && this.plugin.GetConfigInt("sanya_scp173_duplicate_hp") != -1)
+       {
+           plugin.Info("[Duplicator] 173 Duplicated! (" + targetplayer.Name + " -> " + ev.Player.Name + ")");
+           ev.Damage = 0.0f;
+           lastpos = ev.Player.GetPosition();
+           ev.Player.ChangeRole(Role.SCP_173, true, false);
+           ev.Player.SetHealth(this.plugin.GetConfigInt("sanya_scp173_duplicate_hp"));
+           ev.Player.Teleport(lastpos, false);
+       }
+       //----------------------------------------------------複製-------------------------------------------------
+   }
+}
+*/
     }
 }
