@@ -9,7 +9,7 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "10.0",
+    version = "10.1",
     SmodMajor = 3,
     SmodMinor = 1,
     SmodRevision = 21
@@ -36,8 +36,12 @@ namespace SanyaPlugin
 
             //小物系
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_title_string", "No-Titled Server", Smod2.Config.SettingType.STRING, true, "sanya_title_string"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_tablet_lockable", false, Smod2.Config.SettingType.BOOL, true, "sanya_tablet_locker"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_handcuffed_cantopen", true, Smod2.Config.SettingType.BOOL, true, "sanya_handcuff_notopen"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_percent", 20, Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_percent"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_ok_itemid", 0 , Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_ok_itemid"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_no_itemid", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_no_itemid"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_tablet_lockable", false, Smod2.Config.SettingType.BOOL, true, "sanya_tablet_lockable"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_tablet_lockable_second", 5, Smod2.Config.SettingType.NUMERIC, true, "sanya_tablet_lockable_second"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_handcuffed_cantopen", true, Smod2.Config.SettingType.BOOL, true, "sanya_handcuffed_cantopen"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_radio_enhance", false, Smod2.Config.SettingType.BOOL, true, "sanya_radio_enhance"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_intercom_information", true, Smod2.Config.SettingType.BOOL, true, "sanya_intercom_information"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_escape_spawn", true, Smod2.Config.SettingType.BOOL, true, "sanya_escape_spawn"));

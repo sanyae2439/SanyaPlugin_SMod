@@ -234,6 +234,32 @@ namespace SanyaPlugin
                 }
                 plugin.Info("NukeOpenDoors Stopped");
             }
+
+            if (this.plugin.GetConfigInt("sanya_classd_startitem_percent") > 0)
+            {
+                int success_count = 0;
+                Random rnd = new Random();
+                foreach (Vector spawnpos in plugin.Server.Map.GetSpawnPoints(Role.CLASSD))
+                {
+                    int ritem = rnd.Next(0, 100);
+
+                    if (ritem >= 0 && ritem <= this.plugin.GetConfigInt("sanya_classd_startitem_percent"))
+                    {
+                        success_count++;
+                        ritem = this.plugin.GetConfigInt("sanya_classd_startitem_ok_itemid");
+                    }
+                    else
+                    {
+                        ritem = this.plugin.GetConfigInt("sanya_classd_startitem_no_itemid");
+                    }
+
+                    if (ritem >= 0)
+                    {
+                        plugin.Server.Map.SpawnItem((ItemType)ritem, spawnpos, new Vector(0, 0, 0));
+                    }
+                }
+                plugin.Info("Class-D-Contaiment Item Droped! (Success:" + success_count + ")");
+            }
         }
 
         public void OnRoundEnd(RoundEndEvent ev)
@@ -376,15 +402,22 @@ namespace SanyaPlugin
                     {
                         if (!ev.Door.Name.Contains("CHECKPOINT") && !ev.Door.Name.Contains("GATE_"))
                         {
-                            if (ev.Door.Locked == true)
+                            if (ev.Door.Locked == false)
                             {
-                                ev.Allow = true;
-                                ev.Door.Locked = false;
-                            }
-                            else
-                            {
-                                ev.Allow = false;
                                 ev.Door.Locked = true;
+                                System.Timers.Timer t = new System.Timers.Timer
+                                {
+                                    Interval = this.plugin.GetConfigInt("sanya_tablet_lockable_second") * 1000,
+                                    AutoReset = false,
+                                    Enabled = true
+                                };
+                                t.Elapsed += delegate
+                                {
+                                    ev.Allow = true;
+                                    ev.Door.Locked = false;
+                                    t.Enabled = false;
+                                };
+
                             }
                         }
                     }
