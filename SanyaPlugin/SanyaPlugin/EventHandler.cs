@@ -181,7 +181,7 @@ namespace SanyaPlugin
                 }
                 catch (Exception e)
                 {
-                    plugin.Error(e.ToString());
+                    plugin.Debug(e.ToString());
                     sender_live = false;
                 }
             }
@@ -853,7 +853,7 @@ namespace SanyaPlugin
 
             if (!sender_live)
             {
-                plugin.Error("InfoSender Rebooting...");
+                plugin.Debug("InfoSender Rebooting...");
                 infosender.Abort();
                 running = false;
                 infosender = null;
@@ -862,7 +862,7 @@ namespace SanyaPlugin
                 infosender.Start();
                 running = true;
                 sender_live = true;
-                plugin.Warn("InfoSender Rebooting Completed");
+                plugin.Debug("InfoSender Rebooting Completed");
             }
         }
 
