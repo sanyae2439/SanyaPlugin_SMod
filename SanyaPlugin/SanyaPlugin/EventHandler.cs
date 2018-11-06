@@ -488,6 +488,8 @@ namespace SanyaPlugin
                     }
 
                     this.plugin.pluginManager.Server.Map.Shake();
+                    this.plugin.Server.Map.AnnounceCustomMessage("Danger SCP 0 7 9 entered all remaining personnel are security check of systems immediately");
+
                     plugin.Info("[SCP-079] Activated (" + ev.Player.Name + ")");
                 }
 
