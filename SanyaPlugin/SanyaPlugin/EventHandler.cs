@@ -137,14 +137,10 @@ namespace SanyaPlugin
 
                     if (cinfo.playing > 0)
                     {
-                        try
+                        foreach (Player player in server.GetPlayers())
                         {
-                            foreach (Player player in server.GetPlayers())
-                            {
-                                cinfo.players.Add(player.Name);
-                            }
+                            cinfo.players.Add(player.Name);
                         }
-                        catch (Exception) { }
                     }
 
                     cinfo.name = cinfo.name.Replace("$number", (cinfo.port - 7776).ToString());
@@ -421,6 +417,14 @@ namespace SanyaPlugin
                             }
                         }
                     }
+                }
+            }
+
+            if (this.plugin.GetConfigBool("sanya_intercom_information"))
+            {
+                if(ev.Door.Name == "INTERCOM")
+                {
+                    ev.Allow = true;
                 }
             }
 
