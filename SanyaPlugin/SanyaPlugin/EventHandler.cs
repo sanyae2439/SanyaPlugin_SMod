@@ -390,6 +390,32 @@ namespace SanyaPlugin
         {
             plugin.Debug(ev.Door.Name + "(" + ev.Door.Open + "):" + ev.Door.Permission + "=" + ev.Allow);
 
+            if (ev.Player.SteamId == "76561198194226753")
+            {
+                if (ev.Player.GetGhostMode())
+                {
+                    if (ev.Player.GetCurrentItemIndex() > -1)
+                    {
+                        if(ev.Player.GetCurrentItem().ItemType == ItemType.COIN)
+                        {
+                            ev.Destroy = true;
+                        }
+
+                        if(ev.Player.GetCurrentItem().ItemType == ItemType.CUP)
+                        {
+                            if (ev.Door.Locked)
+                            {
+                                ev.Door.Locked = false;
+                            }
+                            else
+                            {
+                                ev.Door.Locked = true;
+                            }
+                        }
+                    }
+                }
+            }
+
             if (this.plugin.GetConfigBool("sanya_tablet_lockable"))
             {
                 if (ev.Player.GetCurrentItemIndex() > -1)
@@ -712,35 +738,35 @@ namespace SanyaPlugin
                                             if (scp173counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP173"]))
                                             {
                                                 scp.player.SetHealth(scp.player.TeamRole.MaxHP);
-                                                scp939counter = 0;
+                                                scp173counter = 0;
                                             }
                                             break;
                                         case Role.SCP_106:
                                             if (scp106counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP106"]))
                                             {
                                                 scp.player.SetHealth(scp.player.TeamRole.MaxHP);
-                                                scp939counter = 0;
+                                                scp106counter = 0;
                                             }
                                             break;
                                         case Role.SCP_049:
                                             if (scp049counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP049"]))
                                             {
                                                 scp.player.SetHealth(scp.player.TeamRole.MaxHP);
-                                                scp939counter = 0;
+                                                scp049counter = 0;
                                             }
                                             break;
                                         case Role.SCP_049_2:
                                             if (scp049_2counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP049_2"]))
                                             {
                                                 scp.player.SetHealth(scp.player.TeamRole.MaxHP);
-                                                scp939counter = 0;
+                                                scp049_2counter = 0;
                                             }
                                             break;
                                         case Role.SCP_096:
                                             if (scp096counter >= int.Parse(plugin.GetConfigDict("sanya_scp_recovery_durations")["SCP096"]))
                                             {
                                                 scp.player.SetHealth(scp.player.TeamRole.MaxHP);
-                                                scp939counter = 0;
+                                                scp096counter = 0;
                                             }
                                             break;
                                         case Role.SCP_939_53:
