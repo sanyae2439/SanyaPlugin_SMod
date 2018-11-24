@@ -9,10 +9,10 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "10.1.4",
+    version = "10.2",
     SmodMajor = 3,
     SmodMinor = 1,
-    SmodRevision = 21
+    SmodRevision = 22
     )]
 
     class SanyaPlugin : Plugin
@@ -33,8 +33,9 @@ namespace SanyaPlugin
         {
             //InfoSender
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_info_sender_to", "hatsunemiku24.ddo.jp", Smod2.Config.SettingType.STRING, true, "sanya_info_sender_to"));
-
+            
             //小物系
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_spectator_slot", 0, Smod2.Config.SettingType.NUMERIC, true, "sanya_spectator_slot"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_title_string", "No-Titled Server", Smod2.Config.SettingType.STRING, true, "sanya_title_string"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_percent", 20, Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_percent"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_ok_itemid", 0 , Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_ok_itemid"));

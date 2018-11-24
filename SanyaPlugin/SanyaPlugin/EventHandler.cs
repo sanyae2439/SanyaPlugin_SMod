@@ -9,6 +9,7 @@ using Smod2.API;
 using Smod2.Events;
 using Smod2.EventHandlers;
 using Smod2.EventSystem.Events;
+using Newtonsoft.Json;
 
 namespace SanyaPlugin
 {
@@ -23,12 +24,27 @@ namespace SanyaPlugin
         public Vector beforePos;
     }
 
+    class Playerinfo
+    {
+        public Playerinfo() { }
+
+        public string name { get; set; }
+        
+        public string steamid { get; set; }
+
+        public string role { get; set; }
+    }
+
     class Serverinfo {
         public Serverinfo()
         {
-            players = new List<string>();
+            players = new List<Playerinfo>();
         }
         public string time { get; set; }
+
+        public string smodversion { get; set; }
+
+        public string sanyaversion { get; set; }
 
         public string name { get; set; }
 
@@ -42,7 +58,7 @@ namespace SanyaPlugin
 
         public int duration { get; set; }
 
-        public IList<string> players { get; private set; }
+        public List<Playerinfo> players { get; private set; }
     }
 
     class EventHandler :
@@ -57,6 +73,7 @@ namespace SanyaPlugin
         IEventHandlerDoorAccess,
         IEventHandlerRadioSwitch,
         IEventHandlerElevatorUse,
+        IEventHandlerPlayerJoin,
         IEventHandlerUpdate
     {
         private Plugin plugin;
@@ -89,6 +106,10 @@ namespace SanyaPlugin
         //Update
         private int updatecounter = 0;
         private Vector traitor_pos = new Vector(170, 984, 28);
+
+        //Spectator
+        private List<Player> playingList = new List<Player>();
+        private List<Player> spectatorList = new List<Player>();
 
         //PocketCleaner
         //private int temphealth;
@@ -128,6 +149,8 @@ namespace SanyaPlugin
 
                     DateTime dt = DateTime.Now;
                     cinfo.time = dt.ToString("yyyy-MM-ddTHH:mm:sszzzz");
+                    cinfo.smodversion = PluginManager.GetSmodVersion() + "-" + PluginManager.GetSmodBuild();
+                    cinfo.sanyaversion = this.plugin.Details.version;
                     cinfo.name = server.Name;
                     cinfo.ip = server.IpAddress;
                     cinfo.port = server.Port;
@@ -135,16 +158,26 @@ namespace SanyaPlugin
                     cinfo.maxplayer = server.MaxPlayers;
                     cinfo.duration = server.Round.Duration;
 
+                    cinfo.name = cinfo.name.Replace("$number", (cinfo.port - 7776).ToString());
+
                     if (cinfo.playing > 0)
                     {
                         foreach (Player player in server.GetPlayers())
                         {
-                            cinfo.players.Add(player.Name);
+                            Playerinfo ply = new Playerinfo();
+
+                            ply.name = player.Name;
+                            ply.steamid = player.SteamId;
+                            ply.role = player.TeamRole.Role.ToString();
+
+                            cinfo.players.Add(ply);
                         }
                     }
 
-                    cinfo.name = cinfo.name.Replace("$number", (cinfo.port - 7776).ToString());
+                    string json = JsonConvert.SerializeObject(cinfo);
 
+
+                    /*
                     string json = "{\"time\":\"" + cinfo.time +
                         "\",\"name\":\"" + cinfo.name +
                         "\",\"ip\":\"" + cinfo.ip +
@@ -170,6 +203,7 @@ namespace SanyaPlugin
                     }
 
                     json += "]}";
+                    */
 
                     byte[] sendBytes = Encoding.UTF8.GetBytes(json);
 
@@ -601,6 +635,28 @@ namespace SanyaPlugin
             }
         }
 
+        public void OnPlayerJoin(PlayerJoinEvent ev)
+        {
+            plugin.Debug("PlayerJoin:" + ev.Player.SteamId + ":" + ev.Player.Name + "(" + ev.Player.IpAddress + ")");
+
+            if (this.plugin.GetConfigInt("sanya_spectator_slot") > 0)
+            {
+                if (playingList.Count >= plugin.Server.MaxPlayers - this.plugin.GetConfigInt("sanya_spectator_slot"))
+                {
+                    plugin.Info("[Spectator]Join to Spectator : " + ev.Player.Name + "(" + ev.Player.SteamId + ")");
+                    ev.Player.OverwatchMode = true;
+                    ev.Player.SetRank("nickel", "SPECTATOR", "");
+                    spectatorList.Add(ev.Player);
+                }
+                else
+                {
+                    plugin.Info("[Spectator]Join to Player : " + ev.Player.Name + "(" + ev.Player.SteamId + ")");
+                    ev.Player.OverwatchMode = false;
+                    playingList.Add(ev.Player);
+                }
+            }
+        }
+
         public void OnUpdate(UpdateEvent ev)
         {
             updatecounter += 1;
@@ -608,6 +664,46 @@ namespace SanyaPlugin
             //if (updatecounter % 60 == 0 && roundduring)
             if (updatecounter % 60 == 0)
             {
+                if(this.plugin.GetConfigInt("sanya_spectator_slot") > 0)
+                {
+                    plugin.Debug("playing:" + playingList.Count + " spectator:" + spectatorList.Count);
+
+                    List<Player> players = plugin.Server.GetPlayers();
+
+                    foreach (Player ply in playingList.ToArray())
+                    {
+                        //plugin.Info(ply.SteamId);
+                        if (players.FindIndex(item => item.SteamId == ply.SteamId) == -1)
+                        {
+                            plugin.Debug("delete player:" + ply.SteamId);
+                            playingList.Remove(ply);
+                        }
+                    }
+
+                    foreach (Player ply in spectatorList.ToArray())
+                    {
+                        //plugin.Info(ply.SteamId);
+                        if (players.FindIndex(item => item.SteamId == ply.SteamId) == -1)
+                        {
+                            plugin.Debug("delete spectator:" + ply.SteamId);
+                            spectatorList.Remove(ply);
+                        }
+                    }
+
+                    if(playingList.Count < plugin.Server.MaxPlayers - this.plugin.GetConfigInt("sanya_spectator_slot"))
+                    {
+                        if(spectatorList.Count > 0)
+                        {
+                            plugin.Info("[Spectator]Spectator to Player:" + spectatorList[0].Name + "(" + spectatorList[0].SteamId + ")");
+                            spectatorList[0].OverwatchMode = false;
+                            spectatorList[0].SetRank("", "", "");
+                            playingList.Add(spectatorList[0]);
+                            spectatorList.RemoveAt(0);
+                        }
+                    }
+
+                }
+
                 if (this.plugin.GetConfigBool("sanya_intercom_information"))
                 {
                     plugin.pluginManager.Server.Map.SetIntercomContent(IntercomStatus.Ready, "READY\nSCP LEFT:" + plugin.pluginManager.Server.Round.Stats.SCPAlive + "\nCLASS-D LEFT:" + plugin.pluginManager.Server.Round.Stats.ClassDAlive + "\nSCIENTIST LEFT:" + plugin.pluginManager.Server.Round.Stats.ScientistsAlive);
