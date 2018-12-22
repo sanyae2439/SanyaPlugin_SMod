@@ -9,10 +9,10 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "10.2",
+    version = "10.4",
     SmodMajor = 3,
-    SmodMinor = 1,
-    SmodRevision = 22
+    SmodMinor = 2,
+    SmodRevision = 0
     )]
 
     class SanyaPlugin : Plugin
@@ -26,7 +26,7 @@ namespace SanyaPlugin
         public override void OnEnable()
         {
             this.Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            this.Info("ずりぱい");
+            this.Info("ずりぃ");
         }
 
         public override void Register()
@@ -36,68 +36,39 @@ namespace SanyaPlugin
             
             //小物系
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_spectator_slot", 0, Smod2.Config.SettingType.NUMERIC, true, "sanya_spectator_slot"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_title_string", "No-Titled Server", Smod2.Config.SettingType.STRING, true, "sanya_title_string"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_title_timer", true, Smod2.Config.SettingType.BOOL, true, "sanya_title_timer"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_percent", 20, Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_percent"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_ok_itemid", 0 , Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_ok_itemid"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_no_itemid", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_no_itemid"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_tablet_lockable", false, Smod2.Config.SettingType.BOOL, true, "sanya_tablet_lockable"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_tablet_lockable_second", 5, Smod2.Config.SettingType.NUMERIC, true, "sanya_tablet_lockable_second"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_door_lockable", false, Smod2.Config.SettingType.BOOL, true, "sanya_door_lockable"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_door_lockable_second", 10, Smod2.Config.SettingType.NUMERIC, true, "sanya_door_lockable_second"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_door_lockable_interval", 60, Smod2.Config.SettingType.NUMERIC, true, "sanya_door_lockable_interval"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_handcuffed_cantopen", true, Smod2.Config.SettingType.BOOL, true, "sanya_handcuffed_cantopen"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_radio_enhance", false, Smod2.Config.SettingType.BOOL, true, "sanya_radio_enhance"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_intercom_information", true, Smod2.Config.SettingType.BOOL, true, "sanya_intercom_information"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_escape_spawn", true, Smod2.Config.SettingType.BOOL, true, "sanya_escape_spawn"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_pocket_cleanup", false, Smod2.Config.SettingType.BOOL, true, "sanya_pocket_cleanup"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_infect_by_scp049_2", true, Smod2.Config.SettingType.BOOL, true, "sanya_infect"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_infect_limit_time", 4, Smod2.Config.SettingType.NUMERIC, true, "sanya_infect_limit_time"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_warhead_dontlock", true, Smod2.Config.SettingType.BOOL, true, "sanya_warhead_dontlock"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_pocket_cleanup", false, Smod2.Config.SettingType.BOOL, true, "sanya_pocket_cleanup"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_traitor_enabled", false, Smod2.Config.SettingType.BOOL, true, "sanya_traitor_enabled"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_traitor_limitter", 4, Smod2.Config.SettingType.NUMERIC, true, "sanya_traitor_limitter"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_traitor_chance_percent", 50, Smod2.Config.SettingType.NUMERIC, true, "sanya_traitor_chance_percent"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp079_enabled", false, Smod2.Config.SettingType.BOOL, true, "sanya_scp079_enabled"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp079_doors_interval", 30, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp079_doors_interval"));
 
-            //SCPごとの回復間隔&回復値
-            var durationsdic = new Dictionary<string, string>()
-            {
-                {"SCP173","-1" },
-                {"SCP106","-1" },
-                {"SCP049","-1" },
-                {"SCP049_2","-1" },
-                {"SCP096","-1" },
-                {"SCP939","-1" },
-            };
+            //SCPごとの回復値（新）
             var amountsdic = new Dictionary<string, string>()
             {
-                {"SCP173","-1" },
-                {"SCP106","-1" },
-                {"SCP049","-1" },
-                {"SCP049_2","-1" },
-                {"SCP096","-1" },
-                {"SCP939","-1" },
+                {"SCP_173","-1" },
+                {"SCP_106","-1" },
+                {"SCP_049","-1" },
+                {"SCP_049_2","-1" },
+                {"SCP_096","-1" },
+                {"SCP_939","-1" },
             };
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp_recovery_durations", durationsdic, Smod2.Config.SettingType.DICTIONARY, true, "sanya_scp_recovery_durations"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp_recovery_amounts", amountsdic, Smod2.Config.SettingType.DICTIONARY, true, "sanya_scp_recovery_amounts"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp_actrecovery_amounts", amountsdic, Smod2.Config.SettingType.DICTIONARY, true, "sanya_scp_actrecovery_amounts"));
+
 
             //EventHandler
             this.AddEventHandlers(new EventHandler(this));
-
-            //複製config 
-            /*  
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp173_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp173_duplicate_hp"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp049_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp049_duplicate_hp"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp049_2_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp049_2_duplicate_hp"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp939_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp939_duplicate_hp"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp106_duplicate_hp", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp106_duplicate_hp"));
-            */
-
-            //旧config
-            /*
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp173_duplicate", false, Smod2.Config.SettingType.BOOL, true, "sanya_scp173_duplicate"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp049_duplicate", false, Smod2.Config.SettingType.BOOL, true, "sanya_scp049_duplicate"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp049_2_duplicate", false, Smod2.Config.SettingType.BOOL, true, "sanya_scp049_2_duplicate"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp939_duplicate", false, Smod2.Config.SettingType.BOOL, true, "sanya_scp939_duplicate"));
-            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp106_duplicate", false, Smod2.Config.SettingType.BOOL, true, "sanya_scp106_duplicate"));
-            */
         }
     }
 }
