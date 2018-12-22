@@ -43,6 +43,8 @@ namespace SanyaPlugin
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_door_lockable", false, Smod2.Config.SettingType.BOOL, true, "sanya_door_lockable"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_door_lockable_second", 10, Smod2.Config.SettingType.NUMERIC, true, "sanya_door_lockable_second"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_door_lockable_interval", 60, Smod2.Config.SettingType.NUMERIC, true, "sanya_door_lockable_interval"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_usp_damage_multiplier_human", 2.0f, Smod2.Config.SettingType.FLOAT, true, "sanya_usp_damage_multiplier_human"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_usp_damage_multiplier_scp", 5.0f, Smod2.Config.SettingType.FLOAT, true, "sanya_usp_damage_multiplier_scp"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_handcuffed_cantopen", true, Smod2.Config.SettingType.BOOL, true, "sanya_handcuffed_cantopen"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_radio_enhance", false, Smod2.Config.SettingType.BOOL, true, "sanya_radio_enhance"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_intercom_information", true, Smod2.Config.SettingType.BOOL, true, "sanya_intercom_information"));

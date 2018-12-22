@@ -262,7 +262,13 @@ namespace SanyaPlugin
         {
             if(ev.DamageType == DamageType.USP)
             {
-                ev.Damage *= 2.0f;
+                if(ev.Player.TeamRole.Team == Team.SCP)
+                {
+                    ev.Damage *= this.plugin.GetConfigFloat("sanya_usp_damage_multiplier_scp");
+                }else
+                {
+                    ev.Damage *= this.plugin.GetConfigFloat("sanya_usp_damage_multiplier_human");
+                }              
             }
         }
 
