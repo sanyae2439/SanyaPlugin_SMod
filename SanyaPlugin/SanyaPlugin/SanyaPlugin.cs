@@ -9,10 +9,10 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "10.4",
+    version = "10.5",
     SmodMajor = 3,
     SmodMinor = 2,
-    SmodRevision = 0
+    SmodRevision = 2
     )]
 
     class SanyaPlugin : Plugin
@@ -37,6 +37,7 @@ namespace SanyaPlugin
             //小物系
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_spectator_slot", 0, Smod2.Config.SettingType.NUMERIC, true, "sanya_spectator_slot"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_title_timer", true, Smod2.Config.SettingType.BOOL, true, "sanya_title_timer"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_cassie_subtitle", false, Smod2.Config.SettingType.BOOL, true, "sanya_cassie_subtitle"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_percent", 20, Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_percent"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_ok_itemid", 0 , Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_ok_itemid"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_no_itemid", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_no_itemid"));

@@ -7,6 +7,7 @@ using Smod2;
 using Smod2.API;
 using Smod2.Events;
 using Smod2.EventHandlers;
+using Smod2.EventSystem.Events;
 using Newtonsoft.Json;
 
 namespace SanyaPlugin
@@ -53,7 +54,10 @@ namespace SanyaPlugin
         IEventHandlerRoundStart,
         IEventHandlerRoundEnd,
         IEventHandlerLCZDecontaminate,
+        IEventHandlerWarheadStartCountdown,
+        IEventHandlerWarheadStopCountdown,
         IEventHandlerWarheadDetonate,
+        IEventHandlerSetNTFUnitName,
         IEventHandlerCheckEscape,
         IEventHandlerSetRole,
         IEventHandlerPlayerHurt,
@@ -175,6 +179,9 @@ namespace SanyaPlugin
 
             plugin.Info("RoundStart!");
 
+            //defaultsize=45
+            //plugin.Server.Map.Broadcast(10, "<size=9><color=#ff0000>オブジェクトの収容違反が確認されました。\n職員は直ちに脱出を開始してください。</color></size>", false);
+
             if (this.plugin.GetConfigInt("sanya_classd_startitem_percent") > 0)
             {
                 int success_count = 0;
@@ -212,14 +219,68 @@ namespace SanyaPlugin
             roundduring = false;
         }
 
-        public void OnDetonate()
+        public void OnSetNTFUnitName(SetNTFUnitNameEvent ev)
         {
-            plugin.Info("AlphaWarhead Denotated");
+            if (roundduring)
+            {
+                if (this.plugin.GetConfigBool("sanya_cassie_subtitle"))
+                {
+                    plugin.Server.Map.ClearBroadcasts();
+                    if (plugin.Server.Round.Stats.SCPAlive > 0)
+                    {
+                        plugin.Server.Map.Broadcast(30, "<color=#6c80ff><size=25>《機動部隊イプシロン-11「" + ev.Unit + "」が施設に到着しました。\n残りの全職員は、機動部隊が貴方の場所へ到着するまで「標準避難プロトコル」の続行を推奨します。\n「" + plugin.Server.Round.Stats.SCPAlive.ToString() + "」オブジェクトが再収容されていません。》\n</size><size=15>《Mobile Task Force Unit, Epsilon-11, designated, '" + ev.Unit + "', has entered the facility.\nAll remaining personnel are advised to proceed with standard evacuation protocols until an MTF squad reaches your destination.\nAwaiting recontainment of: " + plugin.Server.Round.Stats.SCPAlive.ToString() + " SCP subject.》\n</size></color>", false);
+                    }
+                    else
+                    {
+                        plugin.Server.Map.Broadcast(30, "<color=#6c80ff><size=25>《機動部隊イプシロン-11「" + ev.Unit + "」が施設に到着しました。\n残りの全職員は、機動部隊が貴方の場所へ到着するまで「標準避難プロトコル」の続行を推奨します。\n重大な脅威が施設内に存在します。注意してください。》\n </size><size=15>《Mobile Task Force Unit, Epsilon-11, designated, '" + ev.Unit + "', has entered the facility.\nAll remaining personnel are advised to proceed with standard evacuation protocols, until MTF squad has reached your destination.\nSubstantial threat to safety is within the facility -- Exercise caution.》\n</size></color>", false);
+                    }
+                }
+            }
         }
 
         public void OnDecontaminate()
         {
             plugin.Info("LCZ Decontaminated");
+
+            if (this.plugin.GetConfigBool("sanya_cassie_subtitle"))
+            {
+                plugin.Server.Map.ClearBroadcasts();
+                plugin.Server.Map.Broadcast(13, "<size=25>《下層がロックされ、「再収容プロトコル」の準備が出来ました。全ての有機物は破壊されます。》\n </size><size=15>《Light Containment Zone is locked down and ready for decontamination. The removal of organic substances has now begun.》\n</size>", false);
+            }
+        }
+
+        public void OnStartCountdown(WarheadStartEvent ev)
+        {
+            if (this.plugin.GetConfigBool("sanya_cassie_subtitle"))
+            {
+                plugin.Server.Map.ClearBroadcasts();
+                if (!ev.IsResumed)
+                {
+                    plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=23>《「AlphaWarhead」の緊急起爆シーケンスが開始されました。施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>《Alpha Warhead emergency detonation sequence engaged.The underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                }
+                else
+                {
+                    double left = ev.TimeLeft;
+                    double count = Math.Truncate(left / 10.0) * 10.0;
+                    plugin.Server.Map.ClearBroadcasts();
+                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>《緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>《Detonation sequence resumed. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                }
+            }
+        }
+
+        public void OnStopCountdown(WarheadStopEvent ev)
+        {
+            if (this.plugin.GetConfigBool("sanya_cassie_subtitle"))
+            {
+                plugin.Server.Map.ClearBroadcasts();
+                plugin.Server.Map.Broadcast(7, "<color=#ff0000><size=25>《起爆が取り消されました。システムを再起動します。》\n</size><size=15>《Detonation cancelled. Restarting systems.》\n</size></color>", false);
+            }
+
+        }
+
+        public void OnDetonate()
+        {
+            plugin.Info("AlphaWarhead Denotated");
         }
 
         public void OnCheckEscape(PlayerCheckEscapeEvent ev)
@@ -544,7 +605,41 @@ namespace SanyaPlugin
         {
             updatecounter += 1;
 
-            //if (updatecounter % 60 == 0 && roundduring)
+            /*
+            if (updatecounter % 60 == 0 && roundduring)
+            {
+                //45 = decontainment attention
+                if(plugin.Server.Round.Duration == 45)
+                {
+                    plugin.Server.Map.Broadcast(20, "<size=25>《全ての職員へ。「再収容プロトコル」が下層にて約15分後に実行されます。\n下層にいる全ての生物学的物質は、さらなる収容違反を防ぐため破壊されます。》</size>\n<size=15>《Attention, all personnel, the Light Containment Zone decontamination process will occur in t-minus 15 minutes. All biological substances must be removed in order to avoid destruction.》</size>", false);
+                }
+
+                //240 = decontainment 10minutes
+                if (plugin.Server.Round.Duration == 240)
+                {
+                    plugin.Server.Map.Broadcast(10, "<size=25>《警告。「再収容プロトコル」が下層にて約10分後に実行されます。》</size>\n<size=15>《Danger, Light Containment Zone overall decontamination in t-minus 10 minutes.》</size>", false);
+                }
+
+                //440 = decontainment 5minutes
+                if (plugin.Server.Round.Duration == 440)
+                {
+                    plugin.Server.Map.Broadcast(10, "<size=25>《警告。「再収容プロトコル」が下層にて約5分後に実行されます。》</size>\n<size=15>《Danger, Light Containment Zone overall decontamination in t-minus 5 minutes.》</size>", false);
+                }
+                    
+                //638 = decontainment 1minutes
+                if (plugin.Server.Round.Duration == 638)
+                {
+                    plugin.Server.Map.Broadcast(10, "<size=25>《警告。「再収容プロトコル」が下層にて約1分後に実行されます。》</size>\n<size=15>《Danger, Light Containment Zone overall decontamination in t-minus 1 minutes.》</size>", false);
+                }
+
+                //668 = decontainment countdown
+                if (plugin.Server.Round.Duration == 668)
+                {
+                    plugin.Server.Map.Broadcast(10, "<size=25>《警告。「再収容プロトコル」が下層にて約30秒後に実行されます。全てのチェックポイントは開放されます。すぐに避難してください。》</size>\n<size=15>《Danger, Light Containment Zone overall decontamination in t-minus 30 seconds. All checkpoint doors have been permanently opened. Please evacuate immediately.》</size>", false);
+                }
+            }
+            */
+
             if (updatecounter % 60 == 0)
             {
                 if (this.plugin.GetConfigInt("sanya_spectator_slot") > 0)
