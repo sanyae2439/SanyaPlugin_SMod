@@ -53,6 +53,7 @@ namespace SanyaPlugin
     class EventHandler :
         IEventHandlerRoundStart,
         IEventHandlerRoundEnd,
+        IEventHandlerRoundRestart,
         IEventHandlerLCZDecontaminate,
         IEventHandlerWarheadStartCountdown,
         IEventHandlerWarheadStopCountdown,
@@ -216,6 +217,11 @@ namespace SanyaPlugin
                 plugin.Info("Round Ended [" + ev.Status + "]");
                 plugin.Info("Class-D:" + ev.Round.Stats.ClassDAlive + " Scientist:" + ev.Round.Stats.ScientistsAlive + " NTF:" + ev.Round.Stats.NTFAlive + " SCP:" + ev.Round.Stats.SCPAlive + " CI:" + ev.Round.Stats.CiAlive);
             }
+            roundduring = false;
+        }
+
+        public void OnRoundRestart(RoundRestartEvent ev)
+        {
             roundduring = false;
         }
 
