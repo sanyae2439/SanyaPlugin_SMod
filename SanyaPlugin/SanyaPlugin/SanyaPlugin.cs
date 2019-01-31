@@ -9,7 +9,7 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "11.0",
+    version = "12.0",
     SmodMajor = 3,
     SmodMinor = 2,
     SmodRevision = 2
@@ -26,20 +26,24 @@ namespace SanyaPlugin
         public override void OnEnable()
         {
             this.Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            this.Info("ずりにゃん");
+            this.Info("ずりねこ");
         }
 
         public override void Register()
         {
             //InfoSender
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_info_sender_to", "hatsunemiku24.ddo.jp", Smod2.Config.SettingType.STRING, true, "sanya_info_sender_to"));
-            
+
             //小物系
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_spectator_slot", 0, Smod2.Config.SettingType.NUMERIC, true, "sanya_spectator_slot"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_night_mode", false, Smod2.Config.SettingType.BOOL, true, "sanya_night_mode"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_title_timer", true, Smod2.Config.SettingType.BOOL, true, "sanya_title_timer"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_cassie_subtitle", false, Smod2.Config.SettingType.BOOL, true, "sanya_cassie_subtitle"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_friendly_warn", false, Smod2.Config.SettingType.BOOL, true, "sanya_friendly_warn"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_generators_fix", false, Smod2.Config.SettingType.BOOL, true, "sanya_generators_fix"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp914_changing", false, Smod2.Config.SettingType.BOOL, true, "sanya_scp914_changing"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp106_portal_to_human", false, Smod2.Config.SettingType.BOOL, true, "sanya_scp106_portal_to_human"));
+            this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp106_lure_speaktime", 20, Smod2.Config.SettingType.NUMERIC, true, "sanya_scp106_lure_speaktime"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_percent", 20, Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_percent"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_ok_itemid", 0 , Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_ok_itemid"));
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_classd_startitem_no_itemid", -1, Smod2.Config.SettingType.NUMERIC, true, "sanya_classd_startitem_no_itemid"));
@@ -72,6 +76,8 @@ namespace SanyaPlugin
             };
             this.AddConfig(new Smod2.Config.ConfigSetting("sanya_scp_actrecovery_amounts", amountsdic, Smod2.Config.SettingType.DICTIONARY, true, "sanya_scp_actrecovery_amounts"));
 
+            //CommandHandler
+            this.AddCommand("sanya", new CommandHandler(this));
 
             //EventHandler
             this.AddEventHandlers(new EventHandler(this));
