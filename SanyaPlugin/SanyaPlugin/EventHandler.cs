@@ -495,7 +495,7 @@ namespace SanyaPlugin
 
             if (ev.DamageType == DamageType.NUKE)
             {
-                ev.Damage *= 3;
+                ev.Player.Kill(DamageType.NUKE);
             }
 
             if (sanya_scp106_lure_speaktime != -1)
@@ -575,14 +575,6 @@ namespace SanyaPlugin
         public void OnPlayerDie(PlayerDeathEvent ev)
         {
             plugin.Debug("[OnPlayerDie] " + ev.Killer + ":" + ev.DamageTypeVar + " -> " + ev.Player.Name);
-
-            if (plugin.Server.Map.GetIntercomSpeaker() != null)
-            {
-                if (ev.Player.Name == plugin.Server.Map.GetIntercomSpeaker().Name)
-                {
-                    plugin.Server.Map.SetIntercomSpeaker(null);
-                }
-            }
 
             //----------------------------------------------------キル回復------------------------------------------------  
             //############## SCP-173 ###############
@@ -1052,41 +1044,6 @@ namespace SanyaPlugin
                         ev.ReturnMessage = "あなたはSCP陣営ではありません。";
                     }
                 }
-                else if (ev.Command.StartsWith("939sp"))
-                {
-                    if (ev.Player.TeamRole.Role == Role.SCP_939_53 || ev.Player.TeamRole.Role == Role.SCP_939_89)
-                    {
-                        plugin.Info("[939Speaker] " + ev.Player.Name);
-
-                        if (null == plugin.Server.Map.GetIntercomSpeaker())
-                        {
-                            plugin.Server.Map.SetIntercomSpeaker(ev.Player);
-                            ev.Player.PersonalClearBroadcasts();
-                            ev.Player.PersonalBroadcast(5, "<size=25>《放送を開始します。》\n </size><size=15>《You will broadcast.》\n</size>", false);
-                            ev.ReturnMessage = "放送を開始します。";
-                        }
-                        else
-                        {
-                            if (ev.Player.Name == plugin.Server.Map.GetIntercomSpeaker().Name)
-                            {
-                                plugin.Server.Map.SetIntercomSpeaker(null);
-                                ev.Player.PersonalClearBroadcasts();
-                                ev.Player.PersonalBroadcast(5, "<size=25>《放送を終了しました。》\n </size><size=15>《You finished broadcasting.》\n</size>", false);
-                                ev.ReturnMessage = "放送を終了しました。";
-                            }
-                            else
-                            {
-                                ev.Player.PersonalClearBroadcasts();
-                                ev.Player.PersonalBroadcast(5, "<size=25>《誰かが放送中です。》\n </size><size=15>《Someone is broadcasting.》\n</size>", false);
-                                ev.ReturnMessage = "誰かが放送中です。";
-                            }
-                        }
-                    }
-                    else
-                    {
-                        ev.ReturnMessage = "あなたはSCP-939ではありません。";
-                    }
-                }
             }
 
             plugin.Debug("[OnCallCommand] Called:" + ev.Player.Name + " Command:" + ev.Command + " Return:" + ev.ReturnMessage);
@@ -1129,7 +1086,6 @@ namespace SanyaPlugin
                             plugin.Info("[SpectatorCheck] Spectator to Player:" + spectatorList[0].Name + "(" + spectatorList[0].SteamId + ")");
                             spectatorList[0].OverwatchMode = false;
                             spectatorList[0].SetRank();
-                            spectatorList[0].HideTag(true);
                             playingList.Add(spectatorList[0]);
                             spectatorList.RemoveAt(0);
                         }
@@ -1358,11 +1314,6 @@ namespace SanyaPlugin
                         genName = "SCP-939 収容室";
                         genNameEn = "SCP-939 chamber";
                     }
-                    else if (ev.Generator.Room.RoomType == RoomType.NUKE)
-                    {
-                        genName = "核格納庫";
-                        genNameEn = "Nuke chamber";
-                    }
                     else
                     {
                         genName = "不明";
@@ -1370,7 +1321,7 @@ namespace SanyaPlugin
                     }
 
                     plugin.Server.Map.ClearBroadcasts();
-                    plugin.Server.Map.Broadcast(10, "<color=#bbee00><size=25>《<" + genName + ">の発電機が起動を始めました。》\n</size><size=15>《Generator<" + genNameEn + "> has starting.》\n</size></color>", false);
+                    plugin.Server.Map.Broadcast(10, "<color=#bbee00><size=23>《<" + genName + ">の発電機が起動を始めました。》\n</size><size=15>《Generator<" + genNameEn + "> has starting.》\n</size></color>", false);
                 }
             }
         }
@@ -1379,12 +1330,11 @@ namespace SanyaPlugin
         {
             plugin.Debug("[OnGeneratorEjectTablet] " + ev.Player.Name + ":" + ev.Generator.Room.RoomType.ToString() + ":" + ev.Allow + "(" + ev.SpawnTablet + ")");
             plugin.Debug(ev.Generator.Locked + ":" + ev.Generator.Open + ":" + ev.Generator.HasTablet + ":" + ev.Generator.TimeLeft + ":" + ev.Generator.Engaged);
-
             if (sanya_generators_fix)
             {
                 if (ev.Allow)
                 {
-                    if (ev.Player.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.TeamRole.Team != Smod2.API.Team.CLASSD && ev.Player.TeamRole.Team != Smod2.API.Team.CHAOS_INSURGENCY)
+                    if (ev.Player.TeamRole.Team != Smod2.API.Team.SCP)
                     {
                         ev.Allow = false;
                     }
@@ -1465,11 +1415,6 @@ namespace SanyaPlugin
                     genName = "SCP-939 収容室";
                     genNameEn = "SCP-939 chamber";
                 }
-                else if (ev.Generator.Room.RoomType == RoomType.NUKE)
-                {
-                    genName = "核格納庫";
-                    genNameEn = "Nuke chamber";
-                }
                 else
                 {
                     genName = "不明";
@@ -1479,12 +1424,12 @@ namespace SanyaPlugin
                 if (!gencomplete)
                 {
                     plugin.Server.Map.ClearBroadcasts();
-                    plugin.Server.Map.Broadcast(10, "<color=#bbee00><size=25>《5つ中" + engcount + "つ目の発電機<" + genName + ">の起動が完了しました。》\n</size><size=15>《" + engcount + " out of 5 generators activated. <" + genNameEn + ">》\n</size></color>", false);
+                    plugin.Server.Map.Broadcast(10, "<color=#bbee00><size=23>《5つ中" + engcount + "つ目の発電機<" + genName + ">の起動が完了しました。》\n</size><size=15>《5 out of " + engcount + " generators activated. <" + genNameEn + ">》\n</size></color>", false);
                 }
                 else
                 {
                     plugin.Server.Map.ClearBroadcasts();
-                    plugin.Server.Map.Broadcast(20, "<color=#bbee00><size=25>《5つ中" + engcount + "つ目の発電機<" + genName + ">の起動が完了しました。\n全ての発電機が起動されました。最後再収容手順を開始します。\n中層は約一分後に過充電されます。》\n</size><size=15>《" + engcount + " out of 5 generators activated. <" + genNameEn + ">\nAll generators has been sucessfully engaged.\nFinalizing recontainment sequence.\nHeavy containment zone will overcharge in t-minus 1 minutes.》\n </size></color>", false);
+                    plugin.Server.Map.Broadcast(20, "<color=#bbee00><size=23>《5つ中" + engcount + "つ目の発電機<" + genName + ">の起動が完了しました。\n全ての発電機が起動されました。最後再収容手順を開始します。\n中層は約一分後に過充電されます。》\n</size><size=15>《5 out of " + engcount + " generators activated. <" + genNameEn + ">\nAll generators has been sucessfully engaged.\nFinalizing recontainment sequence.\nHeavy containment zone will overcharge in t-minus 1 minutes.》\n </size></color>", false);
                 }
             }
         }
