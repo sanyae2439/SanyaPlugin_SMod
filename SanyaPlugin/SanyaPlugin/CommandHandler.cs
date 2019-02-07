@@ -73,7 +73,8 @@ namespace SanyaPlugin
                     return new string[] { "blackout success." };
                 }else if(args[0] == "l")
                 {
-                    List<Room> rooms = plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA);
+                    List<Room> rooms = new List<Room>();
+                    rooms.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA));
 
                     rooms = rooms.FindAll(items => { return items.ZoneType == ZoneType.LCZ; });
 
@@ -82,7 +83,8 @@ namespace SanyaPlugin
                     return new string[] { rooms.Count.ToString() };
                 }else if (args[0] == "ls")
                 {
-                    List<Room> rooms = plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.SPEAKER);
+                    List<Room> rooms = new List<Room>();
+                    rooms.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.SPEAKER));
 
                     rooms = rooms.FindAll(items => { return items.ZoneType == ZoneType.LCZ; });
 
@@ -92,7 +94,8 @@ namespace SanyaPlugin
                 }
                 else if (args[0] == "h")
                 {
-                    List<Room> rooms = plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA);
+                    List<Room> rooms = new List<Room>();
+                    rooms.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.SPEAKER));
 
                     rooms = rooms.FindAll(items => { return items.ZoneType == ZoneType.HCZ; });
 
@@ -102,7 +105,8 @@ namespace SanyaPlugin
                 }
                 else if (args[0] == "hs")
                 {
-                    List<Room> rooms = plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.SPEAKER);
+                    List<Room> rooms = new List<Room>();
+                    rooms.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.SPEAKER));
 
                     rooms = rooms.FindAll(items => { return items.ZoneType == ZoneType.HCZ; });
 

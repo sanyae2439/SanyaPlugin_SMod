@@ -12,7 +12,7 @@ namespace SanyaPlugin
     version = "12.1",
     SmodMajor = 3,
     SmodMinor = 2,
-    SmodRevision = 2
+    SmodRevision = 3
     )]
 
     class SanyaPlugin : Plugin

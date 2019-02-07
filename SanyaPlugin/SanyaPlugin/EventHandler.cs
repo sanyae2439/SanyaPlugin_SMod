@@ -309,7 +309,8 @@ namespace SanyaPlugin
         {
             updatecounter = 0;
 
-            lcz_lights = plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA).FindAll(items => { return items.ZoneType == ZoneType.LCZ; });
+            lcz_lights.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA));
+            lcz_lights = lcz_lights.FindAll(items => { return items.ZoneType == ZoneType.LCZ; });
 
             roundduring = true;
 
