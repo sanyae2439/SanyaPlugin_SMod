@@ -1026,11 +1026,17 @@ namespace SanyaPlugin
                 if (ev.Command.StartsWith("kill"))
                 {
                     plugin.Info("[SelfKiller] " + ev.Player.Name);
-                    ev.ReturnMessage = "Success.";
-                    ev.Player.PersonalClearBroadcasts();
-                    ev.Player.PersonalBroadcast(5, "<size=25>《あなたは自殺しました。》\n </size><size=15>《You suicided.》\n</size>", false);
-                    ev.Player.SetGodmode(false);
-                    ev.Player.Kill(DamageType.DECONT);
+                    if(ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR && ev.Player.TeamRole.Team != Smod2.API.Team.NONE)
+                    {
+                        ev.ReturnMessage = "Success.";
+                        ev.Player.PersonalClearBroadcasts();
+                        ev.Player.PersonalBroadcast(5, "<size=25>《あなたは自殺しました。》\n </size><size=15>《You suicided.》\n</size>", false);
+                        ev.Player.SetGodmode(false);
+                        ev.Player.Kill(DamageType.DECONT);
+                    }else
+                    {
+                        ev.ReturnMessage = "あなたは観戦状態です。";
+                    }
                 }
                 else if (ev.Command.StartsWith("sinfo"))
                 {
