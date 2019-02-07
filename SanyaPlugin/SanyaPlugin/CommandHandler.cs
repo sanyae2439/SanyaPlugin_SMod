@@ -95,7 +95,7 @@ namespace SanyaPlugin
                 else if (args[0] == "h")
                 {
                     List<Room> rooms = new List<Room>();
-                    rooms.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.SPEAKER));
+                    rooms.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA));
 
                     rooms = rooms.FindAll(items => { return items.ZoneType == ZoneType.HCZ; });
 
@@ -121,9 +121,10 @@ namespace SanyaPlugin
                     foreach(Generator items in gens)
                     {
                         plugin.Debug(items.Room.RoomType.ToString());
+                        items.Unlock();
                     }
 
-                    return new string[] { "ok gen" };
+                    return new string[] { "ok g" };
                 }
             }
 

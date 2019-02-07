@@ -1280,12 +1280,18 @@ namespace SanyaPlugin
                 {
                     if (ev.Generator.Room.RoomType != RoomType.HCZ_ARMORY)
                     {
-                        ev.Allow = false;
+                        if (!ev.Player.GetBypassMode())
+                        {
+                            ev.Allow = false;
+                        }
                     }
                 }
                 else
                 {
-                    ev.Allow = false;
+                    if (!ev.Player.GetBypassMode())
+                    {
+                        ev.Allow = false;
+                    }
                 }
             }
         }
@@ -1294,6 +1300,7 @@ namespace SanyaPlugin
         {
             plugin.Debug("[OnGeneratorUnlock] " + ev.Player.Name + ":" + ev.Generator.Room.RoomType.ToString() + ":" + ev.Allow);
             plugin.Debug(ev.Generator.Locked + ":" + ev.Generator.Open + ":" + ev.Generator.HasTablet + ":" + ev.Generator.TimeLeft + ":" + ev.Generator.Engaged);
+
             if (sanya_generators_fix)
             {
                 if (ev.Allow)
@@ -1380,17 +1387,6 @@ namespace SanyaPlugin
         {
             plugin.Debug("[OnGeneratorEjectTablet] " + ev.Player.Name + ":" + ev.Generator.Room.RoomType.ToString() + ":" + ev.Allow + "(" + ev.SpawnTablet + ")");
             plugin.Debug(ev.Generator.Locked + ":" + ev.Generator.Open + ":" + ev.Generator.HasTablet + ":" + ev.Generator.TimeLeft + ":" + ev.Generator.Engaged);
-
-            if (sanya_generators_fix)
-            {
-                if (ev.Allow)
-                {
-                    if (ev.Player.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.TeamRole.Team != Smod2.API.Team.CLASSD && ev.Player.TeamRole.Team != Smod2.API.Team.CHAOS_INSURGENCY)
-                    {
-                        ev.Allow = false;
-                    }
-                }
-            }
         }
 
         public void OnGeneratorFinish(GeneratorFinishEvent ev)
