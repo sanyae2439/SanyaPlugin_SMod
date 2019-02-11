@@ -125,6 +125,11 @@ namespace SanyaPlugin
                     }
 
                     return new string[] { "ok g" };
+                }else if(args[0] == "reload")
+                {
+                    plugin.ReloadConfig();
+
+                    return new string[] { "reload ok" };
                 }
             }
 
