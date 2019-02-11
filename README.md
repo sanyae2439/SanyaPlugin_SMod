@@ -71,6 +71,7 @@ sanya_recovery_amount_scp096 | Int | -1 | SCP-096がキル時に回復する量
 sanya_recovery_amount_scp939 | Int | -1 | SCP-939がキル時に回復する量
 
 ## DefaultAmmo
+値は 5mm,7mm,9mm の順です
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_default_ammo_classd | List<int> | 15,15,15 | クラスDが初期で所持する弾数
