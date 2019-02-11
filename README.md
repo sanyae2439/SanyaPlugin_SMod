@@ -5,7 +5,7 @@ Smod2が必要です
 https://github.com/Grover-c13/Smod2
 
 # Config
-##システム系
+## システム系
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_info_sender_to_ip | String | hatsunemiku24.ddo.jp | サーバー情報送信先IP
@@ -16,7 +16,7 @@ sanya_title_timer | Bool | False | Nキーのプレイヤーリストにラウ�
 sanya_cassie_subtitle | Bool | False | 放送に字幕を表示
 sanya_friendly_warn | Bool | False | FFした人に警告を表示
 
-##SCP系
+## SCP系
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_generators_fix | Bool | False | 発電機の挙動を少し変更
@@ -27,13 +27,13 @@ sanya_scp106_cleanup | Bool | False | Smodのscp106_cleanupが動かないとき
 sanya_infect_by_scp049_2 | Bool | False | SCP-049-2がキルした死体をSCP-049が治療可能に
 sanya_infect_limit_time | Int | 4 | SCP-049が治療できなくなるまでの時間
 
-##人間系
+## 人間系
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_handcuffed_cantopen | Bool | False | 被拘束時にドアとエレベーターの操作を不能に
 sanya_radio_enhance | Bool | False | RadioのRangeをURにした際に放送が可能に
 
-##独自要素
+## 独自要素
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_escape_spawn | Bool | False | NTFに転生する際の場所を変更
@@ -47,7 +47,7 @@ sanya_doorlock_itemid | ItemType | -1 | このアイテムを持っている隊�
 sanya_doorlock_locked_second | Int | 10 | ロックされ続ける時間
 sanya_doorlock_interval_second | Int | 60 | 次にロックできるまでの時間
 
-##ダメージ調整系
+## ダメージ調整系
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_fallen_limit | Float | 10.0 | この値以下の落下ダメージを無効にする
@@ -60,7 +60,7 @@ sanya_damage_divisor_scp049_2 | Float | 1.0f | SCP-049-2が受けるダメージ
 sanya_damage_divisor_scp096 | Float | 1.0f | SCP-096が受けるダメージ除数
 sanya_damage_divisor_scp939 | Float | 1.0f | SCP-939が受けるダメージ除数
 
-##回復系
+## 回復系
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_recovery_amount_scp173 | Int | -1 | SCP-173がキル時に回復する量
@@ -70,7 +70,7 @@ sanya_recovery_amount_scp049_2 | Int | -1 | SCP-049-2がキル時に回復する
 sanya_recovery_amount_scp096 | Int | -1 | SCP-096がキル時に回復する量
 sanya_recovery_amount_scp939 | Int | -1 | SCP-939がキル時に回復する量
 
-##DefaultAmmo
+## DefaultAmmo
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_default_ammo_classd | List<int> | 15,15,15 | クラスDが初期で所持する弾数
