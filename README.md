@@ -51,14 +51,14 @@ sanya_doorlock_interval_second | Int | 60 | 次にロックできるまでの時
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_fallen_limit | Float | 10.0 | この値以下の落下ダメージを無効にする
-sanya_usp_damage_multiplier_human | Float | 2.5f | USPのダメージ倍率（対人間）
-sanya_usp_damage_multiplier_scp | Float | 5.0f | USPのダメージ倍率（対SCP）
-sanya_damage_divisor_scp173 | Float | 1.0f | SCP-173が受けるダメージ除数
-sanya_damage_divisor_scp106 | Float | 1.0f | SCP-106が受けるダメージ除数
-sanya_damage_divisor_scp049 | Float | 1.0f | SCP-049が受けるダメージ除数
-sanya_damage_divisor_scp049_2 | Float | 1.0f | SCP-049-2が受けるダメージ除数
-sanya_damage_divisor_scp096 | Float | 1.0f | SCP-096が受けるダメージ除数
-sanya_damage_divisor_scp939 | Float | 1.0f | SCP-939が受けるダメージ除数
+sanya_usp_damage_multiplier_human | Float | 2.5 | USPのダメージ倍率（対人間）
+sanya_usp_damage_multiplier_scp | Float | 5.0 | USPのダメージ倍率（対SCP）
+sanya_damage_divisor_scp173 | Float | 1.0 | SCP-173が受けるダメージ除数
+sanya_damage_divisor_scp106 | Float | 1.0 | SCP-106が受けるダメージ除数
+sanya_damage_divisor_scp049 | Float | 1.0 | SCP-049が受けるダメージ除数
+sanya_damage_divisor_scp049_2 | Float | 1.0 | SCP-049-2が受けるダメージ除数
+sanya_damage_divisor_scp096 | Float | 1.0 | SCP-096が受けるダメージ除数
+sanya_damage_divisor_scp939 | Float | 1.0 | SCP-939が受けるダメージ除数
 
 ## 回復系
 設定名 | 値の型 | 初期値 | 説明
