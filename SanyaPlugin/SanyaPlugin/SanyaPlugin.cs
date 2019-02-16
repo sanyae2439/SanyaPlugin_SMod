@@ -10,10 +10,10 @@ namespace SanyaPlugin
     name = "SanyaPlugin",
     description = "nya",
     id = "sanyae2439.sanyaplugin",
-    version = "12.2",
+    version = "12.2.2",
     SmodMajor = 3,
-    SmodMinor = 2,
-    SmodRevision = 3
+    SmodMinor = 3,
+    SmodRevision = 0
     )]
 
     class SanyaPlugin : Plugin

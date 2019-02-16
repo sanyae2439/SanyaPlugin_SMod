@@ -106,7 +106,7 @@ namespace SanyaPlugin
         //-----------------var---------------------
         //GlobalStatus
         private bool roundduring = false;
-        private bool config_loaded;
+        private bool config_loaded = false;
         private Random rnd = new Random();
 
         //NightMode

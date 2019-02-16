@@ -59,77 +59,86 @@ namespace SanyaPlugin
 
         public string GetUsage()
         {
-            return "SANYA <BLACKOUT>";
+            return "SANYA <RELOAD/BLACKOUT/GEN <UNLOCK/OPEN/ACT>/EV/TESLA <I>/SHAKE>";
         }
 
         public string[] OnCall(ICommandSender sender, string[] args)
         {
             if(args.Length > 0)
             {
-                if (args[0] == "blackout")
+                if (args[0] == "reload")
+                {
+                    plugin.ReloadConfig();
+
+                    return new string[] { "config reloaded." };
+                }
+                else if (args[0] == "blackout")
                 {
                     Generator079.mainGenerator.CallRpcOvercharge();
 
                     return new string[] { "blackout success." };
-                }else if(args[0] == "l")
-                {
-                    List<Room> rooms = new List<Room>();
-                    rooms.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA));
-
-                    rooms = rooms.FindAll(items => { return items.ZoneType == ZoneType.LCZ; });
-
-                    rooms.ForEach(items => { items.FlickerLights(); plugin.Info(items.RoomType.ToString()); });
-
-                    return new string[] { rooms.Count.ToString() };
-                }else if (args[0] == "ls")
-                {
-                    List<Room> rooms = new List<Room>();
-                    rooms.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.SPEAKER));
-
-                    rooms = rooms.FindAll(items => { return items.ZoneType == ZoneType.LCZ; });
-
-                    rooms.ForEach(items => { items.FlickerLights(); plugin.Info(items.RoomType.ToString()); });
-
-                    return new string[] { rooms.Count.ToString() };
                 }
-                else if (args[0] == "h")
+                else if (args[0] == "gen")
                 {
-                    List<Room> rooms = new List<Room>();
-                    rooms.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA));
-
-                    rooms = rooms.FindAll(items => { return items.ZoneType == ZoneType.HCZ; });
-
-                    rooms.ForEach(items => { items.FlickerLights(); plugin.Info(items.RoomType.ToString()); });
-
-                    return new string[] { rooms.Count.ToString() };
-                }
-                else if (args[0] == "hs")
-                {
-                    List<Room> rooms = new List<Room>();
-                    rooms.AddRange(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.SPEAKER));
-
-                    rooms = rooms.FindAll(items => { return items.ZoneType == ZoneType.HCZ; });
-
-                    rooms.ForEach(items => { items.FlickerLights(); plugin.Info(items.RoomType.ToString()); });
-
-                    return new string[] { rooms.Count.ToString() };
-                }
-                else if (args[0] == "g")
-                {
-                    Generator[] gens = plugin.Server.Map.GetGenerators();
-
-                    foreach(Generator items in gens)
+                    if (args.Length > 1)
                     {
-                        plugin.Debug(items.Room.RoomType.ToString());
-                        items.Unlock();
+                        if (args[1] == "unlock")
+                        {
+                            foreach (Generator items in plugin.Server.Map.GetGenerators())
+                            {
+                                items.Unlock();
+                            }
+                            return new string[] { "gen unlock." };
+                        }
+                        else if (args[1] == "open")
+                        {
+                            foreach (Generator items in plugin.Server.Map.GetGenerators())
+                            {
+                                items.Open = true;
+                            }
+                            return new string[] { "gen open." };
+                        }
+                        else if(args[1] == "act")
+                        {
+                            foreach (Generator items in plugin.Server.Map.GetGenerators())
+                            {
+                                items.HasTablet = true;
+                            }
+                            return new string[] { "gen activate." };
+                        }
+                    }
+                }
+                else if (args[0] == "ev")
+                {
+                    foreach(Elevator ev in plugin.Server.Map.GetElevators())
+                    {
+                        ev.Use();
+                    }
+                    return new string[] { "EV used." };
+                }
+                else if (args[0] == "tesla")
+                {
+                    bool isInstant = false;
+
+                    if (args.Length > 1)
+                    {
+                        if (args[1] == "i")
+                        {
+                            isInstant = true;
+                        }
                     }
 
-                    return new string[] { "ok g" };
-                }else if(args[0] == "reload")
+                    foreach (Smod2.API.TeslaGate tesla in plugin.Server.Map.GetTeslaGates())
+                    {
+                        tesla.Activate(isInstant);
+                    }
+                    return new string[] { "tesla activated." };
+                }
+                else if (args[0] == "shake")
                 {
-                    plugin.ReloadConfig();
+                    plugin.Server.Map.Shake();
 
-                    return new string[] { "reload ok" };
+                    return new string[] { "map shaking." };
                 }
             }
 
