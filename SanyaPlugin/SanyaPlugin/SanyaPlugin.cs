@@ -11,7 +11,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.3",
+    version = "12.3.1",
     SmodMajor = 3,
     SmodMinor = 3,
     SmodRevision = 1

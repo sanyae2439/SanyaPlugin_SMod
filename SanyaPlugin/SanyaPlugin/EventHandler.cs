@@ -113,6 +113,7 @@ namespace SanyaPlugin
         //AutoNuker
         private bool isScientistAllDead = false;
         private bool isClassDAllDead = false;
+        private bool isLocked = false;
 
         //EscapeCheck
         private bool isEscaper = false;
@@ -233,6 +234,7 @@ namespace SanyaPlugin
                 plugin.Debug("[InfoSender] Restart Completed");
             }
 
+            roundduring = false;
             config_loaded = true;
 
             if (config_loaded)
@@ -252,6 +254,7 @@ namespace SanyaPlugin
             isEnded = false;
             isScientistAllDead = false;
             isClassDAllDead = false;
+            isLocked = false;
             roundduring = true;
 
             plugin.Info("RoundStart!");
@@ -400,7 +403,20 @@ namespace SanyaPlugin
                         }
                         else
                         {
-                            plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                            if (plugin.original_auto_nuke)
+                            {
+                                if (isLocked)
+                                {
+                                    plugin.Server.Map.Broadcast(15, "【セクター2/停止不可】<color=#ff0000><size=25>《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                                }
+                                else
+                                {
+                                    plugin.Server.Map.Broadcast(15, "【セクター1/停止可能】<color=#ff0000><size=25>《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                                }
+                            }else
+                            {
+                                plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                            }
                         }
                     }
                     else
@@ -414,7 +430,21 @@ namespace SanyaPlugin
                         }
                         else
                         {
-                            plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                            if (plugin.original_auto_nuke)
+                            {
+                                if (isLocked)
+                                {
+                                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>【セクター2/停止不可】《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                                }
+                                else
+                                {
+                                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>【セクター1/停止可能】《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                                }
+                            }
+                            else
+                            {
+                                plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                            }
                         }
                     }
                 }
@@ -1189,19 +1219,24 @@ namespace SanyaPlugin
                         {
                             if (plugin.Round.Stats.ScientistsAlive < 1 && !isScientistAllDead)
                             {
-                                plugin.Info("[AutoNuke] Scientist All Dead[" + plugin.Round.Stats.ScientistsAlive + "/" + plugin.Round.Stats.ScientistsStart + "]");
+                                plugin.Info("[AutoNuke] Sector 1");
+                                plugin.Info("Class-D:" + plugin.Round.Stats.ClassDAlive + " Scientist:" + plugin.Round.Stats.ScientistsAlive + " NTF:" + plugin.Round.Stats.NTFAlive + " SCP:" + plugin.Round.Stats.SCPAlive + " CI:" + plugin.Round.Stats.CiAlive);
+
                                 AlphaWarheadController.host.InstantPrepare();
                                 AlphaWarheadController.host.StartDetonation();
                                 isScientistAllDead = true;
                             }
                             else
                             {
-                                if (plugin.Round.Stats.ClassDAlive < 1 && !isClassDAllDead)
+                                if (plugin.Round.Stats.ClassDAlive < 1 && plugin.Round.Stats.NTFAlive < 5 && !isClassDAllDead && isScientistAllDead)
                                 {
-                                    plugin.Info("[AutoNuke] Class-D All Dead[" + plugin.Round.Stats.ClassDAlive + "/" + plugin.Round.Stats.ClassDStart + "]");
+                                    plugin.Info("[AutoNuke] Sector 2");
+                                    plugin.Info("Class-D:" + plugin.Round.Stats.ClassDAlive + " Scientist:" + plugin.Round.Stats.ScientistsAlive + " NTF:" + plugin.Round.Stats.NTFAlive + " SCP:" + plugin.Round.Stats.SCPAlive + " CI:" + plugin.Round.Stats.CiAlive);
+
                                     AlphaWarheadController.host.InstantPrepare();
                                     AlphaWarheadController.host.StartDetonation();
                                     AlphaWarheadController.host.SetLocked(true);
+                                    isLocked = true;
                                     isClassDAllDead = true;
                                 }
                             }
@@ -1575,7 +1610,6 @@ namespace SanyaPlugin
             {
                 if (roundduring)
                 {
-
                     if (ev.Command.StartsWith("kill"))
                     {
                         plugin.Info("[SelfKiller] " + ev.Player.Name);
@@ -1655,7 +1689,7 @@ namespace SanyaPlugin
                             plugin.Info("[079start] Tier:" + (ev.Player.Scp079Data.Level + 1) + " AP:" + ev.Player.Scp079Data.AP);
                             if (!AlphaWarheadController.host.inProgress)
                             {
-                                if (ev.Player.Scp079Data.Level >= 3 && ev.Player.Scp079Data.AP >= 150)
+                                if (ev.Player.Scp079Data.Level >= 2 && ev.Player.Scp079Data.AP >= 150)
                                 {
 
                                     ev.Player.Scp079Data.AP -= 150.0f;
@@ -1685,7 +1719,7 @@ namespace SanyaPlugin
                             plugin.Info("[079stop] Tier:" + (ev.Player.Scp079Data.Level + 1) + " AP:" + ev.Player.Scp079Data.AP);
                             if (AlphaWarheadController.host.inProgress)
                             {
-                                if (ev.Player.Scp079Data.Level >= 3 && ev.Player.Scp079Data.AP >= 150)
+                                if (ev.Player.Scp079Data.Level >= 2 && ev.Player.Scp079Data.AP >= 150)
                                 {
                                     ev.Player.Scp079Data.AP -= 150.0f;
                                     AlphaWarheadController.host.CancelDetonation(ev.Player.GetGameObject() as UnityEngine.GameObject);
@@ -1708,7 +1742,8 @@ namespace SanyaPlugin
                     }
                     else if (ev.Command.StartsWith("punch"))
                     {
-                        if (ev.Player.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.TeamRole.Team == Smod2.API.Team.SPECTATOR)
+                        /*
+                        if (ev.Player.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR)
                         {
                             if (ev.Player.GetCurrentItemIndex() == -1)
                             {
@@ -1740,7 +1775,7 @@ namespace SanyaPlugin
 
                                         movem.SetPosition(parent.transform.position + newvec, false);
 
-                                        weps.CallRpcConfirmShot(true, weps.curWeapon);
+                                        //weps.CallRpcConfirmShot(true, weps.curWeapon);
                                     }
                                 }
 
@@ -1754,7 +1789,7 @@ namespace SanyaPlugin
                         else
                         {
                             ev.ReturnMessage = "人間以外です。";
-                        }
+                        }*/
                     }
                 }
                 else
