@@ -409,11 +409,11 @@ namespace SanyaPlugin
                             {
                                 if (isLocked)
                                 {
-                                    plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>【セクター2/停止不可】《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>【Sector 2】《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                                    plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>【セクター2/停止不可】\n《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>【Sector 2】\n《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
                                 }
                                 else
                                 {
-                                    plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>【セクター1/停止可能】《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>【Sector 1】《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                                    plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>【セクター1/停止可能】\n《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>【Sector 1】\n《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
                                 }
                             }else
                             {
@@ -436,11 +436,11 @@ namespace SanyaPlugin
                             {
                                 if (isLocked)
                                 {
-                                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>【セクター2/停止不可】《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>【Sector 2】《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>【セクター2/停止不可】\n《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>【Sector 2】\n《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
                                 }
                                 else
                                 {
-                                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>【セクター1/停止可能】《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>【Sector 1】《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>【セクター1/停止可能】\n《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>【Sector 1】\n《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
                                 }
                             }
                             else
