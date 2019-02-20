@@ -1158,6 +1158,7 @@ namespace SanyaPlugin
 
                         int restarttime = ConfigManager.Manager.Config.GetIntValue("auto_round_restart_time", 10);
 
+                        plugin.Server.Map.ClearBroadcasts();
                         plugin.Server.Map.Broadcast((uint)restarttime, "<size=25>《ラウンドが終了しました。" + restarttime + "秒後にリスタートします。》\n </size><size=15>《Round Ended. Restart after " + restarttime + " seconds.》\n</size>", false);
 
                         System.Timers.Timer t = new System.Timers.Timer
