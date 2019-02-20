@@ -1,7 +1,6 @@
 ﻿using Smod2.Commands;
 using Smod2.API;
-using System;
-using System.Collections.Generic;
+using UnityEngine;
 
 namespace SanyaPlugin
 {
@@ -68,9 +67,9 @@ namespace SanyaPlugin
             {
                 if (args[0] == "reload")
                 {
-                    plugin.ReloadConfig();
+                    //plugin.ReloadConfig();
 
-                    return new string[] { "config reloaded." };
+                    return new string[] { "failed. this command is outdated." };
                 }
                 else if (args[0] == "blackout")
                 {
@@ -102,7 +101,11 @@ namespace SanyaPlugin
                         {
                             foreach (Generator items in plugin.Server.Map.GetGenerators())
                             {
-                                items.HasTablet = true;
+                                if (!items.Engaged)
+                                {
+                                    items.TimeLeft = 1.0f;
+                                    items.HasTablet = true;
+                                }
                             }
                             return new string[] { "gen activate." };
                         }
@@ -139,6 +142,20 @@ namespace SanyaPlugin
                     plugin.Server.Map.Shake();
 
                     return new string[] { "map shaking." };
+                }
+                else if (args[0] == "nuke")
+                {
+                    if (plugin.nuketest)
+                    {
+                        plugin.nuketest = false;
+                    }
+                    else
+                    {
+                        plugin.nuketest = true;
+                    }
+                    
+
+                    return new string[] { "nuketest:" + plugin.nuketest };
                 }
             }
 
