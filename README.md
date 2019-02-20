@@ -15,6 +15,8 @@ sanya_night_mode | Bool | False | NightModeの有効化
 sanya_title_timer | Bool | False | Nキーのプレイヤーリストにラウンド経過時間表示
 sanya_cassie_subtitle | Bool | False | 放送に字幕を表示
 sanya_friendly_warn | Bool | False | FFした人に警告を表示
+sanya_summary_less_mode | Bool | False | リザルト画面をなしにラウンドを終了する機能
+sanya_endround_all_spectator | Bool | False | ラウンド終了時全員をSPECTATORにする
 
 ## SCP系
 設定名 | 値の型 | 初期値 | 説明
@@ -22,6 +24,7 @@ sanya_friendly_warn | Bool | False | FFした人に警告を表示
 sanya_generators_fix | Bool | False | 発電機の挙動を少し変更
 sanya_scp914_changing | Bool | False | SCP-914に入った人の扱いを少し変更
 sanya_scp106_portal_to_human | Bool | False | SCP-106が生存者の足元にポータルを作成可能に
+sanya_scp106_portal_to_human_wait　| Int | False | SCP-106ポータルの初回使用可能までの時間
 sanya_scp106_lure_speaktime | Int | -1 | SCP-106の囮コンテナに入った際一定時間死なずに放送可能に
 sanya_scp106_cleanup | Bool | False | Smodのscp106_cleanupが動かないときに使う用
 sanya_infect_by_scp049_2 | Bool | False | SCP-049-2がキルした死体をSCP-049が治療可能に
@@ -36,6 +39,7 @@ sanya_radio_enhance | Bool | False | RadioのRangeをURにした際に放送が�
 ## 独自要素
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
+sanya_original_auto_nuke | Bool | False | 独自判定の自動核を設定
 sanya_escape_spawn | Bool | False | NTFに転生する際の場所を変更
 sanya_intercom_information | Bool | False | 放送室のモニターに生存者情報を表示＆放送室のキーカードが不要に
 sanya_traitor_limitter | Int | -1 | 被拘束状態でNTF/カオスが脱出ポイントへ行くと敵対勢力に寝返ることができる。その際の寝返り元生存人数がこの値以下でないとできない
