@@ -24,7 +24,7 @@ sanya_endround_all_spectator | Bool | False | ラウンド終了時全員をSPEC
 sanya_generators_fix | Bool | False | 発電機の挙動を少し変更
 sanya_scp914_changing | Bool | False | SCP-914に入った人の扱いを少し変更
 sanya_scp106_portal_to_human | Bool | False | SCP-106が生存者の足元にポータルを作成可能に
-sanya_scp106_portal_to_human_wait　| Int | False | SCP-106ポータルの初回使用可能までの時間
+sanya_scp106_portal_to_human_wait　| Int | 180 | SCP-106ポータルの初回使用可能までの時間
 sanya_scp106_lure_speaktime | Int | -1 | SCP-106の囮コンテナに入った際一定時間死なずに放送可能に
 sanya_scp106_cleanup | Bool | False | Smodのscp106_cleanupが動かないときに使う用
 sanya_infect_by_scp049_2 | Bool | False | SCP-049-2がキルした死体をSCP-049が治療可能に
