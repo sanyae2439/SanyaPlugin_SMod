@@ -85,6 +85,7 @@ namespace SanyaPlugin
         IEventHandlerGeneratorInsertTablet,
         IEventHandlerGeneratorFinish,
         IEventHandler079StartSpeaker,
+        IEventHandler079Lockdown,
         IEventHandlerLure,
         IEventHandlerUpdate
     {
@@ -401,7 +402,7 @@ namespace SanyaPlugin
                     {
                         if (ev.Activator != null)
                         {
-                            plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>《[" + ev.Activator.Name + "]により「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>《Alpha Warhead emergency detonation sequence engaged by [" + ev.Activator.Name + "].\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                            plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>《[" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "]により「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>《Alpha Warhead emergency detonation sequence engaged by [" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "].\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
                         }
                         else
                         {
@@ -428,7 +429,7 @@ namespace SanyaPlugin
                         plugin.Server.Map.ClearBroadcasts();
                         if (ev.Activator != null)
                         {
-                            plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>《[" + ev.Activator.Name + "]により緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>《Detonation sequence resumed by [" + ev.Activator.Name + "]. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                            plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>《[" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "]により緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>《Detonation sequence resumed by [" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "]. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
                         }
                         else
                         {
@@ -1220,7 +1221,7 @@ namespace SanyaPlugin
                     {
                         if (!AlphaWarheadController.host.inProgress)
                         {
-                            if (plugin.Round.Stats.ScientistsAlive < 1 && !isScientistAllDead)
+                            if (plugin.Round.Stats.ScientistsAlive < 1 && !isScientistAllDead && plugin.Server.Map.LCZDecontaminated)
                             {
                                 plugin.Info("[AutoNuke] Sector 1");
                                 plugin.Info("Class-D:" + plugin.Round.Stats.ClassDAlive + " Scientist:" + plugin.Round.Stats.ScientistsAlive + " NTF:" + plugin.Round.Stats.NTFAlive + " SCP:" + plugin.Round.Stats.SCPAlive + " CI:" + plugin.Round.Stats.CiAlive);
@@ -1598,6 +1599,22 @@ namespace SanyaPlugin
             }
         }
 
+        public void On079Lockdown(Player079LockdownEvent ev)
+        {
+            plugin.Debug("[On079Lockdown] " + ev.Player.Name + "(Tier" + (ev.Player.Scp079Data.Level+1) + ":" + ev.Room.RoomType + "(" + ev.APDrain + "):" + ev.Allow);
+
+            if(ev.Player.Scp079Data.Level >= 2)
+            {
+                plugin.Debug("079LockDown-HCZBlackout");
+                Generator079.mainGenerator.CallRpcOvercharge();
+                if (!plugin.Server.Map.LCZDecontaminated)
+                {
+                    plugin.Debug("079LockDown-LCZBlackout");
+                    lcz_lights.ForEach(items => { items.FlickerLights(); });
+                }
+            }
+        }
+
         public void On079StartSpeaker(Player079StartSpeakerEvent ev)
         {
             ev.APDrain = 0.0f;
@@ -1692,7 +1709,7 @@ namespace SanyaPlugin
                             plugin.Info("[079start] Tier:" + (ev.Player.Scp079Data.Level + 1) + " AP:" + ev.Player.Scp079Data.AP);
                             if (!AlphaWarheadController.host.inProgress)
                             {
-                                if (ev.Player.Scp079Data.Level >= 2 && ev.Player.Scp079Data.AP >= 150)
+                                if (ev.Player.Scp079Data.Level >= 2 && ev.Player.Scp079Data.AP >= 125)
                                 {
 
                                     ev.Player.Scp079Data.AP -= 150.0f;
@@ -1722,7 +1739,7 @@ namespace SanyaPlugin
                             plugin.Info("[079stop] Tier:" + (ev.Player.Scp079Data.Level + 1) + " AP:" + ev.Player.Scp079Data.AP);
                             if (AlphaWarheadController.host.inProgress)
                             {
-                                if (ev.Player.Scp079Data.Level >= 2 && ev.Player.Scp079Data.AP >= 150)
+                                if (ev.Player.Scp079Data.Level >= 2 && ev.Player.Scp079Data.AP >= 125)
                                 {
                                     ev.Player.Scp079Data.AP -= 150.0f;
                                     AlphaWarheadController.host.CancelDetonation(ev.Player.GetGameObject() as UnityEngine.GameObject);
@@ -1803,5 +1820,6 @@ namespace SanyaPlugin
 
             plugin.Debug("[OnCallCommand] Called:" + ev.Player.Name + " Command:" + ev.Command + " Return:" + ev.ReturnMessage);
         }
+
     }
 }
