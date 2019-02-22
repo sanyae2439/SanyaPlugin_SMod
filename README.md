@@ -16,12 +16,12 @@ sanya_title_timer | Bool | False | Nキーのプレイヤーリストにラウ�
 sanya_cassie_subtitle | Bool | False | 放送に字幕を表示
 sanya_friendly_warn | Bool | False | FFした人に警告を表示
 sanya_summary_less_mode | Bool | False | リザルト画面をなしにラウンドを終了する機能
-sanya_endround_all_spectator | Bool | False | ラウンド終了時全員をSPECTATORにする
+sanya_endround_all_godmode | Bool | False | ラウンド終了時全員を無敵にする
 
 ## SCP系
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
-sanya_generators_fix | Bool | False | 発電機の挙動を少し変更
+generator_engaged_cantopen | Bool | False | 発電機が起動完了した場合に開かないように
 sanya_scp914_changing | Bool | False | SCP-914に入った人の扱いを少し変更
 sanya_scp106_portal_to_human | Bool | False | SCP-106が生存者の足元にポータルを作成可能に
 sanya_scp106_portal_to_human_wait　| Int | 180 | SCP-106ポータルの初回使用可能までの時間
