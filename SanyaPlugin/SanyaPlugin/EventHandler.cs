@@ -298,12 +298,11 @@ namespace SanyaPlugin
                         plugin.Info("Round Ended [NonSummary-Mode] [" + ev.Status + "]");
                         plugin.Info("Class-D:" + ev.Round.Stats.ClassDAlive + " Scientist:" + ev.Round.Stats.ScientistsAlive + " NTF:" + ev.Round.Stats.NTFAlive + " SCP:" + ev.Round.Stats.SCPAlive + " CI:" + ev.Round.Stats.CiAlive);
 
-                        if (plugin.endround_all_spectator)
+                        if (plugin.endround_all_godmode)
                         {
                             foreach (Player item in plugin.Server.GetPlayers())
                             {
-                                item.ChangeRole(Role.SPECTATOR);
-                                item.OverwatchMode = true;
+                                item.SetGodmode(true);
                             }
                         }
                     }
@@ -325,12 +324,11 @@ namespace SanyaPlugin
                 plugin.Info("Round Ended [" + ev.Status + "]");
                 plugin.Info("Class-D:" + ev.Round.Stats.ClassDAlive + " Scientist:" + ev.Round.Stats.ScientistsAlive + " NTF:" + ev.Round.Stats.NTFAlive + " SCP:" + ev.Round.Stats.SCPAlive + " CI:" + ev.Round.Stats.CiAlive);
 
-                if (plugin.endround_all_spectator)
+                if (plugin.endround_all_godmode)
                 {
                     foreach (Player item in plugin.Server.GetPlayers())
                     {
-                        item.ChangeRole(Role.SPECTATOR);
-                        item.OverwatchMode = true;
+                        item.SetGodmode(true);
                     }
                 }
             }
@@ -375,7 +373,7 @@ namespace SanyaPlugin
             if (plugin.cassie_subtitle && roundduring)
             {
                 plugin.Server.Map.ClearBroadcasts();
-                plugin.Server.Map.Broadcast(13, "<size=25>《下層がロックされ、「再収容プロトコル」の準備が出来ました。全ての有機物は破壊されます。》\n </size><size=15>《Light Containment Zone is locked down and ready for decontamination. The removal of organic substances has now begun.》\n</size>", false);
+                plugin.Server.Map.Broadcast(13, "<size=25>《下層がロックされ、「再収容プロトコル」の準備が出来ました。全ての有機物は破壊されます。》\n </size><size=20>《Light Containment Zone is locked down and ready for decontamination. The removal of organic substances has now begun.》\n</size>", false);
             }
         }
 
@@ -402,7 +400,7 @@ namespace SanyaPlugin
                     {
                         if (ev.Activator != null)
                         {
-                            plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>《[" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "]により「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>《Alpha Warhead emergency detonation sequence engaged by [" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "].\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                            plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>《[" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "]により「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=20>《Alpha Warhead emergency detonation sequence engaged by [" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "].\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
                         }
                         else
                         {
@@ -410,15 +408,16 @@ namespace SanyaPlugin
                             {
                                 if (isLocked)
                                 {
-                                    plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>【セクター2/停止不可】\n《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>【Sector 2】\n《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                                    plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>【セクター2/停止不可】\n《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=20>【Sector 2】\n《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
                                 }
                                 else
                                 {
-                                    plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>【セクター1/停止可能】\n《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>【Sector 1】\n《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                                    plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>【セクター1/停止可能】\n《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=20>【Sector 1】\n《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
                                 }
-                            }else
+                            }
+                            else
                             {
-                                plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=15>《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
+                                plugin.Server.Map.Broadcast(15, "<color=#ff0000><size=25>《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約90秒後に爆破されます。》\n</size><size=20>《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus 90 seconds.》\n</size></color>", false);
                             }
                         }
                     }
@@ -429,7 +428,7 @@ namespace SanyaPlugin
                         plugin.Server.Map.ClearBroadcasts();
                         if (ev.Activator != null)
                         {
-                            plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>《[" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "]により緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>《Detonation sequence resumed by [" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "]. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                            plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>《[" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "]により緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=20>《Detonation sequence resumed by [" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "]. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
                         }
                         else
                         {
@@ -437,16 +436,16 @@ namespace SanyaPlugin
                             {
                                 if (isLocked)
                                 {
-                                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>【セクター2/停止不可】\n《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>【Sector 2】\n《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>【セクター2/停止不可】\n《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=20>【Sector 2】\n《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
                                 }
                                 else
                                 {
-                                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>【セクター1/停止可能】\n《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>【Sector 1】\n《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                                    plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>【セクター1/停止可能】\n《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=20>【Sector 1】\n《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
                                 }
                             }
                             else
                             {
-                                plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=15>《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
+                                plugin.Server.Map.Broadcast(10, "<color=#ff0000><size=25>《施設システムにより緊急起爆シーケンスが再開されました。約" + count.ToString() + "秒後に爆破されます。》\n</size><size=20>《Detonation sequence resumed by Facility-Systems. t-minus " + count.ToString() + " seconds.》\n</size></color>", false);
                             }
                         }
                     }
@@ -470,11 +469,11 @@ namespace SanyaPlugin
                     plugin.Server.Map.ClearBroadcasts();
                     if (ev.Activator != null)
                     {
-                        plugin.Server.Map.Broadcast(7, "<color=#ff0000><size=25>《[" + ev.Activator.Name + "]により起爆が取り消されました。システムを再起動します。》\n</size><size=15>《Detonation cancelled by [" + ev.Activator.Name + "]. Restarting systems.》\n</size></color>", false);
+                        plugin.Server.Map.Broadcast(7, "<color=#ff0000><size=25>《[" + ev.Activator.Name + "/" + ev.Activator.TeamRole.Team + "]により起爆が取り消されました。システムを再起動します。》\n</size><size=20>《Detonation cancelled by [" + ev.Activator.Name + "]. Restarting systems.》\n</size></color>", false);
                     }
                     else
                     {
-                        plugin.Server.Map.Broadcast(7, "<color=#ff0000><size=25>《施設システムにより起爆が取り消されました。システムを再起動します。》\n</size><size=15>《Detonation cancelled by Facility-Systems. Restarting systems.》\n</size></color>", false);
+                        plugin.Server.Map.Broadcast(7, "<color=#ff0000><size=25>《施設システムにより起爆が取り消されました。システムを再起動します。》\n</size><size=20>《Detonation cancelled by Facility-Systems. Restarting systems.》\n</size></color>", false);
                     }
                 }
             }
@@ -489,11 +488,11 @@ namespace SanyaPlugin
                     plugin.Server.Map.ClearBroadcasts();
                     if (plugin.Server.Round.Stats.SCPAlive > 0)
                     {
-                        plugin.Server.Map.Broadcast(30, "<color=#6c80ff><size=25>《機動部隊イプシロン-11「" + ev.Unit + "」が施設に到着しました。\n残りの全職員は、機動部隊が貴方の場所へ到着するまで「標準避難プロトコル」の続行を推奨します。\n「" + plugin.Server.Round.Stats.SCPAlive.ToString() + "」オブジェクトが再収容されていません。》\n</size><size=15>《Mobile Task Force Unit, Epsilon-11, designated, '" + ev.Unit + "', has entered the facility.\nAll remaining personnel are advised to proceed with standard evacuation protocols until an MTF squad reaches your destination.\nAwaiting recontainment of: " + plugin.Server.Round.Stats.SCPAlive.ToString() + " SCP subject.》\n</size></color>", false);
+                        plugin.Server.Map.Broadcast(30, "<color=#6c80ff><size=25>《機動部隊イプシロン-11「" + ev.Unit + "」が施設に到着しました。\n残りの全職員は、機動部隊が貴方の場所へ到着するまで「標準避難プロトコル」の続行を推奨します。\n「" + plugin.Server.Round.Stats.SCPAlive.ToString() + "」オブジェクトが再収容されていません。》\n</size><size=20>《Mobile Task Force Unit, Epsilon-11, designated, '" + ev.Unit + "', has entered the facility.\nAll remaining personnel are advised to proceed with standard evacuation protocols until an MTF squad reaches your destination.\nAwaiting recontainment of: " + plugin.Server.Round.Stats.SCPAlive.ToString() + " SCP subject.》\n</size></color>", false);
                     }
                     else
                     {
-                        plugin.Server.Map.Broadcast(30, "<color=#6c80ff><size=25>《機動部隊イプシロン-11「" + ev.Unit + "」が施設に到着しました。\n残りの全職員は、機動部隊が貴方の場所へ到着するまで「標準避難プロトコル」の続行を推奨します。\n重大な脅威が施設内に存在します。注意してください。》\n </size><size=15>《Mobile Task Force Unit, Epsilon-11, designated, '" + ev.Unit + "', has entered the facility.\nAll remaining personnel are advised to proceed with standard evacuation protocols, until MTF squad has reached your destination.\nSubstantial threat to safety is within the facility -- Exercise caution.》\n</size></color>", false);
+                        plugin.Server.Map.Broadcast(30, "<color=#6c80ff><size=25>《機動部隊イプシロン-11「" + ev.Unit + "」が施設に到着しました。\n残りの全職員は、機動部隊が貴方の場所へ到着するまで「標準避難プロトコル」の続行を推奨します。\n重大な脅威が施設内に存在します。注意してください。》\n </size><size=20>《Mobile Task Force Unit, Epsilon-11, designated, '" + ev.Unit + "', has entered the facility.\nAll remaining personnel are advised to proceed with standard evacuation protocols, until MTF squad has reached your destination.\nSubstantial threat to safety is within the facility -- Exercise caution.》\n</size></color>", false);
                     }
                 }
             }
@@ -595,7 +594,7 @@ namespace SanyaPlugin
                             hasitem.Remove();
                         }
                         ev.Player.PersonalClearBroadcasts();
-                        ev.Player.PersonalBroadcast((uint)plugin.scp106_lure_speaktime, "<color=#ffff00><size=25>《あなたはSCP-106の再収容に使用されます。最後に" + plugin.scp106_lure_speaktime + "秒の放送時間が与えられます。》\n</size><size=15>《You will be used for recontainment SCP-106. You can broadcast for " + plugin.scp106_lure_speaktime + " seconds.》\n</size></color>", false);
+                        ev.Player.PersonalBroadcast((uint)plugin.scp106_lure_speaktime, "<color=#ffff00><size=25>《あなたはSCP-106の再収容に使用されます。最後に" + plugin.scp106_lure_speaktime + "秒の放送時間が与えられます。》\n</size><size=20>《You will be used for recontainment SCP-106. You can broadcast for " + plugin.scp106_lure_speaktime + " seconds.》\n</size></color>", false);
 
                         plugin.Server.Map.SetIntercomSpeaker(ev.Player);
 
@@ -632,7 +631,7 @@ namespace SanyaPlugin
                 {
                     plugin.Info("[FriendlyFire] " + ev.Attacker.Name + "(" + ev.DamageType.ToString() + ":" + ev.Damage + ") -> " + ev.Player.Name);
                     ev.Attacker.PersonalClearBroadcasts();
-                    ev.Attacker.PersonalBroadcast(5, "<color=#ff0000><size=30>《誤射に注意。味方へのダメージは容認されません。(<" + ev.Player.Name + ">への攻撃。)》\n</size><size=20>《Check your fire! Damage to ally forces not be tolerated.(Damaged to <" + ev.Player.Name + ">)》\n</size></color>", false);
+                    ev.Attacker.PersonalBroadcast(5, "<color=#ff0000><size=25>《誤射に注意。味方へのダメージは容認されません。(<" + ev.Player.Name + ">への攻撃。)》\n</size><size=20>《Check your fire! Damage to ally forces not be tolerated.(Damaged to <" + ev.Player.Name + ">)》\n</size></color>", false);
                 }
             }
 
@@ -982,7 +981,7 @@ namespace SanyaPlugin
                                     if (humanlist.Count <= 0)
                                     {
                                         ev.Player.PersonalClearBroadcasts();
-                                        ev.Player.PersonalBroadcast(5, "<size=25>《ターゲットが見つからないようだ。》\n </size><size=15>《Target not found.》\n</size>", false);
+                                        ev.Player.PersonalBroadcast(5, "<size=25>《ターゲットが見つからないようだ。》\n </size><size=20>《Target not found.》\n</size>", false);
                                         plugin.Info("[106Portal] No Humans");
                                     }
                                     else
@@ -991,14 +990,14 @@ namespace SanyaPlugin
                                         Vector temppos = new Vector(humanlist[rndresult].GetPosition().x, humanlist[rndresult].GetPosition().y - 2.3f, humanlist[rndresult].GetPosition().z);
                                         ev.Position = temppos;
                                         ev.Player.PersonalClearBroadcasts();
-                                        ev.Player.PersonalBroadcast(5, "<size=25>《生存者<" + humanlist[rndresult].Name + ">の近くにポータルを作成します。》\n </size><size=15>《Create portal at close to <" + humanlist[rndresult].Name + ">.》\n</size>", false);
+                                        ev.Player.PersonalBroadcast(5, "<size=25>《生存者<" + humanlist[rndresult].Name + ">の近くにポータルを作成します。》\n </size><size=20>《Create portal at close to <" + humanlist[rndresult].Name + ">.》\n</size>", false);
                                         plugin.Info("[106Portal] Target:" + humanlist[rndresult].Name);
                                     }
                                 }
                                 else
                                 {
                                     ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, "<size=25>《まだ使えないようだ。》\n </size><size=15>《Not available yet.》\n</size>", false);
+                                    ev.Player.PersonalBroadcast(5, "<size=25>《まだ使えないようだ。》\n </size><size=20>《Not available yet.》\n</size>", false);
                                 }
                             }
                         }
@@ -1160,7 +1159,7 @@ namespace SanyaPlugin
                         int restarttime = ConfigManager.Manager.Config.GetIntValue("auto_round_restart_time", 10);
 
                         plugin.Server.Map.ClearBroadcasts();
-                        plugin.Server.Map.Broadcast((uint)restarttime, "<size=25>《ラウンドが終了しました。" + restarttime + "秒後にリスタートします。》\n </size><size=15>《Round Ended. Restart after " + restarttime + " seconds.》\n</size>", false);
+                        plugin.Server.Map.Broadcast((uint)restarttime, "<size=35>《ラウンドが終了しました。" + restarttime + "秒後にリスタートします。》\n </size><size=25>《Round Ended. Restart after " + restarttime + " seconds.》\n</size>", false);
 
                         System.Timers.Timer t = new System.Timers.Timer
                         {
@@ -1387,24 +1386,11 @@ namespace SanyaPlugin
             plugin.Debug("[OnGeneratorAccess] " + ev.Player.Name + ":" + ev.Generator.Room.RoomType.ToString() + ":" + ev.Allow);
             plugin.Debug(ev.Generator.Locked + ":" + ev.Generator.Open + ":" + ev.Generator.HasTablet + ":" + ev.Generator.TimeLeft + ":" + ev.Generator.Engaged);
 
-            if (plugin.generators_fix)
+            if (plugin.generator_engaged_cantopen)
             {
-                if (!ev.Generator.Engaged)
+                if (ev.Generator.Engaged)
                 {
-                    if (ev.Generator.Room.RoomType != RoomType.HCZ_ARMORY)
-                    {
-                        if (!ev.Player.GetBypassMode())
-                        {
-                            ev.Allow = false;
-                        }
-                    }
-                }
-                else
-                {
-                    if (!ev.Player.GetBypassMode())
-                    {
-                        ev.Allow = false;
-                    }
+                    ev.Allow = false;
                 }
             }
         }
@@ -1414,12 +1400,9 @@ namespace SanyaPlugin
             plugin.Debug("[OnGeneratorUnlock] " + ev.Player.Name + ":" + ev.Generator.Room.RoomType.ToString() + ":" + ev.Allow);
             plugin.Debug(ev.Generator.Locked + ":" + ev.Generator.Open + ":" + ev.Generator.HasTablet + ":" + ev.Generator.TimeLeft + ":" + ev.Generator.Engaged);
 
-            if (plugin.generators_fix)
+            if (ev.Allow)
             {
-                if (ev.Allow)
-                {
-                    ev.Generator.Open = true;
-                }
+                ev.Generator.Open = true;
             }
         }
 
@@ -1493,7 +1476,7 @@ namespace SanyaPlugin
                     if (roundduring)
                     {
                         plugin.Server.Map.ClearBroadcasts();
-                        plugin.Server.Map.Broadcast(10, "<color=#bbee00><size=25>《<" + genName + ">の発電機が起動を始めました。》\n</size><size=15>《Generator<" + genNameEn + "> has starting.》\n</size></color>", false);
+                        plugin.Server.Map.Broadcast(10, "<color=#bbee00><size=25>《<" + genName + ">の発電機が起動を始めました。》\n</size><size=20>《Generator<" + genNameEn + "> has starting.》\n</size></color>", false);
                     }
                 }
             }
@@ -1518,7 +1501,7 @@ namespace SanyaPlugin
                 gencomplete = true;
             }
 
-            if (plugin.generators_fix)
+            if (plugin.generator_engaged_cantopen)
             {
                 ev.Generator.Open = false;
             }
@@ -1588,12 +1571,12 @@ namespace SanyaPlugin
                     if (!gencomplete)
                     {
                         plugin.Server.Map.ClearBroadcasts();
-                        plugin.Server.Map.Broadcast(10, "<color=#bbee00><size=25>《5つ中" + engcount + "つ目の発電機<" + genName + ">の起動が完了しました。》\n</size><size=15>《" + engcount + " out of 5 generators activated. <" + genNameEn + ">》\n</size></color>", false);
+                        plugin.Server.Map.Broadcast(10, "<color=#bbee00><size=25>《5つ中" + engcount + "つ目の発電機<" + genName + ">の起動が完了しました。》\n</size><size=20>《" + engcount + " out of 5 generators activated. <" + genNameEn + ">》\n</size></color>", false);
                     }
                     else
                     {
                         plugin.Server.Map.ClearBroadcasts();
-                        plugin.Server.Map.Broadcast(20, "<color=#bbee00><size=25>《5つ中" + engcount + "つ目の発電機<" + genName + ">の起動が完了しました。\n全ての発電機が起動されました。最後再収容手順を開始します。\n中層は約一分後に過充電されます。》\n</size><size=15>《" + engcount + " out of 5 generators activated. <" + genNameEn + ">\nAll generators has been sucessfully engaged.\nFinalizing recontainment sequence.\nHeavy containment zone will overcharge in t-minus 1 minutes.》\n </size></color>", false);
+                        plugin.Server.Map.Broadcast(20, "<color=#bbee00><size=25>《5つ中" + engcount + "つ目の発電機<" + genName + ">の起動が完了しました。\n全ての発電機が起動されました。最後再収容手順を開始します。\n中層は約一分後に過充電されます。》\n</size><size=20>《" + engcount + " out of 5 generators activated. <" + genNameEn + ">\nAll generators has been sucessfully engaged.\nFinalizing recontainment sequence.\nHeavy containment zone will overcharge in t-minus 1 minutes.》\n </size></color>", false);
                     }
                 }
             }
@@ -1601,9 +1584,9 @@ namespace SanyaPlugin
 
         public void On079Lockdown(Player079LockdownEvent ev)
         {
-            plugin.Debug("[On079Lockdown] " + ev.Player.Name + "(Tier" + (ev.Player.Scp079Data.Level+1) + ":" + ev.Room.RoomType + "(" + ev.APDrain + "):" + ev.Allow);
+            plugin.Debug("[On079Lockdown] " + ev.Player.Name + "(Tier" + (ev.Player.Scp079Data.Level + 1) + ":" + ev.Room.RoomType + "(" + ev.APDrain + "):" + ev.Allow);
 
-            if(ev.Player.Scp079Data.Level >= 2)
+            if (ev.Player.Scp079Data.Level >= 2)
             {
                 plugin.Debug("079LockDown-HCZBlackout");
                 Generator079.mainGenerator.CallRpcOvercharge();
@@ -1637,7 +1620,7 @@ namespace SanyaPlugin
                         {
                             ev.ReturnMessage = "Success.";
                             ev.Player.PersonalClearBroadcasts();
-                            ev.Player.PersonalBroadcast(5, "<size=25>《あなたは自殺しました。》\n </size><size=15>《You suicided.》\n</size>", false);
+                            ev.Player.PersonalBroadcast(5, "<size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>", false);
                             ev.Player.SetGodmode(false);
                             ev.Player.Kill(DamageType.DECONT);
                         }
@@ -1677,7 +1660,7 @@ namespace SanyaPlugin
                             {
                                 plugin.Server.Map.SetIntercomSpeaker(ev.Player);
                                 ev.Player.PersonalClearBroadcasts();
-                                ev.Player.PersonalBroadcast(5, "<size=25>《放送を開始します。》\n </size><size=15>《You will broadcast.》\n</size>", false);
+                                ev.Player.PersonalBroadcast(5, "<size=25>《放送を開始します。》\n </size><size=20>《You will broadcast.》\n</size>", false);
                                 ev.ReturnMessage = "放送を開始します。";
                             }
                             else
@@ -1686,13 +1669,13 @@ namespace SanyaPlugin
                                 {
                                     plugin.Server.Map.SetIntercomSpeaker(null);
                                     ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, "<size=25>《放送を終了しました。》\n </size><size=15>《You finished broadcasting.》\n</size>", false);
+                                    ev.Player.PersonalBroadcast(5, "<size=25>《放送を終了しました。》\n </size><size=20>《You finished broadcasting.》\n</size>", false);
                                     ev.ReturnMessage = "放送を終了しました。";
                                 }
                                 else
                                 {
                                     ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, "<size=25>《誰かが放送中です。》\n </size><size=15>《Someone is broadcasting.》\n</size>", false);
+                                    ev.Player.PersonalBroadcast(5, "<size=25>《誰かが放送中です。》\n </size><size=20>《Someone is broadcasting.》\n</size>", false);
                                     ev.ReturnMessage = "誰かが放送中です。";
                                 }
                             }

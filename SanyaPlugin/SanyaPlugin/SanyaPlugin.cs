@@ -11,7 +11,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.3.2",
+    version = "12.3.3",
     SmodMajor = 3,
     SmodMinor = 3,
     SmodRevision = 1
@@ -39,12 +39,12 @@ namespace SanyaPlugin
         internal bool friendly_warn = false;
         [ConfigOption] //リザルト無しでラウンドを終了させる
         internal bool summary_less_mode = false;
-        [ConfigOption] //ラウンド終了時に全員をSPECTATORにする
-        internal bool endround_all_spectator = false;
+        [ConfigOption] //ラウンド終了時に全員を無敵にする
+        internal bool endround_all_godmode = false;
 
         //SCP系
-        [ConfigOption] //発電機の挙動を少し変更
-        internal bool generators_fix = false;
+        [ConfigOption] //発電機が起動完了した場合開かないように
+        internal bool generator_engaged_cantopen = false;
         [ConfigOption] //SCP-914にプレイヤーが入った際の挙動を少し変更
         internal bool scp914_changing = false;
         [ConfigOption] //SCP-106のポータルを生存者の足元に作成する機能
@@ -157,65 +157,6 @@ namespace SanyaPlugin
         {
             AddCommand("sanya", new CommandHandler(this));
             AddEventHandlers(new EventHandler(this),Smod2.Events.Priority.Highest);
-        }
-
-        public void ReloadConfig()
-        {
-            info_sender_to_ip = GetConfigString("sanya_info_sender_to_ip");
-            info_sender_to_port = GetConfigInt("sanya_info_sender_to_port");
-            spectator_slot = GetConfigInt("sanya_spectator_slot");
-            night_mode = GetConfigBool("sanya_night_mode");
-            title_timer = GetConfigBool("sanya_title_timer");
-            cassie_subtitle = GetConfigBool("sanya_cassie_subtitle");
-            friendly_warn = GetConfigBool("sanya_friendly_warn");
-
-            generators_fix = GetConfigBool("sanya_generators_fix");
-            scp914_changing = GetConfigBool("sanya_scp914_changing");
-            scp106_portal_to_human = GetConfigBool("sanya_scp106_portal_to_human");
-            scp106_lure_speaktime = GetConfigInt("sanya_scp106_lure_speaktime");
-            scp106_cleanup = GetConfigBool("sanya_scp106_cleanup");
-            infect_by_scp049_2 = GetConfigBool("sanya_infect_by_scp049_2");
-            infect_limit_time = GetConfigInt("sanya_infect_limit_time");
-
-            handcuffed_cantopen = GetConfigBool("sanya_handcuffed_cantopen");
-            radio_enhance = GetConfigBool("sanya_radio_enhance");
-
-            escape_spawn = GetConfigBool("sanya_escape_spawn");
-            intercom_information = GetConfigBool("sanya_intercom_information");
-            traitor_limitter = GetConfigInt("sanya_traitor_limitter");
-            traitor_chance_percent = GetConfigInt("sanya_traitor_chance_percent");
-            classd_startitem_percent = GetConfigInt("sanya_classd_startitem_percent");
-            classd_startitem_ok_itemid = GetConfigInt("sanya_classd_startitem_ok_itemid");
-            classd_startitem_no_itemid = GetConfigInt("sanya_classd_startitem_no_itemid");
-            doorlock_itemid = GetConfigInt("sanya_doorlock_itemid");
-            doorlock_locked_second = GetConfigInt("sanya_doorlock_locked_second");
-            doorlock_interval_second = GetConfigInt("sanya_doorlock_interval_second");
-
-            fallen_limit = GetConfigFloat("sanya_fallen_limit");
-            usp_damage_multiplier_human = GetConfigFloat("sanya_usp_damage_multiplier_human");
-            usp_damage_multiplier_scp = GetConfigFloat("sanya_usp_damage_multiplier_scp");
-            damage_divisor_scp173 = GetConfigFloat("sanya_damage_divisor_scp173");
-            damage_divisor_scp106 = GetConfigFloat("sanya_damage_divisor_scp106");
-            damage_divisor_scp049 = GetConfigFloat("sanya_damage_divisor_scp049");
-            damage_divisor_scp049_2 = GetConfigFloat("sanya_damage_divisor_scp049_2");
-            damage_divisor_scp096 = GetConfigFloat("sanya_damage_divisor_scp096");
-            damage_divisor_scp939 = GetConfigFloat("sanya_damage_divisor_scp939");
-
-            recovery_amount_scp173 = GetConfigInt("sanya_recovery_amount_scp173");
-            recovery_amount_scp106 = GetConfigInt("sanya_recovery_amount_scp106");
-            recovery_amount_scp049 = GetConfigInt("sanya_recovery_amount_scp049");
-            recovery_amount_scp049_2 = GetConfigInt("sanya_recovery_amount_scp049_2");
-            recovery_amount_scp096 = GetConfigInt("sanya_recovery_amount_scp096");
-            recovery_amount_scp939 = GetConfigInt("sanya_recovery_amount_scp939");
-
-            default_ammo_classd = GetConfigIntList("sanya_default_ammo_classd");
-            default_ammo_scientist = GetConfigIntList("sanya_default_ammo_scientist");
-            default_ammo_guard = GetConfigIntList("sanya_default_ammo_guard");
-            default_ammo_ci = GetConfigIntList("sanya_default_ammo_ci");
-            default_ammo_cadet = GetConfigIntList("sanya_default_ammo_cadet");
-            default_ammo_lieutenant = GetConfigIntList("sanya_default_ammo_lieutenant");
-            default_ammo_commander = GetConfigIntList("sanya_default_ammo_commander");
-            default_ammo_ntfscientist = GetConfigIntList("sanya_default_ammo_ntfscientist");
         }
     }
 }
