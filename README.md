@@ -89,8 +89,6 @@ sanya_default_ammo_lieutenant | List<int> | 80,40,40 | NTF Lieutenantが初期�
 sanya_default_ammo_commander | List<int> | 130,50,50 | NTF Commanderが初期で所持する弾数
   
 # History
-.
-更新履歴
 - v1.0
 さにゃぷらぐいん作成
 脱出場所変更機能がついた
