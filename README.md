@@ -4,6 +4,9 @@ SCP SL Plugin <JP Plugin>
 Smod2が必要です
 https://github.com/Grover-c13/Smod2
 
+# Install
+「sm_plugins」に入れるだけ
+
 # Config
 ## システム系
 設定名 | 値の型 | 初期値 | 説明
