@@ -2,6 +2,7 @@
 using Smod2.API;
 using Smod2.Attributes;
 using Smod2.Config;
+using System.Collections.Generic;
 
 namespace SanyaPlugin
 {
@@ -11,7 +12,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.3.3",
+    version = "12.4",
     SmodMajor = 3,
     SmodMinor = 3,
     SmodRevision = 1
@@ -31,6 +32,10 @@ namespace SanyaPlugin
         internal int spectator_slot = 0;
         [ConfigOption] //NightModeを有効にする
         internal bool night_mode = false;
+        [ConfigOption] //ゲームモードランダムの率
+        internal int[] event_mode_weight = new int[] { 1, -1, -1, -1, -1 };
+        [ConfigOption] //反乱時のドロップ追加数
+        internal int classd_ins_items = 10;
         [ConfigOption] //プレイヤーリストタイトルにタイマー追加
         internal bool title_timer = false;
         [ConfigOption] //放送に日英で字幕を付ける
@@ -69,6 +74,10 @@ namespace SanyaPlugin
         //独自要素
         [ConfigOption] //独自自動核
         internal bool original_auto_nuke = false;
+        [ConfigOption] //核起爆後は増援が出ないように
+        internal bool stop_mtf_after_nuke = false;
+        [ConfigOption] //カードを持たなくても使用可能に
+        internal bool inventory_card_act = false;
         [ConfigOption] //NTFになる際の脱出地点を変更
         internal bool escape_spawn = false;
         [ConfigOption] //放送室のモニターに情報表示
@@ -150,13 +159,229 @@ namespace SanyaPlugin
         public override void OnEnable()
         {
             Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            Info("ずりねこ");
+            Info("むにゅ");
         }
 
         public override void Register()
         {
             AddCommand("sanya", new CommandHandler(this));
-            AddEventHandlers(new EventHandler(this),Smod2.Events.Priority.Highest);
+            AddEventHandlers(new EventHandler(this), Smod2.Events.Priority.Highest);
         }
+
+        static public float HitboxDamageCalculate(HitboxIdentity hitbox, float damage)
+        {
+            switch (hitbox.id.ToUpper())
+            {
+                case "HEAD":
+                    return damage *= 4f;
+                case "LEG":
+                    return damage /= 2f;
+                case "SCP106":
+                    return damage /= 10f;
+                default:
+                    return damage;
+            }
+        }
+
+        static public string[] TranslateGeneratorName(RoomType type)
+        {
+            switch (type)
+            {
+                case RoomType.ENTRANCE_CHECKPOINT:
+                    return new string[] { "上層チェックポイント", "Entrance Checkpoint" };
+                case RoomType.HCZ_ARMORY:
+                    return new string[] { "中層弾薬庫", "HCZ Armory" };
+                case RoomType.SERVER_ROOM:
+                    return new string[] { "サーバールーム", "Server Room" };
+                case RoomType.MICROHID:
+                    return new string[] { "MicroHID室", "MicroHID Room" };
+                case RoomType.SCP_049:
+                    return new string[] { "SCP-049 エレベーター", "SCP-049 Elevator" };
+                case RoomType.SCP_079:
+                    return new string[] { "SCP-079 収容室", "SCP-079 Chamber" };
+                case RoomType.SCP_096:
+                    return new string[] { "SCP-096 収容室", "SCP-096 Chamber" };
+                case RoomType.SCP_106:
+                    return new string[] { "SCP-106 収容室", "SCP-106 Chamber" };
+                case RoomType.SCP_939:
+                    return new string[] { "SCP-939 収容室", "SCP-939 Chamber" };
+                case RoomType.NUKE:
+                    return new string[] { "核格納庫", "Nuke Chamber" };
+                default:
+                    return new string[] { "不明", "Unknown" };
+            }
+        }
+
+        static public bool CanOpenDoor(string[] permission, Smod2.API.Door door)
+        {
+            Door targetDoor = door.GetComponent() as Door;
+
+            if (targetDoor != null)
+            {
+                if (targetDoor.permissionLevel.Length == 0)
+                {
+                    return true;
+                }
+
+                foreach (string item in permission)
+                {
+                    if (item.Contains(targetDoor.permissionLevel))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        static public bool CanOpenDoor(string[] permission, string[] target)
+        {
+            if (target.Length == 0)
+            {
+                return true;
+            }
+
+            foreach (string t in target)
+            {
+                foreach (string p in permission)
+                {
+                    if (t.Contains(p))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        static public void SetMute(Smod2.API.Player player, bool b)
+        {
+            (player.GetGameObject() as UnityEngine.GameObject).GetComponent<CharacterClassManager>().SetMuted(b);
+        }
+
+        static public void CloseBlastDoor()
+        {
+            foreach (BlastDoor item in UnityEngine.Object.FindObjectsOfType<BlastDoor>())
+            {
+                item.SetClosed(true);
+            }
+        }
+
+        static public void Call106Scream()
+        {
+            UnityEngine.GameObject.Find("Host").GetComponent<PlayerInteract>().CallRpcContain106(null);
+        }
+
+        static public void Call173SnapSound(Smod2.API.Player player)
+        {
+            (player.GetGameObject() as UnityEngine.GameObject).GetComponent<Scp173PlayerScript>().CallRpcSyncAudio();
+        }
+
+        static public void CallVehicle(bool isCi, bool ChopperState)
+        {
+            if (isCi)
+            {
+                UnityEngine.GameObject.Find("Host").GetComponent<MTFRespawn>().CallRpcVan();
+            }
+            else
+            {
+                UnityEngine.Object.FindObjectOfType<ChopperAutostart>().SetState(ChopperState);
+            }
+        }
+
+        static public void SetExtraDoorNames()
+        {
+            foreach (Door item in UnityEngine.Object.FindObjectsOfType<Door>())
+            {
+                if (item.name.Contains("ContDoor"))
+                {
+                    if (item.DoorName.Length == 0)
+                    {
+                        if (item.transform.parent.name.Contains("MeshDoor173"))
+                        {
+                            item.DoorName = "173_CONTAIN";
+                        }
+                        else if (item.transform.parent.name.Contains("Entrance Door"))
+                        {
+                            item.DoorName = "049_CONTAIN";
+                        }
+                        else if (item.transform.parent.name.Contains("Shelter"))
+                        {
+                            item.DoorName = "SHELTER";
+                        }
+                    }
+                }
+                else if (item.name.Contains("PrisonDoor"))
+                {
+                    if (!item.name.Contains("("))
+                    {
+                        item.DoorName = item.name.Replace("Door", "_0").ToUpper();
+                    }
+                    else
+                    {
+                        item.DoorName = item.name.Replace("Door", "").Replace(" (", "_").Replace(")", "").ToUpper();
+                    }
+                }
+                else if (item.name.Contains("LightContainmentDoor"))
+                {
+                    if (item.transform.parent.name.Contains("372"))
+                    {
+                        item.DoorName = "372_CONTAIN";
+                    }
+                    else if (item.transform.parent.name.Contains("Map_LC_Toilets"))
+                    {
+                        item.DoorName = "WC";
+                    }
+                    else if (item.transform.parent.name.Contains("Map_HC_079CR"))
+                    {
+                        item.DoorName = "079_INNER";
+                    }
+                    else if (item.transform.parent.name.Contains("Servers"))
+                    {
+                        item.DoorName = "SERVER";
+                    }
+                    else if (item.transform.parent.name.Contains("All"))
+                    {
+                        if (item.name.Contains("(33)"))
+                        {
+                            item.DoorName = "939_BOTTOM_LEFT";
+                        }
+                        else if (item.name.Contains("(31)"))
+                        {
+                            item.DoorName = "939_BOTTOM_RIGHT";
+                        }
+                        else if (item.name.Contains("(30)"))
+                        {
+                            item.DoorName = "939_UP_LEFT";
+                        }
+                        else if (item.name.Contains("(29)"))
+                        {
+                            item.DoorName = "939_UP_RIGHT";
+                        }
+                    }
+                }
+            }
+        }
+
+        static public void SetExtraPermissions()
+        {
+            foreach (Door item in UnityEngine.Object.FindObjectsOfType<Door>())
+            {
+                if (item.permissionLevel.Length == 0)
+                {
+                    item.permissionLevel = "CONT_LVL_1";
+                }
+            }
+        }
+    }
+
+    enum SANYA_GAME_MODE
+    {
+        NULL = -1,
+        NORMAL = 0,
+        NIGHT,
+        STORY,
+        CLASSD_INSURGENCY,
+        HCZ_NOGUARD
     }
 }

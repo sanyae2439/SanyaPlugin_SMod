@@ -1,6 +1,6 @@
 ﻿using Smod2.Commands;
 using Smod2.API;
-using UnityEngine;
+using System.Collections.Generic;
 
 namespace SanyaPlugin
 {
@@ -58,12 +58,12 @@ namespace SanyaPlugin
 
         public string GetUsage()
         {
-            return "SANYA <RELOAD/BLACKOUT/GEN <UNLOCK/OPEN/ACT>/EV/TESLA <I>/SHAKE>";
+            return "SANYA <RELOAD/BLACKOUT/GEN <UNLOCK/OPEN/ACT>/EV/TESLA \\<I\\>/SHAKE>";
         }
 
         public string[] OnCall(ICommandSender sender, string[] args)
         {
-            if(args.Length > 0)
+            if (args.Length > 0)
             {
                 if (args[0] == "reload")
                 {
@@ -73,6 +73,11 @@ namespace SanyaPlugin
                 }
                 else if (args[0] == "blackout")
                 {
+                    List<Room> rooms = new List<Room>(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA)).FindAll(x => x.ZoneType == ZoneType.LCZ);
+                    foreach (Room r in rooms)
+                    {
+                        r.FlickerLights();
+                    }
                     Generator079.mainGenerator.CallRpcOvercharge();
 
                     return new string[] { "blackout success." };
@@ -97,7 +102,7 @@ namespace SanyaPlugin
                             }
                             return new string[] { "gen open." };
                         }
-                        else if(args[1] == "act")
+                        else if (args[1] == "act")
                         {
                             foreach (Generator items in plugin.Server.Map.GetGenerators())
                             {
@@ -113,7 +118,7 @@ namespace SanyaPlugin
                 }
                 else if (args[0] == "ev")
                 {
-                    foreach(Elevator ev in plugin.Server.Map.GetElevators())
+                    foreach (Elevator ev in plugin.Server.Map.GetElevators())
                     {
                         ev.Use();
                     }
@@ -153,13 +158,24 @@ namespace SanyaPlugin
                     {
                         plugin.nuketest = true;
                     }
-                    
 
                     return new string[] { "nuketest:" + plugin.nuketest };
                 }
+                else if (args[0] == "test")
+                {
+                    Player ply = sender as Player;
+
+                    foreach (Camera079 item in Scp079PlayerScript.allCameras)
+                    {
+                        plugin.Debug($"Name:{item.cameraName}");
+                    }
+
+                    return new string[] { "test ok" };
+                }
             }
 
-            return new string[] { "no parameters." };
+            return new string[] { GetUsage() };
         }
     }
 }
+
