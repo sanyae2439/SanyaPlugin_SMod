@@ -14,6 +14,8 @@ https://github.com/Grover-c13/Smod2
 sanya_info_sender_to_ip | String | hatsunemiku24.ddo.jp | サーバー情報送信先IP
 sanya_info_sender_to_port | String | 37813 | サーバー情報送信先ポート
 sanya_spectator_slot | Int | 0 | 観戦スロットの数
+sanya_event_mode_weight | List<Int> | 1,-1,-1,-1,-1 | モードのランダム比率（通常/Night/実験中/D反乱/中層）-1で無効 すべて-1の場合は通常になります
+sanya_classd_ins_items | Int | 10 | 反乱時のドロップ数 増やしすぎると重い
 sanya_night_mode | Bool | False | NightModeの有効化
 sanya_title_timer | Bool | False | Nキーのプレイヤーリストにラウンド経過時間表示
 sanya_cassie_subtitle | Bool | False | 放送に字幕を表示
@@ -43,6 +45,8 @@ sanya_radio_enhance | Bool | False | RadioのRangeをURにした際に放送が�
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_original_auto_nuke | Bool | False | 独自判定の自動核を設定
+sanya_stop_mtf_after_nuke | Bool | False | 核起爆後の増援停止
+sanya_inventory_card_act | Bool | False | カードキーがインベントリ内でも効果発揮
 sanya_escape_spawn | Bool | False | NTFに転生する際の場所を変更
 sanya_intercom_information | Bool | False | 放送室のモニターに生存者情報を表示＆放送室のキーカードが不要に
 sanya_traitor_limitter | Int | -1 | 被拘束状態でNTF/カオスが脱出ポイントへ行くと敵対勢力に寝返ることができる。その際の寝返り元生存人数がこの値以下でないとできない
@@ -236,4 +240,13 @@ sanyaコマンドを拡充
 - v12.3.3
 字幕の大きさ変更
 こんふぃぐ変更
-  
+
+- v12.4
+イベントモード実装
+格闘/079射撃コマンド実装 
+HP消費のブーストコマンド実装(173/096/939) 
+コマンドにクールタイム実装
+カードキーを手に持つ必要がなくなりました
+079はロックされたドアを無視して操作できます
+核爆発後は増援がわかないように
+096が被ダメージで発狂トリガーオンに
