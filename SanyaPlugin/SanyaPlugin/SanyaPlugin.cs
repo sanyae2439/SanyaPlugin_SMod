@@ -12,7 +12,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.4",
+    version = "12.4.1",
     SmodMajor = 3,
     SmodMinor = 3,
     SmodRevision = 1
@@ -21,7 +21,7 @@ namespace SanyaPlugin
     class SanyaPlugin : Plugin
     {
         //test
-        public bool nuketest = false;
+        public bool test = false;
 
         //システム系
         [ConfigOption] //サーバー情報送信先IP
@@ -277,16 +277,40 @@ namespace SanyaPlugin
             (player.GetGameObject() as UnityEngine.GameObject).GetComponent<Scp173PlayerScript>().CallRpcSyncAudio();
         }
 
-        static public void CallVehicle(bool isCi, bool ChopperState)
+        static public void Call939SetSpeedMultiplier(Smod2.API.Player player, float multiplier)
         {
-            if (isCi)
+            (player.GetGameObject() as UnityEngine.GameObject).GetComponent<Scp939PlayerScript>().NetworkspeedMultiplier = multiplier;
+        }
+
+        static public void CallVehicle(bool isCi)
+        {
+            UnityEngine.GameObject gameObject = UnityEngine.GameObject.Find("Host");
+
+            if (gameObject != null)
             {
-                UnityEngine.GameObject.Find("Host").GetComponent<MTFRespawn>().CallRpcVan();
+                if (isCi)
+                {
+                    gameObject.GetComponent<MTFRespawn>().CallRpcVan();
+                }
+                else
+                {
+                    ChopperAutostart chop = gameObject.GetComponent<ChopperAutostart>();
+
+                    if (!chop.NetworkisLanded)
+                    {
+                        chop.SetState(true);
+                    }
+                    else
+                    {
+                        chop.SetState(false);
+                    }
+                }
             }
-            else
-            {
-                UnityEngine.Object.FindObjectOfType<ChopperAutostart>().SetState(ChopperState);
-            }
+        }
+
+        static public void CallAmbientSound(int id)
+        {
+            UnityEngine.GameObject.Find("Host").GetComponent<AmbientSoundPlayer>().CallRpcPlaySound(UnityEngine.Mathf.Clamp(id, 0, 31));
         }
 
         static public void SetExtraDoorNames()
@@ -373,6 +397,24 @@ namespace SanyaPlugin
                 }
             }
         }
+    }
+
+    enum SANYA_AMBIENT_ID
+    {
+        SCP079 = 6,
+        BEEP_1 = 7,
+        LURE_DOOR = 20,
+        BEEP_2 = 21,
+        BEEP_3 = 22,
+        BEEP_4 = 22,
+        BEEP_5 = 23,
+        BEEP_6 = 24,
+        BEEP_7 = 25,
+        BEEP_8 = 26,
+        BEEP_9 = 27,
+        BEEP_10 = 29,
+        BEEP_11 = 31,
+        MOVE = 30
     }
 
     enum SANYA_GAME_MODE

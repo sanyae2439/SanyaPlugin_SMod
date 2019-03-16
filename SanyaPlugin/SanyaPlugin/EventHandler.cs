@@ -11,7 +11,6 @@ using Smod2.EventHandlers;
 using Smod2.EventSystem.Events;
 using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.Networking;
 using RemoteAdmin;
 
 namespace SanyaPlugin
@@ -108,14 +107,13 @@ namespace SanyaPlugin
 
         //Eventer
         private SANYA_GAME_MODE eventmode = SANYA_GAME_MODE.NULL;
-        int startwait = -1;
-        int chamber173count = 0;
-        int hall173count = 0;
-        Vector armory = null;
-        Vector cam049_5 = null;
-        Vector camdownservs = null;
-        Vector cam173hall = null;
-        Vector cam173chamber = null;
+        private List<Room> hcz_hallways = new List<Room>();
+        private int startwait = -1;
+        private int chamber173count = 0;
+        private int hall173count = 0;
+        private Vector armory = null;
+        private Vector cam173hall = null;
+        private Vector cam173chamber = null;
 
         //NightMode
         private List<Room> lcz_lights = new List<Room>();
@@ -272,10 +270,11 @@ namespace SanyaPlugin
 
             genperm = new List<string>(plugin.ConfigManager.Config.GetListValue("generator_keycard_perm", new string[] { "ARMORY_LVL_3" }, false));
             friendlyfire = plugin.ConfigManager.Config.GetBoolValue("friendly_fire", false);
-            startwait = plugin.ConfigManager.Config.GetIntValue("173_door_starting_cooldown", 25);
+            startwait = plugin.ConfigManager.Config.GetIntValue("173_door_starting_cooldown", 25) * 3;
 
             int sum = 0;
             int eventc = -1;
+            plugin.Debug($"{plugin.event_mode_weight.Length}");
             foreach (int cur in plugin.event_mode_weight)
             {
                 eventc++;
@@ -335,15 +334,11 @@ namespace SanyaPlugin
             }
             else if (eventmode == SANYA_GAME_MODE.HCZ_NOGUARD)
             {
-                foreach (Camera079 item in Scp079PlayerScript.allCameras)
+                foreach (Room item in plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA))
                 {
-                    if (item.cameraName.StartsWith("049 HALL 5"))
+                    if (item.ZoneType == ZoneType.HCZ && (item.RoomType == RoomType.X_INTERSECTION || item.RoomType == RoomType.T_INTERSECTION || item.RoomType == RoomType.STRAIGHT))
                     {
-                        cam049_5 = new Vector(item.transform.position.x, item.transform.position.y - 2, item.transform.position.z);
-                    }
-                    else if (item.cameraName.StartsWith("DOWNSERVS"))
-                    {
-                        camdownservs = new Vector(item.transform.position.x, item.transform.position.y - 2, item.transform.position.z);
+                        hcz_hallways.Add(item);
                     }
                 }
             }
@@ -368,8 +363,9 @@ namespace SanyaPlugin
             roundduring = true;
 
             plugin.Info($"RoundStart!");
+            plugin.Info($"Class-D:{plugin.Round.Stats.ClassDAlive} Scientist:{plugin.Round.Stats.ScientistsAlive} NTF:{plugin.Round.Stats.NTFAlive} SCP:{plugin.Round.Stats.SCPAlive} CI:{plugin.Round.Stats.CiAlive}");
 
-            if (eventmode == SANYA_GAME_MODE.NORMAL)
+            if (eventmode != SANYA_GAME_MODE.STORY)
             {
                 if (plugin.classd_startitem_percent > 0)
                 {
@@ -397,7 +393,9 @@ namespace SanyaPlugin
                     plugin.Info($"Class-D-Contaiment Item Droped! (Success:{success_count})");
                 }
             }
-            else if (eventmode == SANYA_GAME_MODE.CLASSD_INSURGENCY)
+
+
+            if (eventmode == SANYA_GAME_MODE.CLASSD_INSURGENCY)
             {
                 foreach (Smod2.API.Item i in plugin.Server.Map.GetItems(ItemType.MP4, true))
                 {
@@ -471,6 +469,7 @@ namespace SanyaPlugin
         {
             plugin.Info($"RoundRestart...");
             roundduring = false;
+            hcz_hallways.Clear();
             lcz_lights.Clear();
             playeridlist.Clear();
             gencomplete = false;
@@ -478,8 +477,6 @@ namespace SanyaPlugin
             chamber173count = 0;
             hall173count = 0;
             armory = null;
-            cam049_5 = null;
-            camdownservs = null;
             cam173hall = null;
             cam173chamber = null;
         }
@@ -531,11 +528,6 @@ namespace SanyaPlugin
         public void OnStartCountdown(WarheadStartEvent ev)
         {
             plugin.Debug($"[OnStartCountdown]");
-
-            if (plugin.nuketest)
-            {
-                ev.Cancel = true;
-            }
 
             if (!ev.Cancel)
             {
@@ -603,11 +595,6 @@ namespace SanyaPlugin
         {
             plugin.Debug($"[OnStopCountdown]");
 
-            if (plugin.nuketest)
-            {
-                ev.Cancel = true;
-            }
-
             if (!ev.Cancel)
             {
                 if (plugin.cassie_subtitle && roundduring)
@@ -673,6 +660,31 @@ namespace SanyaPlugin
                     ev.Player.Teleport(cam173hall);
                     hall173count++;
                 }
+
+                if(ev.TeamRole.Team == Smod2.API.Team.SCP)
+                {
+                    if (plugin.Server.GetPlayers().FindIndex(x => x.TeamRole.Role == Role.SCP_173) == -1 && ev.Role != Role.SCP_173)
+                    {
+                        ev.Role = Role.SCP_173;
+                    }
+                    else if (plugin.Server.GetPlayers().FindIndex(x => x.TeamRole.Role == Role.SCP_079) == -1 && ev.Role != Role.SCP_079)
+                    {
+                        ev.Role = Role.SCP_079;
+                    }
+                    else
+                    {
+                        RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
+
+                        foreach (var i in rnde.posIds)
+                        {
+                            if (i.posID == "RandomPistol" && i.position.position.y > 0.5f && i.position.position.y < 0.7f)
+                            {
+                                ev.Player.Teleport(new Vector(i.position.position.x, i.position.position.y + 1, i.position.position.z));
+                            }
+                        }
+                    }
+                }
+
             }
             else if (eventmode == SANYA_GAME_MODE.CLASSD_INSURGENCY)
             {
@@ -683,15 +695,11 @@ namespace SanyaPlugin
             }
             else if (eventmode == SANYA_GAME_MODE.HCZ_NOGUARD)
             {
-                if (cam049_5 != null && ev.Role == Role.CLASSD)
+                if (hcz_hallways != null && (ev.Role == Role.CLASSD || ev.Role == Role.SCIENTIST))
                 {
-                    ev.Player.Teleport(cam049_5);
+                    ev.Player.Teleport(hcz_hallways[rnd.Next(0, hcz_hallways.Count-1)].Position,true);
                 }
-                else if (camdownservs != null && ev.Role == Role.SCIENTIST)
-                {
-                    ev.Player.Teleport(camdownservs);
-                }
-                else if (camdownservs != null && ev.Role == Role.FACILITY_GUARD)
+                else if (hcz_hallways != null && ev.Role == Role.FACILITY_GUARD)
                 {
                     ev.Role = Role.SCIENTIST;
 
@@ -703,7 +711,7 @@ namespace SanyaPlugin
                     };
                     t.Elapsed += delegate
                     {
-                        ev.Player.Teleport(camdownservs);
+                        ev.Player.Teleport(hcz_hallways[rnd.Next(0, hcz_hallways.Count - 1)].Position, true);
                         t.Enabled = false;
                     };
                 }
@@ -908,7 +916,8 @@ namespace SanyaPlugin
 
             //----------------------------------------------------キル回復------------------------------------------------  
             //############## SCP-173 ###############
-            if (ev.DamageTypeVar == DamageType.SCP_173 &&
+            if (!scp173_boosting &&                          //boostコマンド
+                ev.DamageTypeVar == DamageType.SCP_173 &&
                 ev.Killer.TeamRole.Role == Role.SCP_173 &&
                 plugin.recovery_amount_scp173 > 0)
             {
@@ -1034,18 +1043,36 @@ namespace SanyaPlugin
 
         public void OnRecallZombie(PlayerRecallZombieEvent ev)
         {
-            plugin.Debug($"[OnRecallZombie] {ev.Player.Name} -> {ev.Target.Name}");
-            //----------------------治療回復SCP-049---------------------------------
-            if (ev.Player.TeamRole.Role == Role.SCP_049 &&
-                plugin.recovery_amount_scp049 > 0)
+            plugin.Debug($"[OnRecallZombie] {ev.Player.Name} -> {ev.Target.Name} ({ev.AllowRecall})");
+
+            if (ev.AllowRecall)
             {
-                if (ev.Player.GetHealth() + plugin.recovery_amount_scp049 < ev.Player.TeamRole.MaxHP)
+                //----------------------治療回復SCP-049---------------------------------
+                if (ev.Player.TeamRole.Role == Role.SCP_049 &&
+                    plugin.recovery_amount_scp049 > 0)
                 {
-                    ev.Player.AddHealth(plugin.recovery_amount_scp049);
+                    if (ev.Player.GetHealth() + plugin.recovery_amount_scp049 < ev.Player.TeamRole.MaxHP)
+                    {
+                        ev.Player.AddHealth(plugin.recovery_amount_scp049);
+                    }
+                    else
+                    {
+                        ev.Player.SetHealth(ev.Player.TeamRole.MaxHP);
+                    }
+                }
+
+                (ev.Target.GetGameObject() as GameObject).GetComponent<CharacterClassManager>().NetworkdeathPosition = new Vector3(ev.Player.GetPosition().x, ev.Player.GetPosition().y, ev.Player.GetPosition().z);
+            }
+            else
+            {
+                ev.Player.PersonalClearBroadcasts();
+                if (plugin.Server.GetPlayers().FindIndex(x => x.Name == ev.Target.Name) == -1)
+                {
+                    ev.Player.PersonalBroadcast(5, "<size=25>《治療失敗。対象プレイヤーは切断済みです。》\n </size><size=20>《Recall failed.》\n</size>", false);
                 }
                 else
                 {
-                    ev.Player.SetHealth(ev.Player.TeamRole.MaxHP);
+                    ev.Player.PersonalBroadcast(5, "<size=25>《治療失敗。対象プレイヤーはリスポーン済みです。》\n </size><size=20>《Recall failed.》\n</size>", false);
                 }
             }
         }
@@ -1096,7 +1123,10 @@ namespace SanyaPlugin
                         }
                     }
                 }
+            }
 
+            if(eventmode == SANYA_GAME_MODE.STORY || eventmode == SANYA_GAME_MODE.HCZ_NOGUARD)
+            {
                 if (ev.Player.TeamRole.Team == Smod2.API.Team.SCP)
                 {
                     if (startwait > plugin.Round.Duration)
@@ -1565,6 +1595,8 @@ namespace SanyaPlugin
         {
             plugin.Debug($"[On079Lockdown] {ev.Player.Name}(Tier{ev.Player.Scp079Data.Level + 1}:{ev.Room.RoomType}({ev.APDrain}):{ev.Allow}");
 
+            SanyaPlugin.CallAmbientSound((int)SANYA_AMBIENT_ID.BEEP_5);
+
             if (ev.Player.Scp079Data.Level >= 2)
             {
                 plugin.Debug("079LockDown-HCZBlackout");
@@ -1610,6 +1642,7 @@ namespace SanyaPlugin
 
                         plugin.Server.Map.ClearBroadcasts();
                         plugin.Server.Map.Broadcast((uint)restarttime, $"<size=35>《ラウンドが終了しました。{restarttime}秒後にリスタートします。》\n </size><size=25>《Round Ended. Restart after {restarttime} seconds.》\n</size>", false);
+                        EventManager.Manager.HandleEvent<IEventHandlerRoundEnd>(new RoundEndEvent(plugin.Server, plugin.Round, ROUND_END_STATUS.FORCE_END));
 
                         System.Timers.Timer t = new System.Timers.Timer
                         {
@@ -1619,6 +1652,8 @@ namespace SanyaPlugin
                         };
                         t.Elapsed += delegate
                         {
+                            RoundSummary.singleton.CallRpcDimScreen();
+                            ServerConsole.AddLog("Round restarting");
                             plugin.Round.RestartRound();
                             t.Enabled = false;
                         };
@@ -1838,7 +1873,7 @@ namespace SanyaPlugin
             {
                 if (cooltime == 0)
                 {
-                    playeridlist[ev.Player.PlayerId] = 30;
+                    playeridlist[ev.Player.PlayerId] = 20;
                 }
                 else
                 {
@@ -1856,7 +1891,7 @@ namespace SanyaPlugin
             {
                 if (ev.Command.StartsWith("help"))
                 {
-                    ev.ReturnMessage = "SanyaPlugin Command List\n.kill\n自殺します。\n\n.sinfo\nSCP時のみ仲間のSCPリストを表示します。\n\n.939sp\nSCP-939で放送が可能です。Vキーの人間向けにて使用可能。\n\n.079start\n.079stop\n核の起動/停止を行えます。(Tier3以上/AP125消費)";
+                    ev.ReturnMessage = "SanyaPlugin Command List\n.kill\n自殺します。\n\n.sinfo\nSCP時のみ仲間のSCPリストを表示します。\n\n.939sp\nSCP-939で放送が可能です。Vキーの人間向けにて使用可能。\n\n.079start\n.079stop\n核の起動/停止を行えます。(Tier3以上/AP125消費)\n\n.boost\nSCPの各種ブーストが使用可能。\n\n.attack\n079の場合カメラ射撃、人間の場合素手の時格闘が出来る。";
                 }
                 else if (ev.Command.StartsWith("kill"))
                 {
@@ -1951,31 +1986,31 @@ namespace SanyaPlugin
                         ev.ReturnMessage = "このコマンドはラウンド進行のみ使用可能です。";
                     }
                 }
-                else if (ev.Command.StartsWith("079start"))
+                else if (ev.Command.StartsWith("079nuke"))
                 {
                     if (roundduring)
                     {
                         if (ev.Player.TeamRole.Role == Role.SCP_079)
                         {
-                            plugin.Info($"[079start] Tier:{ev.Player.Scp079Data.Level + 1} AP:{ev.Player.Scp079Data.AP}");
-                            if (!AlphaWarheadController.host.inProgress)
+                            plugin.Info($"[079nuke] {ev.Player.Name} [Tier:{ev.Player.Scp079Data.Level + 1} AP:{ev.Player.Scp079Data.AP}]");
+                            if (ev.Player.Scp079Data.Level >= 2 && ev.Player.Scp079Data.AP >= 125)
                             {
-                                if (ev.Player.Scp079Data.Level >= 2 && ev.Player.Scp079Data.AP >= 125)
+                                if (!AlphaWarheadController.host.inProgress)
                                 {
-
-                                    ev.Player.Scp079Data.AP -= 150.0f;
                                     AlphaWarheadController.host.InstantPrepare();
                                     AlphaWarheadController.host.StartDetonation(ev.Player.GetGameObject() as UnityEngine.GameObject);
-                                    ev.ReturnMessage = "核起動開始成功。(APを150消費)";
+                                    ev.ReturnMessage = "核操作（起動）成功。(AP-125)";
                                 }
                                 else
                                 {
-                                    ev.ReturnMessage = "核起動開始失敗。(APかTierが足りません)";
+                                    AlphaWarheadController.host.CancelDetonation(ev.Player.GetGameObject() as UnityEngine.GameObject);
+                                    ev.ReturnMessage = "核操作（停止）成功。(AP-125)";
                                 }
+                                ev.Player.Scp079Data.AP -= 125.0f;
                             }
                             else
                             {
-                                ev.ReturnMessage = "核が既に起動しています。";
+                                ev.ReturnMessage = "核操作失敗。(APかTierが足りません)";
                             }
                         }
                         else
@@ -1988,29 +2023,23 @@ namespace SanyaPlugin
                         ev.ReturnMessage = "このコマンドはラウンド進行のみ使用可能です。";
                     }
                 }
-                else if (ev.Command.StartsWith("079stop"))
+                else if (ev.Command.StartsWith("079sp"))
                 {
                     if (roundduring)
                     {
                         if (ev.Player.TeamRole.Role == Role.SCP_079)
                         {
-                            plugin.Info($"[079stop] Tier:{ev.Player.Scp079Data.Level + 1} AP:{ev.Player.Scp079Data.AP}");
-                            if (AlphaWarheadController.host.inProgress)
+                            plugin.Info($"[079sp] {ev.Player.Name} [Tier:{ev.Player.Scp079Data.Level + 1} AP:{ev.Player.Scp079Data.AP}]");
+                            if (plugin.Server.Map.GetIntercomSpeaker() != null)
                             {
-                                if (ev.Player.Scp079Data.Level >= 2 && ev.Player.Scp079Data.AP >= 125)
-                                {
-                                    ev.Player.Scp079Data.AP -= 150.0f;
-                                    AlphaWarheadController.host.CancelDetonation(ev.Player.GetGameObject() as UnityEngine.GameObject);
-                                    ev.ReturnMessage = "核起動停止成功。(APを150消費)";
-                                }
-                                else
-                                {
-                                    ev.ReturnMessage = "核起動停止失敗。(APかTierが足りません)";
-                                }
+                                plugin.Server.Map.SetIntercomSpeaker(null);
+                                SanyaPlugin.CallAmbientSound((int)SANYA_AMBIENT_ID.SCP079);
+                                ev.Player.Scp079Data.AP -= 5.0f;
+                                ev.ReturnMessage = "割り込み成功。(AP-5)";
                             }
                             else
                             {
-                                ev.ReturnMessage = "核が起動していません。";
+                                ev.ReturnMessage = "放送中ではありません。";
                             }
                         }
                         else
@@ -2038,7 +2067,7 @@ namespace SanyaPlugin
                                 if (ply096.Networkenraged == Scp096PlayerScript.RageState.NotEnraged)
                                 {
                                     ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, "<size=25>《SCP-096ブーストを使用しました。》\n </size><size=20>《Used boost. <SCP-096>》\n</size>", false);
+                                    ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-096ブーストを使用しました。(HP消費:{usehp})》\n </size><size=20>《Used <SCP-096> boost. (used HP:{usehp})》\n</size>", false);
                                     if (!ev.Player.GetBypassMode())
                                     {
                                         ev.Player.SetHealth(health - usehp, DamageType.NONE);
@@ -2048,7 +2077,7 @@ namespace SanyaPlugin
                                 }
                                 else
                                 {
-                                    ev.ReturnMessage = "発狂がクールタイム中です。";
+                                    ev.ReturnMessage = "クールタイム中です。";
                                 }
                             }
                             else
@@ -2060,25 +2089,69 @@ namespace SanyaPlugin
                         {
                             Scp939PlayerScript ply939 = (ev.Player.GetGameObject() as GameObject).GetComponent<Scp939PlayerScript>();
                             int health = ev.Player.GetHealth();
-                            int usehp = (int)Math.Floor(ev.Player.TeamRole.MaxHP * 0.2);
+                            int usehp = (int)Math.Floor(ev.Player.TeamRole.MaxHP * 0.1);
 
                             if (health > usehp && ply939 != null)
                             {
-                                if (ply939.NetworkspeedMultiplier == 1f)
+                                ev.Player.PersonalClearBroadcasts();
+                                ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-939ブーストを使用しました。(HP消費:{usehp})》\n </size><size=20>《Used <SCP-939> boost. (used HP:{usehp})》\n</size>", false);
+                                if (!ev.Player.GetBypassMode())
                                 {
-                                    ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, "<size=25>《SCP-939ブーストを使用しました。》\n </size><size=20>《Used boost. <SCP-939>》\n</size>", false);
-                                    if (!ev.Player.GetBypassMode())
+                                    ev.Player.SetHealth(health - usehp, DamageType.NONE);
+                                }
+
+                                List<Scp939_VisionController> list939 = new List<Scp939_VisionController>(UnityEngine.GameObject.FindObjectsOfType<Scp939_VisionController>()).FindAll(x => x.name.Contains("Player"));
+
+                                plugin.Debug($"Vision:{list939.Count}");
+
+                                foreach (Scp939_VisionController i in list939)
+                                {
+                                    i.MakeNoise(100f);
+                                }
+
+                                ply939.CallRpcShoot();
+
+                                ev.ReturnMessage = $"Boost!(-{usehp})";
+                            }
+                            else
+                            {
+                                ev.ReturnMessage = "HPが足りません。";
+                            }
+                        }
+                        else if (ev.Player.TeamRole.Role == Role.SCP_049)
+                        {
+                            Scp049PlayerScript ply049 = (ev.Player.GetGameObject() as GameObject).GetComponent<Scp049PlayerScript>();
+                            int health = ev.Player.GetHealth();
+                            int usehp = (int)Math.Floor(ev.Player.TeamRole.MaxHP * 0.2);
+
+                            if (health > usehp && ply049 != null)
+                            {
+                                List<Ragdoll> rags = new List<Ragdoll>(GameObject.FindObjectsOfType<Ragdoll>());
+
+                                plugin.Debug($"rags:{rags.Count}");
+
+                                foreach (Ragdoll i in rags)
+                                {
+                                    plugin.Debug($"{i.owner.steamClientName}:{(Role)i.owner.charclass}");
+
+                                    i.NetworkallowRecall = true;
+                                    i.owner.deathCause.tool = (int)DamageType.SCP_049;
+                                    foreach (Smod2.API.Player p in plugin.Server.GetPlayers())
                                     {
-                                        ev.Player.SetHealth(health - usehp, DamageType.NONE);
+                                        if (p.PlayerId == i.owner.PlayerId)
+                                        {
+                                            p.Infect(60f);
+                                        }
                                     }
-                                    ply939.NetworkspeedMultiplier = 1.7f;
-                                    ev.ReturnMessage = $"Boost!(-{usehp})";
                                 }
-                                else
+
+                                if (!ev.Player.GetBypassMode())
                                 {
-                                    ev.ReturnMessage = "加速中です。";
+                                    ev.Player.SetHealth(health - usehp, DamageType.NONE);
                                 }
+                                ev.Player.PersonalClearBroadcasts();
+                                ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-049ブーストを使用しました。(HP消費:{usehp})》\n </size><size=20>《Used <SCP-049> boost. (used HP:{usehp})》\n</size>", false);
+                                ev.ReturnMessage = $"Boost!(-{usehp})";
                             }
                             else
                             {
@@ -2089,45 +2162,49 @@ namespace SanyaPlugin
                         {
                             Scp173PlayerScript ply173 = GameObject.Find("Host").GetComponent<Scp173PlayerScript>();
                             int health = ev.Player.GetHealth();
+                            int befhp = -1;
                             int usehp = (int)Math.Floor(ev.Player.TeamRole.MaxHP * 0.2);
 
                             if (health > usehp && ply173 != null)
                             {
-                                if (!scp173_boosting)
+                                if (!scp173_boosting && !ev.Player.GetGodmode())
                                 {
+                                    befhp = health;
                                     ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, "<size=25>《SCP-173ブーストを使用しました。(7秒間)》\n </size><size=20>《Used boost. <SCP-173>》\n</size>", false);
-                                    if (!ev.Player.GetBypassMode())
-                                    {
-                                        ev.Player.SetHealth(health - usehp, DamageType.NONE);
-                                    }
+                                    ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-173ブーストを使用しました。(10秒間)》\n </size><size=20>《Used <SCP-173> boost. (effective:10 seconds)》\n</size>", false);
 
-                                    float mintime = ply173.minBlinkTime;
-                                    float maxtime = ply173.maxBlinkTime;
-
-                                    ply173.minBlinkTime = 0.5f;
-                                    ply173.maxBlinkTime = 0.5f;
+                                    ev.Player.SetHealth(1, DamageType.NONE);
+                                    ev.Player.SetGodmode(true);
                                     scp173_boosting = true;
 
                                     ev.ReturnMessage = $"Boost!(-{usehp})";
 
                                     System.Timers.Timer t = new System.Timers.Timer
                                     {
-                                        Interval = 7000,
+                                        Interval = 10000,
                                         AutoReset = false,
                                         Enabled = true
                                     };
                                     t.Elapsed += delegate
                                     {
-                                        ply173.minBlinkTime = mintime;
-                                        ply173.maxBlinkTime = maxtime;
+                                        if (!ev.Player.GetBypassMode())
+                                        {
+                                            ev.Player.SetHealth(befhp - usehp, DamageType.NONE);
+                                        }
+                                        else
+                                        {
+                                            ev.Player.SetHealth(befhp, DamageType.NONE);
+                                        }
+                                        ev.Player.SetGodmode(false);
                                         scp173_boosting = false;
+                                        ev.Player.PersonalClearBroadcasts();
+                                        ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-173ブーストが終了。(HP:{befhp}-{usehp})》\n </size><size=20>《Ended <SCP-173> boost. (HP:{befhp}-{usehp})》\n</size>", false);
                                         t.Enabled = false;
                                     };
                                 }
                                 else
                                 {
-                                    ev.ReturnMessage = "ブースト中です。";
+                                    ev.ReturnMessage = "ブースト中か、GodModeが有効です。";
                                 }
                             }
                             else
@@ -2171,16 +2248,19 @@ namespace SanyaPlugin
 
                                     if (comp != null && ply != null && hitbox != null)
                                     {
-                                        plugin.Debug("Hurt");
-                                        gameObject.GetComponent<PlayerStats>().HurtPlayer(
-                                            new PlayerStats.HitInfo(
-                                                SanyaPlugin.HitboxDamageCalculate(hitbox, 1.0f),
-                                                gameObject.GetComponent<NicknameSync>().myNick + " (" + plychm.SteamId + ")",
-                                                DamageTypes.None,
-                                                gameObject.GetComponent<QueryProcessor>().PlayerId)
-                                            , raycastHit.transform.gameObject
-                                        );
-                                        raycastHit.transform.gameObject.GetComponent<FallDamage>().CallRpcDoSound(raycastHit.transform.position, 1.0f);
+                                        if (ply.TeamRole.Team != Smod2.API.Team.SCP)
+                                        {
+                                            plugin.Debug("Hurt");
+                                            gameObject.GetComponent<PlayerStats>().HurtPlayer(
+                                                new PlayerStats.HitInfo(
+                                                    SanyaPlugin.HitboxDamageCalculate(hitbox, 5.0f),
+                                                    gameObject.GetComponent<NicknameSync>().myNick + " (" + plychm.SteamId + ")",
+                                                    DamageTypes.Tesla,
+                                                    gameObject.GetComponent<QueryProcessor>().PlayerId)
+                                                , raycastHit.transform.gameObject
+                                            );
+                                            raycastHit.transform.gameObject.GetComponent<FallDamage>().CallRpcDoSound(raycastHit.transform.position, 1.0f);
+                                        }
                                     }
                                     wpm.CallRpcPlaceDecal(false, 0, raycastHit.point + raycastHit.normal * 0.01f, Quaternion.FromToRotation(Vector3.up, raycastHit.normal));
                                 }
@@ -2205,6 +2285,8 @@ namespace SanyaPlugin
                             Vector3 forward = scp049sc.plyCam.transform.forward;
                             Vector3 position = scp049sc.plyCam.transform.position;
 
+                            forward.Scale(new Vector3(0.5f, 0.5f, 0.5f));
+
                             if (gameObject != null && forward != null && position != null)
                             {
                                 RaycastHit raycastHit;
@@ -2217,7 +2299,11 @@ namespace SanyaPlugin
 
                                     if (comp != null && ply != null && hitbox != null)
                                     {
-                                        if (ev.Player.TeamRole.Team != ply.TeamRole.Team || friendlyfire)
+                                        if(ev.Player.PlayerId == ply.PlayerId)
+                                        {
+                                            plugin.Debug("Self");
+                                        }
+                                        else if (ev.Player.TeamRole.Team != ply.TeamRole.Team || friendlyfire)
                                         {
                                             plugin.Debug("Hurt");
                                             raycastHit.transform.gameObject.GetComponent<FallDamage>().CallRpcDoSound(raycastHit.transform.position, SanyaPlugin.HitboxDamageCalculate(hitbox, 1.0f));

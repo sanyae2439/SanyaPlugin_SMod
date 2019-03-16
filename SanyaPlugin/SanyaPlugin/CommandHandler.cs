@@ -148,26 +148,63 @@ namespace SanyaPlugin
 
                     return new string[] { "map shaking." };
                 }
-                else if (args[0] == "nuke")
+                else if (args[0] == "heli")
                 {
-                    if (plugin.nuketest)
+                    SanyaPlugin.CallVehicle(false);
+
+                    return new string[] { " heli moved." };
+                }
+                else if (args[0] == "van")
+                {
+                    SanyaPlugin.CallVehicle(true);
+
+                    return new string[] { " van spawned." };
+                }
+                else if (args[0] == "flagtest")
+                {
+                    if (plugin.test)
                     {
-                        plugin.nuketest = false;
+                        plugin.test = false;
                     }
                     else
                     {
-                        plugin.nuketest = true;
+                        plugin.test = true;
                     }
 
-                    return new string[] { "nuketest:" + plugin.nuketest };
+                    return new string[] { $"test:{plugin.test}" };
                 }
                 else if (args[0] == "test")
                 {
                     Player ply = sender as Player;
+                    System.Random rnd = new System.Random();
 
-                    foreach (Camera079 item in Scp079PlayerScript.allCameras)
+                    //foreach (Camera079 item in Scp079PlayerScript.allCameras)
+                    //{
+                    //    plugin.Debug($"Name:{item.cameraName}");
+                    //}
+
+                    //foreach(Smod2.API.Player p in plugin.Server.GetPlayers())
+                    //{
+                    //    FootstepSync foots = (p.GetGameObject() as UnityEngine.GameObject).GetComponent<FootstepSync>();
+
+                    //    foots.CallCmdSyncFoot(true);
+                    //}
+
+                    //if(args.Length > 1)
+                    //{
+                    //    SanyaPlugin.CallAmbientSound(int.Parse(args[1]));
+                    //}  
+
+                    RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
+
+                    foreach(var i in rnde.pickups)
                     {
-                        plugin.Debug($"Name:{item.cameraName}");
+                        plugin.Info($"{i.itemID} {i.posID}");
+                    }
+
+                    foreach(var i in rnde.posIds)
+                    {
+                        plugin.Info($"{i.index} {i.posID} {i.position.position}");
                     }
 
                     return new string[] { "test ok" };
