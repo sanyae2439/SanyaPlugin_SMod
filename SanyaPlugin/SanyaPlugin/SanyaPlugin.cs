@@ -294,7 +294,7 @@ namespace SanyaPlugin
                 }
                 else
                 {
-                    ChopperAutostart chop = gameObject.GetComponent<ChopperAutostart>();
+                    ChopperAutostart chop = UnityEngine.Object.FindObjectOfType<ChopperAutostart>();
 
                     if (!chop.NetworkisLanded)
                     {

@@ -152,13 +152,13 @@ namespace SanyaPlugin
                 {
                     SanyaPlugin.CallVehicle(false);
 
-                    return new string[] { " heli moved." };
+                    return new string[] { "heli moved." };
                 }
                 else if (args[0] == "van")
                 {
                     SanyaPlugin.CallVehicle(true);
 
-                    return new string[] { " van spawned." };
+                    return new string[] { "van spawned." };
                 }
                 else if (args[0] == "flagtest")
                 {
@@ -195,17 +195,19 @@ namespace SanyaPlugin
                     //    SanyaPlugin.CallAmbientSound(int.Parse(args[1]));
                     //}  
 
-                    RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
+                    //RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
 
-                    foreach(var i in rnde.pickups)
-                    {
-                        plugin.Info($"{i.itemID} {i.posID}");
-                    }
+                    //foreach(var i in rnde.pickups)
+                    //{
+                    //    plugin.Info($"{i.itemID} {i.posID}");
+                    //}
 
-                    foreach(var i in rnde.posIds)
-                    {
-                        plugin.Info($"{i.index} {i.posID} {i.position.position}");
-                    }
+                    //foreach(var i in rnde.posIds)
+                    //{
+                    //    plugin.Info($"{i.index} {i.posID} {i.position.position}");
+                    //}
+
+                    (ply.GetGameObject() as UnityEngine.GameObject).GetComponent<FlashEffect>().CallCmdBlind(true);
 
                     return new string[] { "test ok" };
                 }
