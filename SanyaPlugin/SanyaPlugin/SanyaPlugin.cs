@@ -12,7 +12,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.4.1",
+    version = "12.4.2",
     SmodMajor = 3,
     SmodMinor = 3,
     SmodRevision = 1
@@ -305,6 +305,17 @@ namespace SanyaPlugin
                         chop.SetState(false);
                     }
                 }
+            }
+        }
+
+        static public void CallMTFSpawn(bool isCi)
+        {
+            UnityEngine.GameObject gameObject = UnityEngine.GameObject.Find("Host");
+
+            if (gameObject != null)
+            {
+                gameObject.GetComponent<MTFRespawn>().nextWaveIsCI = isCi;
+                gameObject.GetComponent<MTFRespawn>().timeToNextRespawn = 0.1f;
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using Smod2.Commands;
 using Smod2.API;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace SanyaPlugin
 {
@@ -177,6 +178,14 @@ namespace SanyaPlugin
                 {
                     Player ply = sender as Player;
                     System.Random rnd = new System.Random();
+                    GameObject gameObject = null;
+
+                    if (ply != null)
+                    {
+                        gameObject = ply.GetGameObject() as GameObject;
+                    }
+
+                    
 
                     //foreach (Camera079 item in Scp079PlayerScript.allCameras)
                     //{
@@ -207,7 +216,15 @@ namespace SanyaPlugin
                     //    plugin.Info($"{i.index} {i.posID} {i.position.position}");
                     //}
 
-                    (ply.GetGameObject() as UnityEngine.GameObject).GetComponent<FlashEffect>().CallCmdBlind(true);
+                    //(ply.GetGameObject() as UnityEngine.GameObject).GetComponent<FlashEffect>().CallCmdBlind(true);
+
+                    if(gameObject != null)
+                    {
+                        foreach(var i in UnityEngine.Object.FindObjectsOfType<FallDamage>())
+                        {
+                            plugin.Debug($"zone:{i.zone} {i.name}");
+                        }
+                    }
 
                     return new string[] { "test ok" };
                 }

@@ -108,6 +108,7 @@ namespace SanyaPlugin
         //Eventer
         private SANYA_GAME_MODE eventmode = SANYA_GAME_MODE.NULL;
         private List<Room> hcz_hallways = new List<Room>();
+        private bool storyshaker = false;
         private int startwait = -1;
         private int chamber173count = 0;
         private int hall173count = 0;
@@ -274,7 +275,6 @@ namespace SanyaPlugin
 
             int sum = 0;
             int eventc = -1;
-            plugin.Debug($"{plugin.event_mode_weight.Length}");
             foreach (int cur in plugin.event_mode_weight)
             {
                 eventc++;
@@ -415,6 +415,65 @@ namespace SanyaPlugin
                     }
                 }
             }
+            else if(eventmode == SANYA_GAME_MODE.STORY)
+            {
+                System.Timers.Timer t = new System.Timers.Timer
+                {
+                    Interval = 50,
+                    AutoReset = false,
+                    Enabled = true
+                };
+                t.Elapsed += delegate
+                {
+                    List<Smod2.API.Player> plys = plugin.Server.GetPlayers();
+                    List<Smod2.API.Player> scps = plys.FindAll(x => x.TeamRole.Team == Smod2.API.Team.SCP);
+                    int scpamount = scps.Count;
+                    int scp173amount = scps.FindAll(x => x.TeamRole.Role == Role.SCP_173).Count;
+                    int scp079amount = scps.FindAll(x => x.TeamRole.Role == Role.SCP_079).Count;
+
+                    foreach (var ply in plys)
+                    {
+                        plugin.Debug($"[scps]{ply.Name} : {ply.TeamRole.Team} : {ply.TeamRole.Role}");
+                    }
+                    plugin.Debug($"[amount]{scpamount} : {scp173amount} : {scp079amount}");
+
+                    for(int i = 0; i < scpamount; i++)
+                    {
+                        plugin.Debug($"target[{i}]:{scps[i].Name}[{scps[i].TeamRole.Role}]");
+
+                        if(scp173amount == 0 || i == 0)
+                        {
+                            if (scps[i].TeamRole.Role == Role.SCP_173) continue;
+                            if (scps[i].TeamRole.Role == Role.SCP_079) scp079amount--;
+                            plugin.Debug($"change173[{i}]:{scps[i].Name}");
+                            scps[i].ChangeRole(Role.SCP_173);
+                            scp173amount++;
+                            continue;
+                        }
+
+                        if(scp079amount == 0 && i > 0)
+                        {
+                            if (scps[i].TeamRole.Role == Role.SCP_079) continue;
+                            if (scps[i].TeamRole.Role == Role.SCP_173) scp173amount--;
+                            plugin.Debug($"change079[{i}]:{scps[i].Name}");
+                            scps[i].ChangeRole(Role.SCP_079);
+                            scp079amount++;
+                            continue;
+                        }
+
+                        //Other SCP = 372CONTAIN
+                        RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
+                        foreach (var pos in rnde.posIds)
+                        {
+                            if (pos.posID == "RandomPistol" && pos.position.position.y > 0.5f && pos.position.position.y < 0.7f)
+                            {
+                                scps[i].Teleport(new Vector(pos.position.position.x, pos.position.position.y + 1, pos.position.position.z));
+                            }
+                        }
+                    }
+                    t.Enabled = false;
+                };
+            }
         }
 
         public void OnCheckRoundEnd(CheckRoundEndEvent ev)
@@ -428,6 +487,7 @@ namespace SanyaPlugin
                         plugin.Info($"Round Ended [NonSummary-Mode] [{ev.Status}]");
                         plugin.Info($"Class-D:{ev.Round.Stats.ClassDAlive} Scientist:{ev.Round.Stats.ScientistsAlive} NTF:{ev.Round.Stats.NTFAlive} SCP:{ev.Round.Stats.SCPAlive} CI:{ev.Round.Stats.CiAlive}");
 
+                        UnityEngine.GameObject.Find("Host").GetComponent<MTFRespawn>().SetDecontCooldown(60f);
                         if (plugin.endround_all_godmode)
                         {
                             foreach (Player item in plugin.Server.GetPlayers())
@@ -479,6 +539,7 @@ namespace SanyaPlugin
             armory = null;
             cam173hall = null;
             cam173chamber = null;
+            storyshaker = false;
         }
 
         public void OnPlayerJoin(PlayerJoinEvent ev)
@@ -635,6 +696,12 @@ namespace SanyaPlugin
         {
             plugin.Debug($"[OnCheckEscape] {ev.Player.Name}:{ev.Player.TeamRole.Role}");
 
+            if (!roundduring)
+            {
+                ev.AllowEscape = false;
+                return;
+            }
+
             isEscaper = true;
             escape_player_id = ev.Player.PlayerId;
             escape_pos = ev.Player.GetPosition();
@@ -660,31 +727,6 @@ namespace SanyaPlugin
                     ev.Player.Teleport(cam173hall);
                     hall173count++;
                 }
-
-                if(ev.TeamRole.Team == Smod2.API.Team.SCP)
-                {
-                    if (plugin.Server.GetPlayers().FindIndex(x => x.TeamRole.Role == Role.SCP_173) == -1 && ev.Role != Role.SCP_173)
-                    {
-                        ev.Role = Role.SCP_173;
-                    }
-                    else if (plugin.Server.GetPlayers().FindIndex(x => x.TeamRole.Role == Role.SCP_079) == -1 && ev.Role != Role.SCP_079)
-                    {
-                        ev.Role = Role.SCP_079;
-                    }
-                    else
-                    {
-                        RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
-
-                        foreach (var i in rnde.posIds)
-                        {
-                            if (i.posID == "RandomPistol" && i.position.position.y > 0.5f && i.position.position.y < 0.7f)
-                            {
-                                ev.Player.Teleport(new Vector(i.position.position.x, i.position.position.y + 1, i.position.position.z));
-                            }
-                        }
-                    }
-                }
-
             }
             else if (eventmode == SANYA_GAME_MODE.CLASSD_INSURGENCY)
             {
@@ -1632,6 +1674,15 @@ namespace SanyaPlugin
             {
                 updatecounter = 0;
 
+                if(eventmode == SANYA_GAME_MODE.STORY || eventmode == SANYA_GAME_MODE.HCZ_NOGUARD)
+                {
+                    if(startwait < plugin.Round.Duration && !storyshaker)
+                    {
+                        plugin.Server.Map.Shake();
+                        storyshaker = true;
+                    }
+                }
+
                 if (plugin.summary_less_mode)
                 {
                     if (roundduring && isEnded)
@@ -2197,6 +2248,12 @@ namespace SanyaPlugin
                                         }
                                         ev.Player.SetGodmode(false);
                                         scp173_boosting = false;
+
+                                        if(plugin.Server.Map.WarheadDetonated &&  ev.Player.GetPosition().y < 900)
+                                        {
+                                            ev.Player.Kill(DamageType.NUKE);
+                                        }
+
                                         ev.Player.PersonalClearBroadcasts();
                                         ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-173ブーストが終了。(HP:{befhp}-{usehp})》\n </size><size=20>《Ended <SCP-173> boost. (HP:{befhp}-{usehp})》\n</size>", false);
                                         t.Enabled = false;
