@@ -16,7 +16,7 @@ using RemoteAdmin;
 
 namespace SanyaPlugin
 {
-    class Playerinfo
+    public class Playerinfo
     {
         public Playerinfo() { }
 
@@ -27,7 +27,7 @@ namespace SanyaPlugin
         public string role { get; set; }
     }
 
-    class Serverinfo
+    public class Serverinfo
     {
         public Serverinfo() { players = new List<Playerinfo>(); }
 
@@ -54,7 +54,7 @@ namespace SanyaPlugin
         public List<Playerinfo> players { get; private set; }
     }
 
-    class EventHandler :
+    public class EventHandler :
         IEventHandlerWaitingForPlayers,
         IEventHandlerRoundStart,
         IEventHandlerRoundEnd,
@@ -1158,12 +1158,17 @@ namespace SanyaPlugin
         public void OnElevatorUse(PlayerElevatorUseEvent ev)
         {
             plugin.Debug($"[OnElevatorUse] {ev.Player.Name} : {ev.Elevator.ElevatorType}[{ev.Elevator.ElevatorStatus}] - {ev.Elevator.MovingSpeed} : {ev.AllowUse}");
-            if(ev.Elevator.ElevatorStatus == ElevatorStatus.Up && (ev.Elevator.ElevatorType == ElevatorType.GateA || ev.Elevator.ElevatorType == ElevatorType.GateB) )
+
+            if (eventmode == SANYA_GAME_MODE.NO_SCP)
             {
-                Timing.RunCoroutine(SanyaPlugin.EscapeEmulateForElevator(ev.Elevator), Segment.Update);
-            }else if (ev.Elevator.ElevatorStatus == ElevatorStatus.Down && (ev.Elevator.ElevatorType == ElevatorType.GateA || ev.Elevator.ElevatorType == ElevatorType.GateB))
-            {
-                ev.AllowUse = false;
+                if (ev.Elevator.ElevatorStatus == ElevatorStatus.Up && (ev.Elevator.ElevatorType == ElevatorType.GateA || ev.Elevator.ElevatorType == ElevatorType.GateB))
+                {
+                    Timing.RunCoroutine(SanyaPlugin.EscapeEmulateForElevator(ev.Elevator), Segment.Update);
+                }
+                else if (ev.Elevator.ElevatorStatus == ElevatorStatus.Down && (ev.Elevator.ElevatorType == ElevatorType.GateA || ev.Elevator.ElevatorType == ElevatorType.GateB))
+                {
+                    ev.AllowUse = false;
+                }
             }
 
             if (plugin.handcuffed_cantopen)

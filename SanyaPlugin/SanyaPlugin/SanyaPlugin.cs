@@ -14,13 +14,13 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.5",
+    version = "12.5.1",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
     )]
 
-    class SanyaPlugin : Plugin
+    public class SanyaPlugin : Plugin
     {
         //LayerMask
         public const int cctvmask = 262144;
@@ -556,7 +556,7 @@ namespace SanyaPlugin
         }
     }
 
-    enum SANYA_AMBIENT_ID
+    public enum SANYA_AMBIENT_ID
     {
         SCP079 = 6,
         BEEP_1 = 7,
@@ -574,7 +574,7 @@ namespace SanyaPlugin
         MOVE = 30
     }
 
-    enum SANYA_GAME_MODE
+    public enum SANYA_GAME_MODE
     {
         NULL = -1,
         NORMAL = 0,

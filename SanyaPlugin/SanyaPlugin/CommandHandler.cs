@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace SanyaPlugin
 {
-    class CommandHandler : ICommandHandler
+    public class CommandHandler : ICommandHandler
     {
         private SanyaPlugin plugin;
 
