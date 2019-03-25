@@ -3,6 +3,8 @@ using Smod2.API;
 using Smod2.Attributes;
 using Smod2.Config;
 using System.Collections.Generic;
+using UnityEngine;
+using MEC;
 
 namespace SanyaPlugin
 {
@@ -12,14 +14,20 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.4.2.1",
+    version = "12.5",
     SmodMajor = 3,
-    SmodMinor = 3,
-    SmodRevision = 1
+    SmodMinor = 4,
+    SmodRevision = 0
     )]
 
     class SanyaPlugin : Plugin
     {
+        //LayerMask
+        public const int cctvmask = 262144;
+        public const int doormask = 134234112;
+        public const int playermask = 1208246273;
+        public const int teslamask = 4;
+
         //test
         public bool test = false;
 
@@ -28,12 +36,8 @@ namespace SanyaPlugin
         internal string info_sender_to_ip = "hatsunemiku24.ddo.jp";
         [ConfigOption] //サーバー情報送信先ポート
         internal int info_sender_to_port = 37813;
-        [ConfigOption] //プレイヤーリミット数
-        internal int spectator_slot = 0;
-        [ConfigOption] //NightModeを有効にする
-        internal bool night_mode = false;
         [ConfigOption] //ゲームモードランダムの率
-        internal int[] event_mode_weight = new int[] { 1, -1, -1, -1, -1 };
+        internal int[] event_mode_weight = new int[] { 1, -1, -1, -1, -1, -1 };
         [ConfigOption] //反乱時のドロップ追加数
         internal int classd_ins_items = 10;
         [ConfigOption] //プレイヤーリストタイトルにタイマー追加
@@ -58,8 +62,6 @@ namespace SanyaPlugin
         internal int scp106_portal_to_human_wait = 180;
         [ConfigOption] //SCP-106の囮コンテナに入った際の放送できる時間
         internal int scp106_lure_speaktime = -1;
-        [ConfigOption] //scp106_cleanupがバグった際に使う用
-        internal bool scp106_cleanup = false;
         [ConfigOption] //SCP-049-2がキルした際もSCP-049が治療可能に
         internal bool infect_by_scp049_2 = false;
         [ConfigOption] //SCP-049が治療できなくなるまでの時間
@@ -92,19 +94,13 @@ namespace SanyaPlugin
         internal int classd_startitem_ok_itemid = 0;
         [ConfigOption] //NGの場合に設置するアイテム
         internal int classd_startitem_no_itemid = -1;
-        [ConfigOption] //ドアロックできるアイテム
-        internal int doorlock_itemid = -1;
-        [ConfigOption] //ドアロックできる時間
-        internal int doorlock_locked_second = 10;
-        [ConfigOption] //ドアロックのクールタイム
-        internal int doorlock_interval_second = 60;
 
         //ダメージ系
-        [ConfigOption] //指定以下のダメージを無効にする
+        [ConfigOption] //指定以下の落下ダメージを無効にする
         internal float fallen_limit = 10.0f;
-        [ConfigOption] //USPの対人間ダメージ乗算値（調整しないと弱いので）
+        [ConfigOption] //USPの対人間ダメージ乗算値
         internal float usp_damage_multiplier_human = 2.5f;
-        [ConfigOption] //USPの対SCPダメージ乗算値（調整しないと弱いので）
+        [ConfigOption] //USPの対SCPダメージ乗算値
         internal float usp_damage_multiplier_scp = 5.0f;
         [ConfigOption] //SCP-173が受けるダメージの減算値
         internal float damage_divisor_scp173 = 1.0f;
@@ -168,7 +164,32 @@ namespace SanyaPlugin
             AddEventHandlers(new EventHandler(this), Smod2.Events.Priority.Highest);
         }
 
-        static public float HitboxDamageCalculate(HitboxIdentity hitbox, float damage)
+        static public int GetRandomIndexFromWeight(int[] list)
+        {
+            System.Random rnd = new System.Random();
+            int sum = 0;
+
+            foreach (int i in list)
+            {
+                if (i <= 0) continue;
+                sum += i;
+            }
+
+            int random = rnd.Next(0, sum);
+            for (int i = 0; i < list.Length; i++)
+            {
+                if (list[i] <= 0) continue;
+
+                if (random < list[i])
+                {
+                    return i;
+                }
+                random -= list[i];
+            }
+            return -1;
+        }
+
+        static public float GetDamageFromHitbox(HitboxIdentity hitbox, float damage)
         {
             switch (hitbox.id.ToUpper())
             {
@@ -254,7 +275,7 @@ namespace SanyaPlugin
             return false;
         }
 
-        static public void SetMute(Smod2.API.Player player, bool b)
+        static public void SetMute(Player player, bool b)
         {
             (player.GetGameObject() as UnityEngine.GameObject).GetComponent<CharacterClassManager>().SetMuted(b);
         }
@@ -272,12 +293,12 @@ namespace SanyaPlugin
             UnityEngine.GameObject.Find("Host").GetComponent<PlayerInteract>().CallRpcContain106(null);
         }
 
-        static public void Call173SnapSound(Smod2.API.Player player)
+        static public void Call173SnapSound(Player player)
         {
             (player.GetGameObject() as UnityEngine.GameObject).GetComponent<Scp173PlayerScript>().CallRpcSyncAudio();
         }
 
-        static public void Call939SetSpeedMultiplier(Smod2.API.Player player, float multiplier)
+        static public void Call939SetSpeedMultiplier(Player player, float multiplier)
         {
             (player.GetGameObject() as UnityEngine.GameObject).GetComponent<Scp939PlayerScript>().NetworkspeedMultiplier = multiplier;
         }
@@ -322,6 +343,32 @@ namespace SanyaPlugin
         static public void CallAmbientSound(int id)
         {
             UnityEngine.GameObject.Find("Host").GetComponent<AmbientSoundPlayer>().CallRpcPlaySound(UnityEngine.Mathf.Clamp(id, 0, 31));
+        }
+
+        static public void CallAlphaWarhead(Player player = null)
+        {
+            if (!AlphaWarheadController.host.inProgress)
+            {
+                AlphaWarheadController.host.InstantPrepare();
+                AlphaWarheadController.host.StartDetonation(player?.GetGameObject() as GameObject);
+            }
+            else
+            {
+                AlphaWarheadController.host.CancelDetonation(player?.GetGameObject() as GameObject);
+            }
+        }
+
+        static public void CallRpcTargetShake(UnityEngine.GameObject target)
+        {
+            int rpcid = -737840022;
+
+            UnityEngine.Networking.NetworkWriter writer = new UnityEngine.Networking.NetworkWriter();
+            writer.Write((short)0);
+            writer.Write((short)2);
+            writer.WritePackedUInt32((uint)rpcid);
+            writer.Write(target.GetComponent<UnityEngine.Networking.NetworkIdentity>().netId);
+            writer.FinishMessage();
+            target.GetComponent<CharacterClassManager>().connectionToClient.SendWriter(writer, 0);
         }
 
         static public void SetExtraDoorNames()
@@ -408,6 +455,105 @@ namespace SanyaPlugin
                 }
             }
         }
+
+        static public Vector GetSpawnElevatorPos(Elevator[] elevators, bool isCi, bool isReSpawn)
+        {
+            foreach (Elevator i in elevators)
+            {
+                if (i.ElevatorType == ElevatorType.GateA && isCi)
+                {
+                    foreach (Vector x in i.GetPositions())
+                    {
+                        if ((int)System.Math.Truncate(x.y) == 1001 && isReSpawn)
+                        {
+                            return x;
+                        }
+                        else if ((int)System.Math.Truncate(x.y) == -998 && !isReSpawn)
+                        {
+                            return x;
+                        }
+                    }
+                }
+                else if (i.ElevatorType == ElevatorType.GateB && !isCi)
+                {
+                    foreach (Vector x in i.GetPositions())
+                    {
+                        if ((int)System.Math.Truncate(x.y) == 994)
+                        {
+                            return x;
+                        }
+                        else if ((int)System.Math.Truncate(x.y) == -998 && !isReSpawn)
+                        {
+                            return x;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        static public IEnumerator<float> DelayedTeleport(Player player, Vector pos, bool unstack)
+        {
+            yield return Timing.WaitForSeconds(0.1f);
+            player.Teleport(pos, unstack);
+            yield break;
+        }
+
+        static public IEnumerator<float> EscapeEmulateForElevator(Elevator elevator)
+        {
+            yield return Timing.WaitForSeconds(2f);
+
+            Lift lift = elevator.GetComponent() as Lift;
+            foreach (Lift.Elevator ele in lift.elevators)
+            {
+                Collider[] coliders = Physics.OverlapBox(ele.target.transform.position, Vector3.one * lift.maxDistance, new Quaternion(0f, 0f, 0f, 0f), teslamask);
+                foreach (Collider colider in coliders)
+                {
+                    PlayerStats ps = colider.GetComponentInParent<PlayerStats>();
+                    if (ps != null)
+                    {
+                        Player player = new ServerMod2.API.SmodPlayer(ps.gameObject);
+                        if (player.TeamRole.Role == Role.CLASSD)
+                        {
+                            RoundSummary.escaped_ds++;
+                            if (player.IsHandcuffed())
+                            {
+                                player.ChangeRole(Role.NTF_CADET, true, false, true, true);
+                            }
+                            else
+                            {
+                                player.ChangeRole(Role.CHAOS_INSURGENCY, true, false, true, true);
+                            }
+                        }
+                        else if (player.TeamRole.Role == Role.SCIENTIST)
+                        {
+                            RoundSummary.escaped_scientists++;
+                            if (player.IsHandcuffed())
+                            {
+                                player.ChangeRole(Role.CHAOS_INSURGENCY, true, false, true, true);
+                            }
+                            else
+                            {
+                                player.ChangeRole(Role.NTF_SCIENTIST, true, false, true, true);
+                            }
+                        }
+                    }
+                }
+            }
+
+            yield return Timing.WaitForSeconds(7.5f);
+            lift.UseLift();
+            yield break;
+        }
+
+        static public IEnumerator<float> BeforeSpawnMoving(Elevator elevator)
+        {
+            Lift lift = elevator.GetComponent() as Lift;
+            lift.NetworkstatusID = (int)Lift.Status.Down;
+            yield return Timing.WaitForSeconds(0.1f);
+            elevator.Use();
+            yield break;
+        }
     }
 
     enum SANYA_AMBIENT_ID
@@ -435,6 +581,7 @@ namespace SanyaPlugin
         NIGHT,
         STORY,
         CLASSD_INSURGENCY,
-        HCZ_NOGUARD
+        HCZ_NOGUARD,
+        NO_SCP
     }
 }

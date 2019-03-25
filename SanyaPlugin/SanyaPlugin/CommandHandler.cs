@@ -185,7 +185,7 @@ namespace SanyaPlugin
                         gameObject = ply.GetGameObject() as GameObject;
                     }
 
-                    
+
 
                     //foreach (Camera079 item in Scp079PlayerScript.allCameras)
                     //{
@@ -218,13 +218,63 @@ namespace SanyaPlugin
 
                     //(ply.GetGameObject() as UnityEngine.GameObject).GetComponent<FlashEffect>().CallCmdBlind(true);
 
-                    if(gameObject != null)
-                    {
-                        foreach(var i in UnityEngine.Object.FindObjectsOfType<FallDamage>())
-                        {
-                            plugin.Debug($"zone:{i.zone} {i.name}");
-                        }
-                    }
+                    //Scp049PlayerScript s049 = gameObject.GetComponent<Scp049PlayerScript>();
+                    //Vector3 position = s049.plyCam.transform.position;
+                    //Vector3 forward = s049.plyCam.transform.forward;
+
+                    //plugin.Debug($"Raycast...");
+                    //RaycastHit raycastHit;
+                    //if (Physics.Raycast(position, forward, out raycastHit, 500f, 262144))
+                    //{
+                    //    plugin.Error($"name:{raycastHit.transform.name} parent:{raycastHit.transform.parent.name} root:{raycastHit.transform.root.name}");
+                    //}
+                    //else
+                    //{
+                    //    plugin.Warn($"not hit(raycast)");
+                    //}
+
+                    //plugin.Debug($"CheckGround...");
+                    //Vector3 pos = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y - 0.8f, gameObject.transform.position.z);
+                    //Collider[] hits = Physics.OverlapBox(pos, FallDamage.GroundCheckSize, new Quaternion(0f, 0f, 0f, 0f), FallDamage.staticGroundMask);
+                    //if (hits.Length != 0)
+                    //{
+                    //    foreach (var i in hits)
+                    //    {
+                    //        plugin.Error($"name:{i.transform.name} parent:{i.transform.parent.name} root:{i.transform.root.name}");
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    plugin.Warn($"not hit(ground)");
+                    //}
+
+                    //foreach (var i in GameObject.FindObjectsOfType<TeslaGate>())
+                    //{
+                    //    plugin.Debug($"{i.killerMask.ToString()}");
+                    //}
+
+                    //for (int i = 0; i < 32; i++)
+                    //{
+                    //    plugin.Debug($"Layer[{i}]{LayerMask.LayerToName(i)}");
+                    //    if (((1 << i) & 1208246273) != 0)
+                    //    {
+                    //        plugin.Warn($"1208246273 in [{i}]");
+                    //    }
+                    //    if (((1 << i) & 1207976449) != 0)
+                    //    {
+                    //        plugin.Warn($"1207976449 in [{i}]");
+                    //    }
+                    //}
+
+                    //plugin.Debug($"{LayerMask.GetMask(new string[] { "CCTV" })}");
+
+                    //CharacterClassManager ccm = gameObject.GetComponent<CharacterClassManager>();
+                    //PlayerStats.HitInfo info = new PlayerStats.HitInfo(1f, ply.Name, DamageTypes.None, ply.PlayerId);
+                    //gameObject.GetComponent<RagdollManager>().SpawnRagdoll(gameObject.transform.position, gameObject.transform.rotation, ccm.curClass, info, false,
+                    //    gameObject.GetComponent<Dissonance.Integrations.UNet_HLAPI.HlapiPlayer>().PlayerId, gameObject.GetComponent<NicknameSync>().myNick,
+                    //    gameObject.GetComponent<RemoteAdmin.QueryProcessor>().PlayerId, gameObject);
+
+                    //plugin.Debug($"{GameObject.FindObjectOfType<TeslaGate>().killerMask.value}");
 
                     return new string[] { "test ok" };
                 }
