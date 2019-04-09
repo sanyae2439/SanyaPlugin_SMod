@@ -2025,9 +2025,9 @@ namespace SanyaPlugin
                 {
                     if (roundduring)
                     {
-                        plugin.Info($"[Suicide] {ev.Player.Name}");
                         if (ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR && ev.Player.TeamRole.Team != Smod2.API.Team.NONE)
                         {
+                            plugin.Info($"[Suicide] {ev.Player.Name}");
                             if (ev.Player.TeamRole.Team == Smod2.API.Team.SCP || !plugin.suicide_need_weapon)
                             {
                                 ev.ReturnMessage = "Success.";
@@ -2119,7 +2119,7 @@ namespace SanyaPlugin
 
                                 if (items.TeamRole.Role == Role.SCP_079)
                                 {
-                                    Scp079PlayerScript ply079 = (ev.Player.Scp079Data.GetComponent() as Scp079PlayerScript);
+                                    Scp079PlayerScript ply079 = (items.Scp079Data.GetComponent() as Scp079PlayerScript);
                                     RaycastHit raycastHit;
                                     string zonename = "不明";
                                     if (Physics.Raycast(new Ray(ply079.currentCamera.transform.position, Vector3.down), out raycastHit, 100f, Interface079.singleton.roomDetectionMask))
@@ -2735,7 +2735,7 @@ namespace SanyaPlugin
                     //    plugin.Error("Hid NULL");
                     //}
 
-                    plugin.Error($"{CharacterClassManager.smRoundStartTime}");
+                    //plugin.Error($"{CharacterClassManager.smRoundStartTime}");
 
                     ev.ReturnMessage = "test ok(user command)";
                 }
