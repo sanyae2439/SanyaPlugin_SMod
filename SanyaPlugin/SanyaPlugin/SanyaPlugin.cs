@@ -14,7 +14,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.5.1",
+    version = "12.6",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
@@ -29,7 +29,10 @@ namespace SanyaPlugin
         public const int teslamask = 4;
 
         //test
-        public bool test = false;
+        static public bool test = false;
+
+        //public
+        static public System.DateTime roundStartTime;
 
         //システム系
         [ConfigOption] //サーバー情報送信先IP
@@ -40,6 +43,8 @@ namespace SanyaPlugin
         internal int[] event_mode_weight = new int[] { 1, -1, -1, -1, -1, -1 };
         [ConfigOption] //反乱時のドロップ追加数
         internal int classd_ins_items = 10;
+        [ConfigOption] //中層スタート時のガードの数
+        internal int hczstart_mtf_and_ci = 3;
         [ConfigOption] //プレイヤーリストタイトルにタイマー追加
         internal bool title_timer = false;
         [ConfigOption] //放送に日英で字幕を付ける
@@ -74,8 +79,12 @@ namespace SanyaPlugin
         internal bool radio_enhance = false;
 
         //独自要素
+        [ConfigOption] //自殺時に武器を持つのが必要に
+        internal bool suicide_need_weapon = false;
         [ConfigOption] //独自自動核
         internal bool original_auto_nuke = false;
+        [ConfigOption] //核起動ボタンの蓋を自動で閉まるように & 核起動室の扉をEXIT_ACC持ち（中尉以上）で開けられるように (-1で無効)
+        internal float nuke_button_auto_close = -1f;
         [ConfigOption] //核起爆後は増援が出ないように
         internal bool stop_mtf_after_nuke = false;
         [ConfigOption] //カードを持たなくても使用可能に
@@ -288,9 +297,50 @@ namespace SanyaPlugin
             }
         }
 
-        static public void Call106Scream()
+        static public void Call914Use(Player player = null)
         {
-            UnityEngine.GameObject.Find("Host").GetComponent<PlayerInteract>().CallRpcContain106(null);
+            if (player != null)
+            {
+                GameObject gameObject = player.GetGameObject() as GameObject;
+                Scp914.singleton.Set914User(gameObject);
+                gameObject.GetComponent<PlayerInteract>().CallRpcUse914();
+            }
+            else
+            {
+                GameObject host = GameObject.Find("Host");
+                Scp914.singleton.Set914User(host);
+                host.GetComponent<PlayerInteract>().CallRpcUse914();
+            }
+        }
+
+        static public void Call914Change(Player player = null)
+        {
+            if (player != null)
+            {
+                GameObject gameObject = player.GetGameObject() as GameObject;
+                Scp914.singleton.Set914User(gameObject);
+                Scp914.singleton.ChangeKnobStatus(gameObject);
+            }
+            else
+            {
+                GameObject host = GameObject.Find("Host");
+                Scp914.singleton.Set914User(host);
+                Scp914.singleton.ChangeKnobStatus(host);
+            }
+        }
+
+        static public void Call106Scream(Player player = null)
+        {
+            if (player != null)
+            {
+                GameObject gameObject = player.GetGameObject() as GameObject;
+                gameObject.GetComponent<PlayerInteract>().CallRpcContain106(gameObject);
+            }
+            else
+            {
+                GameObject host = GameObject.Find("Host");
+                host.GetComponent<PlayerInteract>().CallRpcContain106(host);
+            }
         }
 
         static public void Call173SnapSound(Player player)
@@ -301,6 +351,16 @@ namespace SanyaPlugin
         static public void Call939SetSpeedMultiplier(Player player, float multiplier)
         {
             (player.GetGameObject() as UnityEngine.GameObject).GetComponent<Scp939PlayerScript>().NetworkspeedMultiplier = multiplier;
+        }
+
+        static public void Call939CanSee()
+        {
+            List<Scp939_VisionController> list939 = new List<Scp939_VisionController>(UnityEngine.GameObject.FindObjectsOfType<Scp939_VisionController>()).FindAll(x => x.name.Contains("Player"));
+
+            foreach (Scp939_VisionController i in list939)
+            {
+                i.MakeNoise(100f);
+            }
         }
 
         static public void CallVehicle(bool isCi)
@@ -358,17 +418,30 @@ namespace SanyaPlugin
             }
         }
 
-        static public void CallRpcTargetShake(UnityEngine.GameObject target)
+        static public void CallRpcTargetShake(Player target)
         {
-            int rpcid = -737840022;
+            GameObject gameObject = target.GetGameObject() as GameObject;
+            if (gameObject != null)
+            {
+                int rpcid = -737840022;
 
-            UnityEngine.Networking.NetworkWriter writer = new UnityEngine.Networking.NetworkWriter();
-            writer.Write((short)0);
-            writer.Write((short)2);
-            writer.WritePackedUInt32((uint)rpcid);
-            writer.Write(target.GetComponent<UnityEngine.Networking.NetworkIdentity>().netId);
-            writer.FinishMessage();
-            target.GetComponent<CharacterClassManager>().connectionToClient.SendWriter(writer, 0);
+                UnityEngine.Networking.NetworkWriter writer = new UnityEngine.Networking.NetworkWriter();
+                writer.Write((short)0);
+                writer.Write((short)2);
+                writer.WritePackedUInt32((uint)rpcid);
+                writer.Write(gameObject.GetComponent<UnityEngine.Networking.NetworkIdentity>().netId);
+                writer.FinishMessage();
+                gameObject.GetComponent<CharacterClassManager>().connectionToClient.SendWriter(writer, 0);
+            }
+        }
+
+        static public void Explode(Player attacker, Vector explode_posion, bool flashbang = false)
+        {
+            GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
+            string gid = "SERVER_" + attacker.PlayerId + ":" + (gm.smThrowInteger + 4096);
+            gm.CallRpcThrowGrenade(flashbang ? 1 : 0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), false, 0);
+            gm.CallRpcUpdate(gid, new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), Quaternion.Euler(Vector3.zero), Vector3.zero, Vector3.zero);
+            gm.CallRpcExplode(gid, attacker.PlayerId);
         }
 
         static public void SetExtraDoorNames()
@@ -445,13 +518,13 @@ namespace SanyaPlugin
             }
         }
 
-        static public void SetExtraPermissions()
+        static public void SetExtraPermission(string name, string permission)
         {
             foreach (Door item in UnityEngine.Object.FindObjectsOfType<Door>())
             {
-                if (item.permissionLevel.Length == 0)
+                if (item.DoorName.Contains(name))
                 {
-                    item.permissionLevel = "CONT_LVL_1";
+                    item.permissionLevel = permission;
                 }
             }
         }
@@ -496,6 +569,27 @@ namespace SanyaPlugin
         {
             yield return Timing.WaitForSeconds(0.1f);
             player.Teleport(pos, unstack);
+            yield break;
+        }
+
+        static public IEnumerator<float> DelayedSuicideWithWeaponSound(Player player, DamageType cause, float delay = 0.25f)
+        {
+            WeaponManager wpm = (player.GetGameObject() as GameObject).GetComponent<WeaponManager>();
+            wpm.CallRpcConfirmShot(false, wpm.curWeapon);
+            yield return Timing.WaitForSeconds(delay);
+            player.Kill(cause);
+            yield break;
+        }
+
+        static public IEnumerator<float> DeleyadCloseOutsideWarHeadCap(float delay = 10.0f)
+        {
+            yield return Timing.WaitForSeconds(0.1f);
+            if (!GameObject.FindObjectOfType<AlphaWarheadOutsitePanel>().keycardEntered)
+            {
+                yield break;
+            }
+            yield return Timing.WaitForSeconds(delay);
+            GameObject.FindObjectOfType<AlphaWarheadOutsitePanel>().SetKeycardState(false);
             yield break;
         }
 
@@ -554,6 +648,20 @@ namespace SanyaPlugin
             elevator.Use();
             yield break;
         }
+
+        static public IEnumerator<float> SCPRadio(Radio radio)
+        {
+            while (true)
+            {
+                if (!SanyaPlugin.test)
+                {
+                    yield break;
+                }
+                radio.NetworkisTransmitting = true;
+                Radio.roundStarted = false;
+                yield return 0f;
+            }
+        }
     }
 
     public enum SANYA_AMBIENT_ID
@@ -581,7 +689,7 @@ namespace SanyaPlugin
         NIGHT,
         STORY,
         CLASSD_INSURGENCY,
-        HCZ_NOGUARD,
+        HCZ,
         NO_SCP
     }
 }

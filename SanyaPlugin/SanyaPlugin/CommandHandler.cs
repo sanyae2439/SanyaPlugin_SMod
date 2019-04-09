@@ -59,7 +59,7 @@ namespace SanyaPlugin
 
         public string GetUsage()
         {
-            return "SANYA <RELOAD/BLACKOUT/GEN <UNLOCK/OPEN/ACT>/EV/TESLA \\<I\\>/SHAKE>";
+            return "SANYA < BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | 914 (USE/CHANGE) | 939 | SHAKE >";
         }
 
         public string[] OnCall(ICommandSender sender, string[] args)
@@ -103,13 +103,22 @@ namespace SanyaPlugin
                             }
                             return new string[] { "gen open." };
                         }
+                        else if (args[1] == "close")
+                        {
+                            foreach (Generator items in plugin.Server.Map.GetGenerators())
+                            {
+                                items.Open = false;
+                            }
+                            return new string[] { "gen close." };
+                        }
                         else if (args[1] == "act")
                         {
                             foreach (Generator items in plugin.Server.Map.GetGenerators())
                             {
+                                float engagecount = 6.0f;
                                 if (!items.Engaged)
                                 {
-                                    items.TimeLeft = 1.0f;
+                                    items.TimeLeft = engagecount--;
                                     items.HasTablet = true;
                                 }
                             }
@@ -161,31 +170,52 @@ namespace SanyaPlugin
 
                     return new string[] { "van spawned." };
                 }
+                else if (args[0] == "914")
+                {
+                    if (args.Length > 1)
+                    {
+                        if (args[1] == "use")
+                        {
+                            SanyaPlugin.Call914Use();
+                            return new string[] { "914 used." };
+                        }
+                        else if (args[1] == "change")
+                        {
+                            SanyaPlugin.Call914Change();
+                            return new string[] { "914 changed." };
+                        }
+                    }
+                }
+                else if (args[0] == "939")
+                {
+                    SanyaPlugin.Call939CanSee();
+
+                    return new string[] { "939 can all see." };
+                }
                 else if (args[0] == "flagtest")
                 {
-                    if (plugin.test)
+                    if (SanyaPlugin.test)
                     {
-                        plugin.test = false;
+                        SanyaPlugin.test = false;
                     }
                     else
                     {
-                        plugin.test = true;
+                        SanyaPlugin.test = true;
                     }
+                    plugin.Error($"test:{SanyaPlugin.test}");
 
-                    return new string[] { $"test:{plugin.test}" };
+                    return new string[] { $"test:{SanyaPlugin.test}" };
                 }
                 else if (args[0] == "test")
                 {
                     Player ply = sender as Player;
-                    System.Random rnd = new System.Random();
                     GameObject gameObject = null;
+                    System.Random rnd = new System.Random();
 
                     if (ply != null)
                     {
                         gameObject = ply.GetGameObject() as GameObject;
                     }
-
-
 
                     //foreach (Camera079 item in Scp079PlayerScript.allCameras)
                     //{
@@ -275,6 +305,28 @@ namespace SanyaPlugin
                     //    gameObject.GetComponent<RemoteAdmin.QueryProcessor>().PlayerId, gameObject);
 
                     //plugin.Debug($"{GameObject.FindObjectOfType<TeslaGate>().killerMask.value}");
+
+                    //RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
+                    //foreach (var pos in rnde.posIds)
+                    //{
+                    //    plugin.Warn($"[{pos.index}] {pos.posID} -> [{pos.position.position}]");
+                    //}
+
+                    //plugin.Debug($"{(ply.GetCurrentItem().GetComponent() as Inventory).items[(ply.GetCurrentItem().GetComponent() as Inventory).curItem].}");
+
+                    //var outside = GameObject.FindObjectOfType<AlphaWarheadOutsitePanel>();
+
+                    //if(outside != null)
+                    //{
+                    //    outside.SetKeycardState(false);
+                    //}
+
+                    //GrenadeManager gre = GameObject.FindObjectOfType<GrenadeManager>();
+                    //foreach (var i in GrenadeManager.grenadesOnScene)
+                    //{
+                    //    plugin.Error($"{i.id}");
+                    //    gre.CallRpcExplode(i.id, ply.PlayerId);
+                    //}
 
                     return new string[] { "test ok" };
                 }
