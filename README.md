@@ -96,3 +96,6 @@ sanya_default_ammo_ntfscientist | List<int> | 80,40,40 | NTF Scientistが初期�
 sanya_default_ammo_cadet | List<int> | 10,10,80 | NTF Cadetが初期で所持する弾数
 sanya_default_ammo_lieutenant | List<int> | 80,40,40 | NTF Lieutenantが初期で所持する弾数
 sanya_default_ammo_commander | List<int> | 130,50,50 | NTF Commanderが初期で所持する弾数
+  
+#更新履歴(History)
+HISTORY.md を参照
