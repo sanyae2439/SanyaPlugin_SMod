@@ -1253,7 +1253,6 @@ namespace SanyaPlugin
                     }
                 }
             }
-
         }
 
         public void OnElevatorUse(PlayerElevatorUseEvent ev)
@@ -1776,7 +1775,7 @@ namespace SanyaPlugin
                         {
                             if (plugin.Round.Stats.ScientistsAlive < 1 && !isScientistAllDead && plugin.Server.Map.LCZDecontaminated)
                             {
-                                plugin.Info("[AutoNuke] Sector 1");
+                                plugin.Info($"[AutoNuke] Sector 1 (Duration:{plugin.Round.Duration})");
                                 plugin.Info($"Class-D:{plugin.Round.Stats.ClassDAlive} Scientist:{plugin.Round.Stats.ScientistsAlive} NTF:{plugin.Round.Stats.NTFAlive} SCP:{plugin.Round.Stats.SCPAlive} CI:{plugin.Round.Stats.CiAlive}");
 
                                 isScientistAllDead = true;
@@ -1785,13 +1784,26 @@ namespace SanyaPlugin
                             }
                             else
                             {
-                                if (plugin.Round.Stats.ClassDAlive < 1 && plugin.Round.Stats.NTFAlive < 5 && !isClassDAllDead && isScientistAllDead)
+                                if (plugin.Round.Stats.ClassDAlive < 1 && plugin.Round.Stats.NTFAlive < 5 && !isClassDAllDead && isScientistAllDead
+                                    || (plugin.Round.Duration >= plugin.original_auto_nuke_force_sector2 && plugin.original_auto_nuke_force_sector2 > 0))
                                 {
-                                    plugin.Info("[AutoNuke] Sector 2");
+                                    plugin.Info($"[AutoNuke] Sector 2 (Duration:{plugin.Round.Duration})");
                                     plugin.Info($"Class-D:{plugin.Round.Stats.ClassDAlive} Scientist:{plugin.Round.Stats.ScientistsAlive} NTF:{plugin.Round.Stats.NTFAlive} SCP:{plugin.Round.Stats.SCPAlive} CI:{plugin.Round.Stats.CiAlive}");
 
                                     isLocked = true;
                                     isClassDAllDead = true;
+
+                                    foreach (Smod2.API.Door item in plugin.Server.Map.GetDoors())
+                                    {
+                                        if (item.Name.Contains("GATE_") || item.Name.Contains("CHECKPOINT_"))
+                                        {
+                                            Door d = item.GetComponent() as Door;
+                                            d.SetStateWithSound(true);
+                                            d.warheadlock = true;
+                                            d.UpdateLock();
+                                        }
+                                    }
+
                                     AlphaWarheadController.host.InstantPrepare();
                                     AlphaWarheadController.host.StartDetonation();
                                     AlphaWarheadController.host.SetLocked(true);
@@ -1854,6 +1866,11 @@ namespace SanyaPlugin
                     else
                     {
                         nextRespawnName = "MTF";
+                    }
+
+                    if (plugin.original_auto_nuke && plugin.original_auto_nuke_force_sector2 > 0)
+                    {
+                        leftAutoWarhead = Mathf.Clamp(plugin.original_auto_nuke_force_sector2 - plugin.Round.Duration, 0, plugin.original_auto_nuke_force_sector2);
                     }
 
                     if (AlphaWarheadController.host.inProgress)
@@ -2012,14 +2029,14 @@ namespace SanyaPlugin
             {
                 if (ev.Command.StartsWith("help"))
                 {
-                    ev.ReturnMessage = "SanyaPlugin Command List\n." +
-                        "kill\n自殺します。\n\n" +
+                    ev.ReturnMessage = "SanyaPlugin Command List\n" +
+                        ".kill\n自殺します。\n\n" +
                         ".sinfo\nSCP時のみ仲間のSCPリストを表示します。\n\n" +
                         ".939sp\nSCP-939で放送が可能です。Vキーの人間向けにて使用可能。\n\n" +
                         ".079start\n.079stop\n核の起動/停止を行えます。(Tier3以上/AP125消費)\n\n" +
                         ".radio\n無線機のオンオフが行えます。\n\n" +
                         ".boost\nSCPの各種ブーストが使用可能。\n\n" +
-                        ".attack\n079の場合カメラ射撃、人間の場合素手の時格闘が出来る。\n\n";
+                        ".attack\n079の場合カメラ射撃、人間の場合素手の時格闘が出来ます。\n\n";
                 }
                 else if (ev.Command.StartsWith("kill"))
                 {
@@ -2045,14 +2062,13 @@ namespace SanyaPlugin
                                         case ItemType.FRAG_GRENADE:
                                             ev.ReturnMessage = "Success.";
                                             ev.Player.PersonalClearBroadcasts();
-                                            ev.Player.PersonalBroadcast(5, "<size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>", false);
+                                            ev.Player.PersonalBroadcast(5, "<size=25>《あなたはグレネードのピンを抜き、自爆します。》\n </size><size=20>《You suicided.》\n</size>", false);
                                             ev.Player.SetGodmode(false);
                                             foreach (Smod2.API.Item i in ev.Player.GetInventory().FindAll(x => x.ItemType == ItemType.FRAG_GRENADE))
                                             {
                                                 i.Remove();
                                             }
-                                            SanyaPlugin.Explode(ev.Player, new Vector(ev.Player.GetPosition().x, ev.Player.GetPosition().y - 1, ev.Player.GetPosition().z));
-                                            ev.Player.Kill(DamageType.FRAG);
+                                            Timing.RunCoroutine(SanyaPlugin.SuicideWithFollowingGrenade(ev.Player), Segment.Update);
                                             break;
                                         case ItemType.COM15:
                                         case ItemType.P90:
@@ -2565,6 +2581,81 @@ namespace SanyaPlugin
                                 ev.ReturnMessage = "HPが足りません。";
                             }
                         }
+                        else if (ev.Player.TeamRole.Role == Role.SCP_079)
+                        {
+                            if (ev.Player.Scp079Data.AP > 50 || ev.Player.GetBypassMode())
+                            {
+                                UnityEngine.GameObject gameObject = ev.Player.GetGameObject() as UnityEngine.GameObject;
+                                Scp079PlayerScript ply079 = gameObject.GetComponent<Scp079PlayerScript>();
+                                Camera079 camera = ply079.currentCamera;
+                                if (gameObject != null)
+                                {
+                                    if (camera.cameraName.Contains("ICOM"))
+                                    {
+                                        if (NineTailedFoxAnnouncer.singleton.isFree)
+                                        {
+                                            int number;
+                                            char letter;
+                                            NineTailedFoxUnits.host.NewName(out number, out letter);
+                                            plugin.Server.Map.AnnounceNtfEntrance(plugin.Server.Round.Stats.SCPAlive, number, letter);
+
+                                            if (!ev.Player.GetBypassMode())
+                                            {
+                                                ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
+                                            }
+
+                                            ev.ReturnMessage = "Fake MTF Announce.";
+                                        }
+                                        else
+                                        {
+                                            ev.ReturnMessage = "放送が使用中です。";
+                                        }
+                                    }
+                                    else if (camera.cameraName.Contains("SCP-079 MAIN CAM"))
+                                    {
+                                        if (NineTailedFoxAnnouncer.singleton.isFree)
+                                        {
+                                            List<Player> plys = plugin.Server.GetPlayers().FindAll(x => x.TeamRole.Team == Smod2.API.Team.SCP && x.TeamRole.Role != Role.SCP_049_2 && x.TeamRole.Role != Role.SCP_079);
+                                            if (plys.Count > 0)
+                                            {
+                                                plugin.Server.Map.AnnounceScpKill(plys[rnd.Next(0, plys.Count)].TeamRole.Name.Replace("SCP-", ""), null);
+                                            }
+                                            else
+                                            {
+                                                plugin.Server.Map.AnnounceScpKill("079", null);
+                                            }
+
+                                            if (!ev.Player.GetBypassMode())
+                                            {
+                                                ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
+                                            }
+
+                                            ev.ReturnMessage = "Fake SCP Announce.";
+                                        }
+                                        else
+                                        {
+                                            ev.ReturnMessage = "放送が使用中です。";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Vector3 position = ply079.currentCamera.transform.position;
+                                        SanyaPlugin.Explode(ev.Player, new Vector(position.x, position.y, position.z), true);
+
+                                        if (!ev.Player.GetBypassMode())
+                                        {
+                                            ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
+                                        }
+
+                                        ev.ReturnMessage = "Flash!";
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                ev.ReturnMessage = "APが足りません。";
+                            }
+                        }
                         else
                         {
                             ev.ReturnMessage = "ブーストが可能なSCPではありません。";
@@ -2581,9 +2672,8 @@ namespace SanyaPlugin
                     {
                         if (ev.Player.TeamRole.Role == Role.SCP_079)
                         {
-                            if (ev.Player.Scp079Data.AP > 50)
+                            if (ev.Player.Scp079Data.AP > 5)
                             {
-                                /*
                                 UnityEngine.GameObject gameObject = ev.Player.GetGameObject() as UnityEngine.GameObject;
                                 WeaponManager wpm = gameObject.GetComponent<WeaponManager>();
                                 CharacterClassManager plychm = gameObject.GetComponent<CharacterClassManager>();
@@ -2621,28 +2711,17 @@ namespace SanyaPlugin
                                         wpm.CallRpcPlaceDecal(false, 0, raycastHit.point + raycastHit.normal * 0.01f, Quaternion.FromToRotation(Vector3.up, raycastHit.normal));
                                     }
 
-
+                                    if (!ev.Player.GetBypassMode())
+                                    {
+                                        ev.Player.Scp079Data.AP -= 5f;
+                                    }
                                 }
-                                */
-                                UnityEngine.GameObject gameObject = ev.Player.GetGameObject() as UnityEngine.GameObject;
-                                if (gameObject != null)
-                                {
-                                    Scp079PlayerScript ply079 = gameObject.GetComponent<Scp079PlayerScript>();
-                                    Vector3 position = ply079.currentCamera.transform.position;
-                                    SanyaPlugin.Explode(ev.Player, new Vector(position.x, position.y, position.z), true);
-                                }
-
-                                if (!ev.Player.GetBypassMode())
-                                {
-                                    ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
-                                }
+                                ev.ReturnMessage = "079 Attack!";
                             }
                             else
                             {
                                 ev.ReturnMessage = "APが足りません。";
                             }
-
-                            ev.ReturnMessage = "079 Attack!";
                         }
                         else if (ev.Player.GetCurrentItemIndex() == -1 && ev.Player.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR)
                         {

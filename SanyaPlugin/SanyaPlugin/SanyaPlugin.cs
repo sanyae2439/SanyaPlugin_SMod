@@ -14,7 +14,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.6.1",
+    version = "12.6.2",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
@@ -83,6 +83,8 @@ namespace SanyaPlugin
         internal bool suicide_need_weapon = false;
         [ConfigOption] //独自自動核
         internal bool original_auto_nuke = false;
+        [ConfigOption] //独自核オンの場合の強制セクター2開始ラウンド経過時間
+        internal int original_auto_nuke_force_sector2 = -1;
         [ConfigOption] //核起動ボタンの蓋を自動で閉まるように & 核起動室の扉をEXIT_ACC持ち（中尉以上）で開けられるように (-1で無効)
         internal float nuke_button_auto_close = -1f;
         [ConfigOption] //核起爆後は増援が出ないように
@@ -590,6 +592,24 @@ namespace SanyaPlugin
             }
             yield return Timing.WaitForSeconds(delay);
             GameObject.FindObjectOfType<AlphaWarheadOutsitePanel>().SetKeycardState(false);
+            yield break;
+        }
+
+        static public IEnumerator<float> SuicideWithFollowingGrenade(Player attacker)
+        {
+            GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
+            string gid = "SERVER_" + attacker.PlayerId + ":" + (gm.smThrowInteger + 4096);
+            gm.CallRpcThrowGrenade(0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, new Vector3(0f,0f,0f), false, 0);
+            float delta = 0f;
+            while (delta < 4.6f)
+            {
+                delta += Timing.DeltaTime;
+                gm.CallRpcUpdate(gid, new Vector3(attacker.GetPosition().x, attacker.GetPosition().y, attacker.GetPosition().z), Quaternion.Euler(Vector3.zero), Vector3.zero, Vector3.zero);
+                yield return 0f;
+            }
+            gm.CallRpcExplode(gid, attacker.PlayerId);
+            SanyaPlugin.Explode(attacker, new Vector(attacker.GetPosition().x, attacker.GetPosition().y-1f, attacker.GetPosition().z), false);
+            attacker.Kill(DamageType.FRAG);
             yield break;
         }
 

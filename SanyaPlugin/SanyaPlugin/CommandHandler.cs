@@ -219,7 +219,8 @@ namespace SanyaPlugin
 
                     //foreach (Camera079 item in Scp079PlayerScript.allCameras)
                     //{
-                    //    plugin.Debug($"Name:{item.cameraName}");
+                    //    if(item.cameraName.Contains("ICOM"))
+                    //        plugin.Debug($"Name:{item.cameraName}");
                     //}
 
                     //foreach(Smod2.API.Player p in plugin.Server.GetPlayers())
@@ -327,6 +328,20 @@ namespace SanyaPlugin
                     //    plugin.Error($"{i.id}");
                     //    gre.CallRpcExplode(i.id, ply.PlayerId);
                     //}
+
+                    //GrenadeManager gre = GameObject.FindObjectOfType<GrenadeManager>();
+                    //foreach(var i in gre.availableGrenades)
+                    //{
+                    //    plugin.Error($"{i.apiName}[{i.inventoryID}]:{i.timeUnitilDetonation}");
+                    //}
+
+                    //GrenadeManager gre = GameObject.FindObjectOfType<GrenadeManager>();
+                    //foreach (var i in GrenadeManager.grenadesOnScene)
+                    //{
+                    //    plugin.Error($"{i.id}:{i.transform.position}");
+                    //}
+
+                    //plugin.Error($"return:{MEC.Timing.KillCoroutines("FollowingGrenade")}");
 
                     return new string[] { "test ok" };
                 }
