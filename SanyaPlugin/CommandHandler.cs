@@ -1,6 +1,6 @@
-﻿using Smod2.Commands;
+﻿using System.Collections.Generic;
 using Smod2.API;
-using System.Collections.Generic;
+using Smod2.Commands;
 using UnityEngine;
 
 namespace SanyaPlugin
@@ -64,18 +64,18 @@ namespace SanyaPlugin
 
         public string[] OnCall(ICommandSender sender, string[] args)
         {
-            if (args.Length > 0)
+            if(args.Length > 0)
             {
-                if (args[0] == "reload")
+                if(args[0] == "reload")
                 {
                     //plugin.ReloadConfig();
 
                     return new string[] { "failed. this command is outdated." };
                 }
-                else if (args[0] == "blackout")
+                else if(args[0] == "blackout")
                 {
                     List<Room> rooms = new List<Room>(plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA)).FindAll(x => x.ZoneType == ZoneType.LCZ);
-                    foreach (Room r in rooms)
+                    foreach(Room r in rooms)
                     {
                         r.FlickerLights();
                     }
@@ -83,40 +83,40 @@ namespace SanyaPlugin
 
                     return new string[] { "blackout success." };
                 }
-                else if (args[0] == "gen")
+                else if(args[0] == "gen")
                 {
-                    if (args.Length > 1)
+                    if(args.Length > 1)
                     {
-                        if (args[1] == "unlock")
+                        if(args[1] == "unlock")
                         {
-                            foreach (Generator items in plugin.Server.Map.GetGenerators())
+                            foreach(Generator items in plugin.Server.Map.GetGenerators())
                             {
                                 items.Unlock();
                             }
                             return new string[] { "gen unlock." };
                         }
-                        else if (args[1] == "open")
+                        else if(args[1] == "open")
                         {
-                            foreach (Generator items in plugin.Server.Map.GetGenerators())
+                            foreach(Generator items in plugin.Server.Map.GetGenerators())
                             {
                                 items.Open = true;
                             }
                             return new string[] { "gen open." };
                         }
-                        else if (args[1] == "close")
+                        else if(args[1] == "close")
                         {
-                            foreach (Generator items in plugin.Server.Map.GetGenerators())
+                            foreach(Generator items in plugin.Server.Map.GetGenerators())
                             {
                                 items.Open = false;
                             }
                             return new string[] { "gen close." };
                         }
-                        else if (args[1] == "act")
+                        else if(args[1] == "act")
                         {
-                            foreach (Generator items in plugin.Server.Map.GetGenerators())
+                            foreach(Generator items in plugin.Server.Map.GetGenerators())
                             {
                                 float engagecount = 6.0f;
-                                if (!items.Engaged)
+                                if(!items.Engaged)
                                 {
                                     items.TimeLeft = engagecount--;
                                     items.HasTablet = true;
@@ -126,75 +126,75 @@ namespace SanyaPlugin
                         }
                     }
                 }
-                else if (args[0] == "ev")
+                else if(args[0] == "ev")
                 {
-                    foreach (Elevator ev in plugin.Server.Map.GetElevators())
+                    foreach(Elevator ev in plugin.Server.Map.GetElevators())
                     {
                         ev.Use();
                     }
                     return new string[] { "EV used." };
                 }
-                else if (args[0] == "tesla")
+                else if(args[0] == "tesla")
                 {
                     bool isInstant = false;
 
-                    if (args.Length > 1)
+                    if(args.Length > 1)
                     {
-                        if (args[1] == "i")
+                        if(args[1] == "i")
                         {
                             isInstant = true;
                         }
                     }
 
-                    foreach (Smod2.API.TeslaGate tesla in plugin.Server.Map.GetTeslaGates())
+                    foreach(Smod2.API.TeslaGate tesla in plugin.Server.Map.GetTeslaGates())
                     {
                         tesla.Activate(isInstant);
                     }
                     return new string[] { "tesla activated." };
                 }
-                else if (args[0] == "shake")
+                else if(args[0] == "shake")
                 {
                     plugin.Server.Map.Shake();
 
                     return new string[] { "map shaking." };
                 }
-                else if (args[0] == "heli")
+                else if(args[0] == "heli")
                 {
                     SanyaPlugin.CallVehicle(false);
 
                     return new string[] { "heli moved." };
                 }
-                else if (args[0] == "van")
+                else if(args[0] == "van")
                 {
                     SanyaPlugin.CallVehicle(true);
 
                     return new string[] { "van spawned." };
                 }
-                else if (args[0] == "914")
+                else if(args[0] == "914")
                 {
-                    if (args.Length > 1)
+                    if(args.Length > 1)
                     {
-                        if (args[1] == "use")
+                        if(args[1] == "use")
                         {
                             SanyaPlugin.Call914Use();
                             return new string[] { "914 used." };
                         }
-                        else if (args[1] == "change")
+                        else if(args[1] == "change")
                         {
                             SanyaPlugin.Call914Change();
                             return new string[] { "914 changed." };
                         }
                     }
                 }
-                else if (args[0] == "939")
+                else if(args[0] == "939")
                 {
                     SanyaPlugin.Call939CanSee();
 
                     return new string[] { "939 can all see." };
                 }
-                else if (args[0] == "flagtest")
+                else if(args[0] == "flagtest")
                 {
-                    if (SanyaPlugin.test)
+                    if(SanyaPlugin.test)
                     {
                         SanyaPlugin.test = false;
                     }
@@ -206,13 +206,13 @@ namespace SanyaPlugin
 
                     return new string[] { $"test:{SanyaPlugin.test}" };
                 }
-                else if (args[0] == "test")
+                else if(args[0] == "test")
                 {
                     Player ply = sender as Player;
                     GameObject gameObject = null;
                     System.Random rnd = new System.Random();
 
-                    if (ply != null)
+                    if(ply != null)
                     {
                         gameObject = ply.GetGameObject() as GameObject;
                     }

@@ -1,10 +1,10 @@
-﻿using Smod2;
+﻿using System.Collections.Generic;
+using MEC;
+using Smod2;
 using Smod2.API;
 using Smod2.Attributes;
 using Smod2.Config;
-using System.Collections.Generic;
 using UnityEngine;
-using MEC;
 
 namespace SanyaPlugin
 {
@@ -180,18 +180,18 @@ namespace SanyaPlugin
             System.Random rnd = new System.Random();
             int sum = 0;
 
-            foreach (int i in list)
+            foreach(int i in list)
             {
-                if (i <= 0) continue;
+                if(i <= 0) continue;
                 sum += i;
             }
 
             int random = rnd.Next(0, sum);
-            for (int i = 0; i < list.Length; i++)
+            for(int i = 0; i < list.Length; i++)
             {
-                if (list[i] <= 0) continue;
+                if(list[i] <= 0) continue;
 
-                if (random < list[i])
+                if(random < list[i])
                 {
                     return i;
                 }
@@ -202,7 +202,7 @@ namespace SanyaPlugin
 
         static public float GetDamageFromHitbox(HitboxIdentity hitbox, float damage)
         {
-            switch (hitbox.id.ToUpper())
+            switch(hitbox.id.ToUpper())
             {
                 case "HEAD":
                     return damage *= 4f;
@@ -217,7 +217,7 @@ namespace SanyaPlugin
 
         static public string[] TranslateGeneratorName(RoomType type)
         {
-            switch (type)
+            switch(type)
             {
                 case RoomType.ENTRANCE_CHECKPOINT:
                     return new string[] { "上層チェックポイント", "Entrance Checkpoint" };
@@ -248,16 +248,16 @@ namespace SanyaPlugin
         {
             Door targetDoor = door.GetComponent() as Door;
 
-            if (targetDoor != null)
+            if(targetDoor != null)
             {
-                if (targetDoor.permissionLevel.Length == 0)
+                if(targetDoor.permissionLevel.Length == 0)
                 {
                     return true;
                 }
 
-                foreach (string item in permission)
+                foreach(string item in permission)
                 {
-                    if (item.Contains(targetDoor.permissionLevel))
+                    if(item.Contains(targetDoor.permissionLevel))
                     {
                         return true;
                     }
@@ -268,16 +268,16 @@ namespace SanyaPlugin
 
         static public bool CanOpenDoor(string[] permission, string[] target)
         {
-            if (target.Length == 0)
+            if(target.Length == 0)
             {
                 return true;
             }
 
-            foreach (string t in target)
+            foreach(string t in target)
             {
-                foreach (string p in permission)
+                foreach(string p in permission)
                 {
-                    if (t.Contains(p))
+                    if(t.Contains(p))
                     {
                         return true;
                     }
@@ -293,7 +293,7 @@ namespace SanyaPlugin
 
         static public void CloseBlastDoor()
         {
-            foreach (BlastDoor item in UnityEngine.Object.FindObjectsOfType<BlastDoor>())
+            foreach(BlastDoor item in UnityEngine.Object.FindObjectsOfType<BlastDoor>())
             {
                 item.SetClosed(true);
             }
@@ -301,7 +301,7 @@ namespace SanyaPlugin
 
         static public void Call914Use(Player player = null)
         {
-            if (player != null)
+            if(player != null)
             {
                 GameObject gameObject = player.GetGameObject() as GameObject;
                 Scp914.singleton.Set914User(gameObject);
@@ -317,7 +317,7 @@ namespace SanyaPlugin
 
         static public void Call914Change(Player player = null)
         {
-            if (player != null)
+            if(player != null)
             {
                 GameObject gameObject = player.GetGameObject() as GameObject;
                 Scp914.singleton.Set914User(gameObject);
@@ -333,7 +333,7 @@ namespace SanyaPlugin
 
         static public void Call106Scream(Player player = null)
         {
-            if (player != null)
+            if(player != null)
             {
                 GameObject gameObject = player.GetGameObject() as GameObject;
                 gameObject.GetComponent<PlayerInteract>().CallRpcContain106(gameObject);
@@ -359,7 +359,7 @@ namespace SanyaPlugin
         {
             List<Scp939_VisionController> list939 = new List<Scp939_VisionController>(UnityEngine.GameObject.FindObjectsOfType<Scp939_VisionController>()).FindAll(x => x.name.Contains("Player"));
 
-            foreach (Scp939_VisionController i in list939)
+            foreach(Scp939_VisionController i in list939)
             {
                 i.MakeNoise(100f);
             }
@@ -369,9 +369,9 @@ namespace SanyaPlugin
         {
             UnityEngine.GameObject gameObject = UnityEngine.GameObject.Find("Host");
 
-            if (gameObject != null)
+            if(gameObject != null)
             {
-                if (isCi)
+                if(isCi)
                 {
                     gameObject.GetComponent<MTFRespawn>().CallRpcVan();
                 }
@@ -379,7 +379,7 @@ namespace SanyaPlugin
                 {
                     ChopperAutostart chop = UnityEngine.Object.FindObjectOfType<ChopperAutostart>();
 
-                    if (!chop.NetworkisLanded)
+                    if(!chop.NetworkisLanded)
                     {
                         chop.SetState(true);
                     }
@@ -395,7 +395,7 @@ namespace SanyaPlugin
         {
             UnityEngine.GameObject gameObject = UnityEngine.GameObject.Find("Host");
 
-            if (gameObject != null)
+            if(gameObject != null)
             {
                 gameObject.GetComponent<MTFRespawn>().nextWaveIsCI = isCi;
                 gameObject.GetComponent<MTFRespawn>().timeToNextRespawn = 0.1f;
@@ -409,7 +409,7 @@ namespace SanyaPlugin
 
         static public void CallAlphaWarhead(Player player = null)
         {
-            if (!AlphaWarheadController.host.inProgress)
+            if(!AlphaWarheadController.host.inProgress)
             {
                 AlphaWarheadController.host.InstantPrepare();
                 AlphaWarheadController.host.StartDetonation(player?.GetGameObject() as GameObject);
@@ -423,7 +423,7 @@ namespace SanyaPlugin
         static public void CallRpcTargetShake(Player target)
         {
             GameObject gameObject = target.GetGameObject() as GameObject;
-            if (gameObject != null)
+            if(gameObject != null)
             {
                 int rpcid = -737840022;
 
@@ -448,29 +448,29 @@ namespace SanyaPlugin
 
         static public void SetExtraDoorNames()
         {
-            foreach (Door item in UnityEngine.Object.FindObjectsOfType<Door>())
+            foreach(Door item in UnityEngine.Object.FindObjectsOfType<Door>())
             {
-                if (item.name.Contains("ContDoor"))
+                if(item.name.Contains("ContDoor"))
                 {
-                    if (item.DoorName.Length == 0)
+                    if(item.DoorName.Length == 0)
                     {
-                        if (item.transform.parent.name.Contains("MeshDoor173"))
+                        if(item.transform.parent.name.Contains("MeshDoor173"))
                         {
                             item.DoorName = "173_CONTAIN";
                         }
-                        else if (item.transform.parent.name.Contains("Entrance Door"))
+                        else if(item.transform.parent.name.Contains("Entrance Door"))
                         {
                             item.DoorName = "049_CONTAIN";
                         }
-                        else if (item.transform.parent.name.Contains("Shelter"))
+                        else if(item.transform.parent.name.Contains("Shelter"))
                         {
                             item.DoorName = "SHELTER";
                         }
                     }
                 }
-                else if (item.name.Contains("PrisonDoor"))
+                else if(item.name.Contains("PrisonDoor"))
                 {
-                    if (!item.name.Contains("("))
+                    if(!item.name.Contains("("))
                     {
                         item.DoorName = item.name.Replace("Door", "_0").ToUpper();
                     }
@@ -479,39 +479,39 @@ namespace SanyaPlugin
                         item.DoorName = item.name.Replace("Door", "").Replace(" (", "_").Replace(")", "").ToUpper();
                     }
                 }
-                else if (item.name.Contains("LightContainmentDoor"))
+                else if(item.name.Contains("LightContainmentDoor"))
                 {
-                    if (item.transform.parent.name.Contains("372"))
+                    if(item.transform.parent.name.Contains("372"))
                     {
                         item.DoorName = "372_CONTAIN";
                     }
-                    else if (item.transform.parent.name.Contains("Map_LC_Toilets"))
+                    else if(item.transform.parent.name.Contains("Map_LC_Toilets"))
                     {
                         item.DoorName = "WC";
                     }
-                    else if (item.transform.parent.name.Contains("Map_HC_079CR"))
+                    else if(item.transform.parent.name.Contains("Map_HC_079CR"))
                     {
                         item.DoorName = "079_INNER";
                     }
-                    else if (item.transform.parent.name.Contains("Servers"))
+                    else if(item.transform.parent.name.Contains("Servers"))
                     {
                         item.DoorName = "SERVER";
                     }
-                    else if (item.transform.parent.name.Contains("All"))
+                    else if(item.transform.parent.name.Contains("All"))
                     {
-                        if (item.name.Contains("(33)"))
+                        if(item.name.Contains("(33)"))
                         {
                             item.DoorName = "939_BOTTOM_LEFT";
                         }
-                        else if (item.name.Contains("(31)"))
+                        else if(item.name.Contains("(31)"))
                         {
                             item.DoorName = "939_BOTTOM_RIGHT";
                         }
-                        else if (item.name.Contains("(30)"))
+                        else if(item.name.Contains("(30)"))
                         {
                             item.DoorName = "939_UP_LEFT";
                         }
-                        else if (item.name.Contains("(29)"))
+                        else if(item.name.Contains("(29)"))
                         {
                             item.DoorName = "939_UP_RIGHT";
                         }
@@ -522,9 +522,9 @@ namespace SanyaPlugin
 
         static public void SetExtraPermission(string name, string permission)
         {
-            foreach (Door item in UnityEngine.Object.FindObjectsOfType<Door>())
+            foreach(Door item in UnityEngine.Object.FindObjectsOfType<Door>())
             {
-                if (item.DoorName.Contains(name))
+                if(item.DoorName.Contains(name))
                 {
                     item.permissionLevel = permission;
                 }
@@ -533,31 +533,31 @@ namespace SanyaPlugin
 
         static public Vector GetSpawnElevatorPos(Elevator[] elevators, bool isCi, bool isReSpawn)
         {
-            foreach (Elevator i in elevators)
+            foreach(Elevator i in elevators)
             {
-                if (i.ElevatorType == ElevatorType.GateA && isCi)
+                if(i.ElevatorType == ElevatorType.GateA && isCi)
                 {
-                    foreach (Vector x in i.GetPositions())
+                    foreach(Vector x in i.GetPositions())
                     {
-                        if ((int)System.Math.Truncate(x.y) == 1001 && isReSpawn)
+                        if((int)System.Math.Truncate(x.y) == 1001 && isReSpawn)
                         {
                             return x;
                         }
-                        else if ((int)System.Math.Truncate(x.y) == -998 && !isReSpawn)
+                        else if((int)System.Math.Truncate(x.y) == -998 && !isReSpawn)
                         {
                             return x;
                         }
                     }
                 }
-                else if (i.ElevatorType == ElevatorType.GateB && !isCi)
+                else if(i.ElevatorType == ElevatorType.GateB && !isCi)
                 {
-                    foreach (Vector x in i.GetPositions())
+                    foreach(Vector x in i.GetPositions())
                     {
-                        if ((int)System.Math.Truncate(x.y) == 994)
+                        if((int)System.Math.Truncate(x.y) == 994)
                         {
                             return x;
                         }
-                        else if ((int)System.Math.Truncate(x.y) == -998 && !isReSpawn)
+                        else if((int)System.Math.Truncate(x.y) == -998 && !isReSpawn)
                         {
                             return x;
                         }
@@ -586,7 +586,7 @@ namespace SanyaPlugin
         static public IEnumerator<float> DeleyadCloseOutsideWarHeadCap(float delay = 10.0f)
         {
             yield return Timing.WaitForSeconds(0.1f);
-            if (!GameObject.FindObjectOfType<AlphaWarheadOutsitePanel>().keycardEntered)
+            if(!GameObject.FindObjectOfType<AlphaWarheadOutsitePanel>().keycardEntered)
             {
                 yield break;
             }
@@ -599,16 +599,16 @@ namespace SanyaPlugin
         {
             GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
             string gid = "SERVER_" + attacker.PlayerId + ":" + (gm.smThrowInteger + 4096);
-            gm.CallRpcThrowGrenade(0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, new Vector3(0f,0f,0f), false, 0);
+            gm.CallRpcThrowGrenade(0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, new Vector3(0f, 0f, 0f), false, 0);
             float delta = 0f;
-            while (delta < 4.6f)
+            while(delta < 4.6f)
             {
                 delta += Timing.DeltaTime;
                 gm.CallRpcUpdate(gid, new Vector3(attacker.GetPosition().x, attacker.GetPosition().y, attacker.GetPosition().z), Quaternion.Euler(Vector3.zero), Vector3.zero, Vector3.zero);
                 yield return 0f;
             }
             gm.CallRpcExplode(gid, attacker.PlayerId);
-            SanyaPlugin.Explode(attacker, new Vector(attacker.GetPosition().x, attacker.GetPosition().y-1f, attacker.GetPosition().z), false);
+            SanyaPlugin.Explode(attacker, new Vector(attacker.GetPosition().x, attacker.GetPosition().y - 1f, attacker.GetPosition().z), false);
             attacker.Kill(DamageType.FRAG);
             yield break;
         }
@@ -618,19 +618,19 @@ namespace SanyaPlugin
             yield return Timing.WaitForSeconds(2f);
 
             Lift lift = elevator.GetComponent() as Lift;
-            foreach (Lift.Elevator ele in lift.elevators)
+            foreach(Lift.Elevator ele in lift.elevators)
             {
                 Collider[] coliders = Physics.OverlapBox(ele.target.transform.position, Vector3.one * lift.maxDistance, new Quaternion(0f, 0f, 0f, 0f), teslamask);
-                foreach (Collider colider in coliders)
+                foreach(Collider colider in coliders)
                 {
                     PlayerStats ps = colider.GetComponentInParent<PlayerStats>();
-                    if (ps != null)
+                    if(ps != null)
                     {
                         Player player = new ServerMod2.API.SmodPlayer(ps.gameObject);
-                        if (player.TeamRole.Role == Role.CLASSD)
+                        if(player.TeamRole.Role == Role.CLASSD)
                         {
                             RoundSummary.escaped_ds++;
-                            if (player.IsHandcuffed())
+                            if(player.IsHandcuffed())
                             {
                                 player.ChangeRole(Role.NTF_CADET, true, false, true, true);
                             }
@@ -639,10 +639,10 @@ namespace SanyaPlugin
                                 player.ChangeRole(Role.CHAOS_INSURGENCY, true, false, true, true);
                             }
                         }
-                        else if (player.TeamRole.Role == Role.SCIENTIST)
+                        else if(player.TeamRole.Role == Role.SCIENTIST)
                         {
                             RoundSummary.escaped_scientists++;
-                            if (player.IsHandcuffed())
+                            if(player.IsHandcuffed())
                             {
                                 player.ChangeRole(Role.CHAOS_INSURGENCY, true, false, true, true);
                             }
@@ -671,9 +671,9 @@ namespace SanyaPlugin
 
         static public IEnumerator<float> SCPRadio(Radio radio)
         {
-            while (true)
+            while(true)
             {
-                if (!SanyaPlugin.test)
+                if(!SanyaPlugin.test)
                 {
                     yield break;
                 }
