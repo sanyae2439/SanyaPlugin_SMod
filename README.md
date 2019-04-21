@@ -4,6 +4,10 @@ SCP SL Plugin <JP Plugin>
 Smod2が必要です
 https://github.com/Grover-c13/Smod2
 
+# Download
+
+https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Archives
+
 # Install
 「sm_plugins」に入れるだけ
 
