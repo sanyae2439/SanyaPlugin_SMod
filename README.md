@@ -24,6 +24,7 @@ sanya_hczstart_mtf_and_ci | Int | 3 | 中層モード時のガードの数
 sanya_title_timer | Bool | False | Nキーのプレイヤーリストにラウンド経過時間表示
 sanya_cassie_subtitle | Bool | False | 放送に字幕を表示
 sanya_friendly_warn | Bool | False | FFした人に警告を表示
+sanya_friendly_warn_console | Bool | False | FFの被害者と加害者両方へ@キーコンソールへ表示（字幕と併用可能）
 sanya_summary_less_mode | Bool | False | リザルト画面をなしにラウンドを終了する機能
 sanya_endround_all_godmode | Bool | False | ラウンド終了時全員を無敵にする
 
