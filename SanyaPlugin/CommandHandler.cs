@@ -59,7 +59,7 @@ namespace SanyaPlugin
 
         public string GetUsage()
         {
-            return "SANYA < BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | 914 (USE/CHANGE) | 939 | SHAKE >";
+            return "SANYA < BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | 914 (USE/CHANGE) | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
         }
 
         public string[] OnCall(ICommandSender sender, string[] args)
@@ -192,6 +192,32 @@ namespace SanyaPlugin
 
                     return new string[] { "939 can all see." };
                 }
+                else if(args[0] == "079")
+                {
+                    if(args.Length > 2)
+                    {
+                        if(args[1] == "level")
+                        {
+                            foreach(Player player in plugin.Server.GetPlayers(Role.SCP_079))
+                            {
+                                player.Scp079Data.Level = Mathf.Clamp(int.Parse(args[2])-1,0,4);
+                                player.Scp079Data.ShowLevelUp(Mathf.Clamp(int.Parse(args[2]) - 1, 0, 4));
+                            }
+                            return new string[] { $"079 Level Set to:{Mathf.Clamp(int.Parse(args[2]), 1, 5)}" };
+                        }
+                    }
+                    else if(args.Length > 1)
+                    {
+                        if(args[1] == "ap")
+                        {
+                            foreach(Player player in plugin.Server.GetPlayers(Role.SCP_079))
+                            {
+                                player.Scp079Data.AP = player.Scp079Data.MaxAP;
+                            }
+                            return new string[] { "079 AP MAX." };
+                        }
+                    }
+                }
                 else if(args[0] == "flagtest")
                 {
                     if(SanyaPlugin.test)
@@ -205,6 +231,19 @@ namespace SanyaPlugin
                     plugin.Error($"test:{SanyaPlugin.test}");
 
                     return new string[] { $"test:{SanyaPlugin.test}" };
+                }
+                else if(args[0] == "ping")
+                {
+                    List<string> pinglist = new List<string>();
+                    byte b;
+
+                    foreach(Player player in plugin.Server.GetPlayers())
+                    {
+                        UnityEngine.Networking.NetworkConnection conn = (player.GetGameObject() as GameObject).GetComponent<NicknameSync>().connectionToClient;
+                        pinglist.Add($"Name: {player.Name} IP: {player.IpAddress} Ping: {UnityEngine.Networking.NetworkTransport.GetCurrentRTT(conn.hostId, conn.connectionId, out b)}ms");
+                    }
+
+                    return pinglist.ToArray();
                 }
                 else if(args[0] == "test")
                 {
@@ -342,6 +381,8 @@ namespace SanyaPlugin
                     //}
 
                     //plugin.Error($"return:{MEC.Timing.KillCoroutines("FollowingGrenade")}");
+
+
 
                     return new string[] { "test ok" };
                 }

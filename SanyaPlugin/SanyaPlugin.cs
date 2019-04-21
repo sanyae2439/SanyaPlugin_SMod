@@ -14,7 +14,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.6.3d",
+    version = "12.6.3",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
@@ -51,6 +51,8 @@ namespace SanyaPlugin
         internal bool cassie_subtitle = false;
         [ConfigOption] //FF時に警告を日英で表示
         internal bool friendly_warn = false;
+        [ConfigOption] //FFの被害者と加害者両方へ@キーコンソールへ表示（上と併用可能）
+        internal bool friendly_warn_console = false;
         [ConfigOption] //リザルト無しでラウンドを終了させる
         internal bool summary_less_mode = false;
         [ConfigOption] //ラウンド終了時に全員を無敵にする

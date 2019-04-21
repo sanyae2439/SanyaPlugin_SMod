@@ -166,6 +166,7 @@ namespace SanyaPlugin
         private bool scp173_boosting = false;
         private bool scp939_53_boosting = false;
         private bool scp939_89_boosting = false;
+        private int scp079_boost_cooltime = 0;
 
         //-----------------------Event---------------------
         public EventHandler(SanyaPlugin plugin)
@@ -533,6 +534,27 @@ namespace SanyaPlugin
         public void OnDetonate()
         {
             plugin.Info($"AlphaWarhead Denotated");
+
+
+            List<Vector> explode_at = new List<Vector>();
+
+            explode_at.Add(new Vector(-16, 1001, 0.5f));
+            explode_at.Add(new Vector(87.5f, 994, -44));
+            explode_at.Add(new Vector(5, 1001, 7));
+            explode_at.Add(new Vector(-5, 1001, 7));
+            explode_at.Add(new Vector(20, 1001, -34));
+            explode_at.Add(new Vector(40, 1001, -34));
+
+
+            GrenadeManager gm = GameObject.Find("Host").GetComponent<GrenadeManager>();
+            foreach(var pos in explode_at)
+            {
+                string gid = "SERVER_" + -1 + ":" + (gm.smThrowInteger + 4096);
+                gm.CallRpcThrowGrenade(0, -1, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, new Vector3(0, 0, 0), false, 0);
+                gm.CallRpcUpdate(gid, new Vector3(pos.x, pos.y, pos.z), Quaternion.Euler(Vector3.zero), Vector3.zero, Vector3.zero);
+                gm.CallRpcExplode(gid, -1);
+                plugin.Debug($"NukeExplode:{pos}");
+            }
         }
 
         public void OnStartCountdown(WarheadStartEvent ev)
@@ -683,10 +705,7 @@ namespace SanyaPlugin
             if(plugin.escape_spawn)
             {
                 plugin.Info($"[OnCheckEscape] Escaped:{ev.Player.Name}");
-                foreach(Smod2.API.Item i in ev.Player.GetInventory())
-                {
-                    i.Drop();
-                }
+                (ev.Player.GetGameObject() as GameObject).GetComponent<Inventory>().ServerDropAll();
                 if((ev.Player.TeamRole.Role == Role.CLASSD && ev.Player.IsHandcuffed()) || (ev.Player.TeamRole.Role == Role.SCIENTIST && !ev.Player.IsHandcuffed()))
                 {
                     plugin.Debug($"Call Teleport");
@@ -964,7 +983,7 @@ namespace SanyaPlugin
                 }
             }
 
-            if(plugin.friendly_warn)
+            if(plugin.friendly_warn || plugin.friendly_warn_console)
             {
                 if(ev.Attacker != null &&
                     ev.DamageType != DamageType.NONE &&
@@ -975,8 +994,16 @@ namespace SanyaPlugin
                     roundduring)
                 {
                     plugin.Info($"[FriendlyFire] {ev.Attacker.Name}({ev.DamageType}:{ev.Damage}) -> {ev.Player.Name}");
-                    ev.Attacker.PersonalClearBroadcasts();
-                    ev.Attacker.PersonalBroadcast(5, $"<color=#ff0000><size=25>《誤射に注意。味方へのダメージは容認されません。(<{ev.Player.Name}>への攻撃。)》\n</size><size=20>《Check your fire! Damage to ally forces not be tolerated.(Damaged to <{ev.Player.Name}>)》\n</size></color>", false);
+                    if(plugin.friendly_warn)
+                    {
+                        ev.Attacker.PersonalClearBroadcasts();
+                        ev.Attacker.PersonalBroadcast(5, $"<color=#ff0000><size=25>《誤射に注意。味方へのダメージは容認されません。(<{ev.Player.Name}>への攻撃。)》\n</size><size=20>《Check your fire! Damage to ally forces not be tolerated.(Damaged to <{ev.Player.Name}>)》\n</size></color>", false);
+                    }
+                    if(plugin.friendly_warn_console)
+                    {
+                        ev.Attacker.SendConsoleMessage($"FriendlyFire to {ev.Player.Name}({ev.DamageType}:{(int)Math.Truncate(ev.Damage)})", "magenta");
+                        ev.Player.SendConsoleMessage($"FriendlyFire from {ev.Attacker.Name}({ev.DamageType}:{(int)Math.Truncate(ev.Damage)})", "yellow");
+                    }
                 }
             }
 
@@ -1726,9 +1753,14 @@ namespace SanyaPlugin
                 }
             }
 
-            if(updatecounter % 60 == 0 && running)
+            if(updatecounter % 60 == 0 && running && roundduring)
             {
                 updatecounter = 0;
+
+                if(scp079_boost_cooltime > 0)
+                {
+                    scp079_boost_cooltime--;
+                }
 
                 if(eventmode == SANYA_GAME_MODE.STORY || eventmode == SANYA_GAME_MODE.HCZ)
                 {
@@ -1739,83 +1771,9 @@ namespace SanyaPlugin
                     }
                 }
 
-                if(plugin.summary_less_mode)
-                {
-                    if(roundduring && isEnded)
-                    {
-                        roundduring = false;
-
-                        int restarttime = ConfigManager.Manager.Config.GetIntValue("auto_round_restart_time", 10);
-
-                        plugin.Server.Map.ClearBroadcasts();
-                        plugin.Server.Map.Broadcast((uint)restarttime, $"<size=35>《ラウンドが終了しました。{restarttime}秒後にリスタートします。》\n </size><size=25>《Round Ended. Restart after {restarttime} seconds.》\n</size>", false);
-                        EventManager.Manager.HandleEvent<IEventHandlerRoundEnd>(new RoundEndEvent(plugin.Server, plugin.Round, ROUND_END_STATUS.FORCE_END));
-
-                        System.Timers.Timer t = new System.Timers.Timer
-                        {
-                            Interval = restarttime * 1000,
-                            AutoReset = false,
-                            Enabled = true
-                        };
-                        t.Elapsed += delegate
-                        {
-                            RoundSummary.singleton.CallRpcDimScreen();
-                            ServerConsole.AddLog("Round restarting");
-                            plugin.Round.RestartRound();
-                            t.Enabled = false;
-                        };
-                    }
-                }
-
-                if(plugin.original_auto_nuke && eventmode != SANYA_GAME_MODE.NO_SCP)
-                {
-                    if(roundduring)
-                    {
-                        if(!AlphaWarheadController.host.inProgress)
-                        {
-                            if(plugin.Round.Stats.ScientistsAlive < 1 && !isScientistAllDead && plugin.Server.Map.LCZDecontaminated)
-                            {
-                                plugin.Info($"[AutoNuke] Sector 1 (Duration:{plugin.Round.Duration})");
-                                plugin.Info($"Class-D:{plugin.Round.Stats.ClassDAlive} Scientist:{plugin.Round.Stats.ScientistsAlive} NTF:{plugin.Round.Stats.NTFAlive} SCP:{plugin.Round.Stats.SCPAlive} CI:{plugin.Round.Stats.CiAlive}");
-
-                                isScientistAllDead = true;
-                                AlphaWarheadController.host.InstantPrepare();
-                                AlphaWarheadController.host.StartDetonation();
-                            }
-                            else
-                            {
-                                if(plugin.Round.Stats.ClassDAlive < 1 && plugin.Round.Stats.NTFAlive < 5 && !isClassDAllDead && isScientistAllDead
-                                    || (plugin.Round.Duration >= plugin.original_auto_nuke_force_sector2 && plugin.original_auto_nuke_force_sector2 > 0))
-                                {
-                                    plugin.Info($"[AutoNuke] Sector 2 (Duration:{plugin.Round.Duration})");
-                                    plugin.Info($"Class-D:{plugin.Round.Stats.ClassDAlive} Scientist:{plugin.Round.Stats.ScientistsAlive} NTF:{plugin.Round.Stats.NTFAlive} SCP:{plugin.Round.Stats.SCPAlive} CI:{plugin.Round.Stats.CiAlive}");
-
-                                    isLocked = true;
-                                    isClassDAllDead = true;
-
-                                    foreach(Smod2.API.Door item in plugin.Server.Map.GetDoors())
-                                    {
-                                        if(item.Name.Contains("GATE_") || item.Name.Contains("CHECKPOINT_"))
-                                        {
-                                            Door d = item.GetComponent() as Door;
-                                            d.SetStateWithSound(true);
-                                            d.warheadlock = true;
-                                            d.UpdateLock();
-                                        }
-                                    }
-
-                                    AlphaWarheadController.host.InstantPrepare();
-                                    AlphaWarheadController.host.StartDetonation();
-                                    AlphaWarheadController.host.SetLocked(true);
-                                }
-                            }
-                        }
-                    }
-                }
-
                 if(eventmode == SANYA_GAME_MODE.NIGHT)
                 {
-                    if(roundduring && !gencomplete)
+                    if(!gencomplete)
                     {
                         if(flickcount >= 10)
                         {
@@ -1838,6 +1796,77 @@ namespace SanyaPlugin
                         {
                             flickcount_lcz++;
                         }
+                    }
+                }
+
+                if(plugin.original_auto_nuke && eventmode != SANYA_GAME_MODE.NO_SCP)
+                {
+                    if(!AlphaWarheadController.host.inProgress)
+                    {
+                        if(plugin.Round.Stats.ScientistsAlive < 1 && !isScientistAllDead && plugin.Server.Map.LCZDecontaminated)
+                        {
+                            plugin.Info($"[AutoNuke] Sector 1 (Duration:{plugin.Round.Duration})");
+                            plugin.Info($"Class-D:{plugin.Round.Stats.ClassDAlive} Scientist:{plugin.Round.Stats.ScientistsAlive} NTF:{plugin.Round.Stats.NTFAlive} SCP:{plugin.Round.Stats.SCPAlive} CI:{plugin.Round.Stats.CiAlive}");
+
+                            isScientistAllDead = true;
+                            AlphaWarheadController.host.InstantPrepare();
+                            AlphaWarheadController.host.StartDetonation();
+                        }
+                        else
+                        {
+                            if(plugin.Round.Stats.ClassDAlive < 1 && plugin.Round.Stats.NTFAlive < 5 && !isClassDAllDead && isScientistAllDead
+                                || (plugin.Round.Duration >= plugin.original_auto_nuke_force_sector2 && plugin.original_auto_nuke_force_sector2 > 0))
+                            {
+                                plugin.Info($"[AutoNuke] Sector 2 (Duration:{plugin.Round.Duration})");
+                                plugin.Info($"Class-D:{plugin.Round.Stats.ClassDAlive} Scientist:{plugin.Round.Stats.ScientistsAlive} NTF:{plugin.Round.Stats.NTFAlive} SCP:{plugin.Round.Stats.SCPAlive} CI:{plugin.Round.Stats.CiAlive}");
+
+                                isLocked = true;
+                                isClassDAllDead = true;
+
+                                foreach(Smod2.API.Door item in plugin.Server.Map.GetDoors())
+                                {
+                                    if(item.Name.Contains("GATE_") || item.Name.Contains("CHECKPOINT_"))
+                                    {
+                                        Door d = item.GetComponent() as Door;
+                                        d.SetStateWithSound(true);
+                                        d.warheadlock = true;
+                                        d.UpdateLock();
+                                    }
+                                }
+
+                                AlphaWarheadController.host.InstantPrepare();
+                                AlphaWarheadController.host.StartDetonation();
+                                AlphaWarheadController.host.SetLocked(true);
+                            }
+                        }
+                    }
+                }
+
+                if(plugin.summary_less_mode)
+                {
+                    if(isEnded)
+                    {
+                        roundduring = false;
+
+                        int restarttime = ConfigManager.Manager.Config.GetIntValue("auto_round_restart_time", 10);
+
+                        plugin.Server.Map.ClearBroadcasts();
+                        plugin.Server.Map.Broadcast((uint)restarttime, $"<size=35>《ラウンドが終了しました。{restarttime}秒後にリスタートします。》\n </size><size=25>《Round Ended. Restart after {restarttime} seconds.》\n</size>", false);
+                        EventManager.Manager.HandleEvent<IEventHandlerRoundEnd>(new RoundEndEvent(plugin.Server, plugin.Round, ROUND_END_STATUS.FORCE_END));
+
+                        System.Timers.Timer t = new System.Timers.Timer
+                        {
+                            Interval = restarttime * 1000,
+                            AutoReset = false,
+                            Enabled = true
+                        };
+                        t.Elapsed += delegate
+                        {
+                            RoundSummary.singleton.CallRpcDimScreen();
+                            ServerConsole.AddLog("Round restarting");
+                            plugin.Round.RestartRound();
+                            t.Enabled = false;
+                        };
                     }
                 }
 
@@ -1881,11 +1910,11 @@ namespace SanyaPlugin
                     {
                         if(AlphaWarheadController.host.sync_resumeScenario >= 0)
                         {
-                            leftDetonation = AlphaWarheadController.host.scenarios_resume[AlphaWarheadController.host.sync_resumeScenario].tMinusTime + 5;
+                            leftDetonation = AlphaWarheadController.host.scenarios_resume[AlphaWarheadController.host.sync_resumeScenario].tMinusTime + 6;
                         }
                         else
                         {
-                            leftDetonation = AlphaWarheadController.host.scenarios_start[AlphaWarheadController.host.sync_startScenario].tMinusTime + 10;
+                            leftDetonation = AlphaWarheadController.host.scenarios_start[AlphaWarheadController.host.sync_startScenario].tMinusTime + 11;
                         }
 
                     }
@@ -1979,7 +2008,6 @@ namespace SanyaPlugin
                                         }
                                         else
                                         {
-                                            ply.Teleport(traitor_pos, true);
                                             ply.Kill(DamageType.RAGDOLLLESS);
                                             plugin.Info($"[TraitorCheck] Failed [{ply.Name}:{ply.TeamRole.Role}:{rndresult}>={plugin.traitor_chance_percent}]");
                                         }
@@ -1992,11 +2020,11 @@ namespace SanyaPlugin
                     {
                         plugin.Error(e.Message);
                     }
+                }
 
-                    if(!Timing.IsRunning(infosender))
-                    {
-                        infosender = Timing.RunCoroutine(this.Sender(), Segment.Update, "InfoSender");
-                    }
+                if(!Timing.IsRunning(infosender))
+                {
+                    infosender = Timing.RunCoroutine(this.Sender(), Segment.Update, "InfoSender");
                 }
             }
             updatecounter++;
@@ -2030,13 +2058,13 @@ namespace SanyaPlugin
                 if(ev.Command.StartsWith("help"))
                 {
                     ev.ReturnMessage = "SanyaPlugin Command List\n" +
-                        ".kill\n自殺します。\n\n" +
-                        ".sinfo\nSCP時のみ仲間のSCPリストを表示します。\n\n" +
-                        ".939sp\nSCP-939で放送が可能です。Vキーの人間向けにて使用可能。\n\n" +
-                        ".079start\n.079stop\n核の起動/停止を行えます。(Tier3以上/AP125消費)\n\n" +
-                        ".radio\n無線機のオンオフが行えます。\n\n" +
-                        ".boost\nSCPの各種ブーストが使用可能。\n\n" +
-                        ".attack\n079の場合カメラ射撃、人間の場合素手の時格闘が出来ます。\n\n";
+                        ".kill 自殺します。\n" +
+                        ".sinfo SCP時のみ仲間のSCPリストを表示します。\n" +
+                        ".939sp SCP-939で放送が可能です。Vキーの人間向けにて使用可能。\n" +
+                        ".079nuke 核の起動/停止を行えます。(Tier3以上/AP125消費)\n" +
+                        ".radio 無線機のオンオフが行えます。\n" +
+                        ".boost SCPの各種ブーストが使用可能。\n" +
+                        ".attack 079の場合カメラ射撃、人間の場合素手の時格闘が出来ます。";
                 }
                 else if(ev.Command.StartsWith("kill"))
                 {
@@ -2583,7 +2611,7 @@ namespace SanyaPlugin
                         }
                         else if(ev.Player.TeamRole.Role == Role.SCP_079)
                         {
-                            if(ev.Player.Scp079Data.AP > 50 || ev.Player.GetBypassMode())
+                            if((ev.Player.Scp079Data.AP > 50 && scp079_boost_cooltime <= 0) || ev.Player.GetBypassMode())
                             {
                                 UnityEngine.GameObject gameObject = ev.Player.GetGameObject() as UnityEngine.GameObject;
                                 Scp079PlayerScript ply079 = gameObject.GetComponent<Scp079PlayerScript>();
@@ -2602,6 +2630,7 @@ namespace SanyaPlugin
                                             if(!ev.Player.GetBypassMode())
                                             {
                                                 ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
+                                                scp079_boost_cooltime = 30;
                                             }
 
                                             ev.ReturnMessage = "Fake MTF Announce.";
@@ -2628,6 +2657,7 @@ namespace SanyaPlugin
                                             if(!ev.Player.GetBypassMode())
                                             {
                                                 ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
+                                                scp079_boost_cooltime = 30;
                                             }
 
                                             ev.ReturnMessage = "Fake SCP Announce.";
@@ -2645,6 +2675,7 @@ namespace SanyaPlugin
                                         if(!ev.Player.GetBypassMode())
                                         {
                                             ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
+                                            scp079_boost_cooltime = 30;
                                         }
 
                                         ev.ReturnMessage = "Flash!";
@@ -2653,7 +2684,7 @@ namespace SanyaPlugin
                             }
                             else
                             {
-                                ev.ReturnMessage = "APが足りません。";
+                                ev.ReturnMessage = $"APが足らないか、クールタイム中です。(CT残り:{scp079_boost_cooltime}秒)";
                             }
                         }
                         else
@@ -2699,7 +2730,7 @@ namespace SanyaPlugin
                                                 plugin.Debug("Hurt");
                                                 gameObject.GetComponent<PlayerStats>().HurtPlayer(
                                                     new PlayerStats.HitInfo(
-                                                        SanyaPlugin.GetDamageFromHitbox(hitbox, 5.0f),
+                                                        SanyaPlugin.GetDamageFromHitbox(hitbox, 5.0f * (ev.Player.Scp079Data.Level + 1)),
                                                         gameObject.GetComponent<NicknameSync>().myNick + " (" + plychm.SteamId + ")",
                                                         DamageTypes.Tesla,
                                                         gameObject.GetComponent<QueryProcessor>().PlayerId)
@@ -2815,6 +2846,62 @@ namespace SanyaPlugin
                     //}
 
                     //plugin.Error($"{CharacterClassManager.smRoundStartTime}");
+
+                    //var decont = host.GetComponent<DecontaminationLCZ>();
+
+                    //foreach(var i in decont.announcements)
+                    //{
+                    //    plugin.Error($"{i.startTime}");
+                    //}
+
+                    //plugin.Warn($"{decont.time}");
+
+                    //decont.time = 11.1f * 60;
+
+                    //ev.Player.SendConsoleMessage($"{ev.Player.Name} -> {10}","magenta");
+
+                    //bool flag = false;
+                    //foreach(var i in ev.Player.GetInventory())
+                    //{
+                    //    if(i.ItemType == ItemType.CUP)
+                    //    {
+                    //        flag = true;
+                    //    }
+                    //}
+
+                    //if(flag)
+                    //{
+                    //    Scp049PlayerScript scp049sc = gameObject.GetComponent<Scp049PlayerScript>();
+                    //    Vector3 forward = scp049sc.plyCam.transform.forward;
+                    //    Vector3 position = scp049sc.plyCam.transform.position;
+                    //    forward.Scale(new Vector3(0.5f, 0.5f, 0.5f));
+
+                    //    if(gameObject != null)
+                    //    {
+                    //        RaycastHit raycastHit;
+                    //        if(Physics.Raycast(position + forward, forward, out raycastHit, 500f, SanyaPlugin.playermask))
+                    //        {
+                    //            plugin.Debug($"name:{raycastHit.transform.name} layer:{raycastHit.transform.gameObject.layer}");
+                    //            SanyaPlugin.Explode(ev.Player, new Vector(raycastHit.point.x, raycastHit.point.y, raycastHit.point.z));
+                    //        }
+                    //    }
+                    //}
+
+                    //AlphaWarheadController.host.InstantPrepare();
+                    //AlphaWarheadController.host.NetworktimeToDetonation = 50f;
+
+                    //foreach(var i in AlphaWarheadController.host.scenarios_start)
+                    //{
+                    //    plugin.Warn($"Start:{i.tMinusTime}:{i.additionalTime}:{i.SumTime()}");
+                    //}
+
+                    //foreach(var i in AlphaWarheadController.host.scenarios_resume)
+                    //{
+                    //    plugin.Warn($"Resume:{i.tMinusTime}:{i.additionalTime}:{i.SumTime()}");
+                    //}
+
+                    //AlphaWarheadController.host.timeToDetonation = 50f;
+                    //AlphaWarheadController.host.Networksync_resumeScenario = 5;
 
                     ev.ReturnMessage = "test ok(user command)";
                 }
