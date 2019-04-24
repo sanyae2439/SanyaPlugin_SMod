@@ -49,6 +49,7 @@ sanya_radio_enhance | Bool | False | RadioのRangeをURにした際に放送が�
 ## 独自要素
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
+sanya_scp_disconnect_at_resetrole | Bool | False | SCPで切断された場合元の状態へ復帰
 sanya_suicide_need_weapon | Bool | False | .killコマンド時に武器を持つ必要があるか
 sanya_original_auto_nuke | Bool | False | 独自判定の自動核を設定
 sanya_nuke_button_auto_close | Float | -1f | 核起動ボタンの蓋が自動で閉まる時間 & 核起動室の扉をEXIT_ACC持ちで開けられるように (-1で無効)
