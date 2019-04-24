@@ -59,7 +59,7 @@ namespace SanyaPlugin
 
         public string GetUsage()
         {
-            return "SANYA < BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | 914 (USE/CHANGE) | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
+            return "SANYA < OVERRIDE | BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
         }
 
         public string[] OnCall(ICommandSender sender, string[] args)
@@ -170,6 +170,16 @@ namespace SanyaPlugin
 
                     return new string[] { "van spawned." };
                 }
+                else if(args[0] == "override")
+                {
+                    Player ply = sender as Player;
+                    if(ply != null)
+                    {
+                        SanyaPlugin.scp_override_steamid = ply.SteamId;
+                    }
+
+                    return new string[] {$"set ok:{SanyaPlugin.scp_override_steamid}" };
+                }
                 else if(args[0] == "914")
                 {
                     if(args.Length > 1)
@@ -191,6 +201,12 @@ namespace SanyaPlugin
                     SanyaPlugin.Call939CanSee();
 
                     return new string[] { "939 can all see." };
+                }
+                else if(args[0] == "096")
+                {
+                    Scp096PlayerScript.instance.IncreaseRage(1f);
+
+                    return new string[] { "096 has Raged." };
                 }
                 else if(args[0] == "079")
                 {
@@ -381,8 +397,7 @@ namespace SanyaPlugin
                     //}
 
                     //plugin.Error($"return:{MEC.Timing.KillCoroutines("FollowingGrenade")}");
-
-
+                    
 
                     return new string[] { "test ok" };
                 }

@@ -14,7 +14,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.6.3",
+    version = "12.7",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
@@ -33,6 +33,7 @@ namespace SanyaPlugin
 
         //public
         static public System.DateTime roundStartTime;
+        static public string scp_override_steamid = "";
 
         //システム系
         [ConfigOption] //サーバー情報送信先IP
@@ -81,6 +82,8 @@ namespace SanyaPlugin
         internal bool radio_enhance = false;
 
         //独自要素
+        [ConfigOption] //切断したSCPが再接続で戻るように
+        internal bool scp_disconnect_at_resetrole = false;
         [ConfigOption] //自殺時に武器を持つのが必要に
         internal bool suicide_need_weapon = false;
         [ConfigOption] //独自自動核
@@ -168,7 +171,7 @@ namespace SanyaPlugin
         public override void OnEnable()
         {
             Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            Info("むにゅ");
+            Info("さにゃぱい");
         }
 
         public override void Register()
@@ -439,11 +442,11 @@ namespace SanyaPlugin
             }
         }
 
-        static public void Explode(Player attacker, Vector explode_posion, bool flashbang = false)
+        static public void Explode(Player attacker, Vector explode_posion, bool flashbang = false, bool effectonly = false)
         {
             GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
             string gid = "SERVER_" + attacker.PlayerId + ":" + (gm.smThrowInteger + 4096);
-            gm.CallRpcThrowGrenade(flashbang ? 1 : 0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), false, 0);
+            gm.CallRpcThrowGrenade(flashbang ? 1 : 0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, effectonly ? new Vector3(0f,0f,0f) : new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), false, 0);
             gm.CallRpcUpdate(gid, new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), Quaternion.Euler(Vector3.zero), Vector3.zero, Vector3.zero);
             gm.CallRpcExplode(gid, attacker.PlayerId);
         }
@@ -597,6 +600,25 @@ namespace SanyaPlugin
             yield break;
         }
 
+        static public IEnumerator<float> DelayedSetReSetRole(SCPPlayerData data,Player player)
+        {
+            yield return Timing.WaitForSeconds(1f);
+            player.ChangeRole(data.role, false, false, false, false);
+            yield return Timing.WaitForSeconds(0.1f);
+            if(data.role == Role.SCP_079)
+            {
+                player.Scp079Data.Level = data.level079;
+                player.Scp079Data.AP = data.ap079;
+                player.Scp079Data.SetCamera(data.camera079);
+            }
+            else
+            {
+                player.Teleport(data.pos);
+                player.SetHealth(data.health);
+            }
+            yield break;
+        }
+
         static public IEnumerator<float> SuicideWithFollowingGrenade(Player attacker)
         {
             GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
@@ -669,6 +691,54 @@ namespace SanyaPlugin
             yield return Timing.WaitForSeconds(0.1f);
             elevator.Use();
             yield break;
+        }
+
+        static public IEnumerator<float> DeductBatteryHasTransmission(Player player)
+        {
+            yield return Timing.WaitForSeconds(2.25f);
+
+            while(true)
+            {
+                if(Intercom.host.speaker != null)
+                {
+                    ServerMod2.API.SmodPlayer ply = new ServerMod2.API.SmodPlayer(Intercom.host.speaker);
+
+                    if(ply.PlayerId == player.PlayerId)
+                    {
+                        bool hasradio = false;
+                        Inventory inv = (player.GetGameObject() as GameObject).GetComponent<Inventory>();
+
+                        foreach(var i in inv.items)
+                        {
+                            if(i.id == (int)ItemType.RADIO)
+                            {
+                                hasradio = true;
+                                player.SetRadioBattery((int)(i.durability) - 10);
+                                if(i.durability < 0)
+                                {
+                                    PluginManager.Manager.Server.Map.SetIntercomSpeaker(null);
+                                    player.SendConsoleMessage("battery 0");
+                                    yield break;
+                                }
+                                break;
+                            }
+                        }
+
+                        if(!hasradio)
+                        {
+                            PluginManager.Manager.Server.Map.SetIntercomSpeaker(null);
+                            player.SendConsoleMessage("no radio");
+                            yield break;
+                        }
+                    }
+                }
+                else
+                {
+                    player.SendConsoleMessage("breaked");
+                    yield break;
+                }
+                yield return Timing.WaitForSeconds(0.5f);
+            }
         }
 
         static public IEnumerator<float> SCPRadio(Radio radio)
