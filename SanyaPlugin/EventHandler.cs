@@ -580,7 +580,7 @@ namespace SanyaPlugin
                                     target.ap079 = (int)ply.Scp079Data.AP;
                                     target.camera079 = ply.Scp079Data.Camera;
                                 }
-                                plugin.Info($"[ReconnectSetRole_Save] [{target.id}]{target.name}:{target.role}:{target.pos}:{target.health}:{target.level079}:{target.ap079}:{target.camera079}");
+                                plugin.Warn($"[SCPList_Save] [{target.id}]{target.name}:{target.role}:{target.pos}:{target.health}:{target.level079}:{target.ap079}:{target.camera079}");
                             }
                         }
                     }
@@ -820,16 +820,15 @@ namespace SanyaPlugin
             //scplist
             if(plugin.scp_disconnect_at_resetrole)
             {
-
                 var target = scplist.Find(x => x.name == ev.Player.Name);
                 if(target == null && ev.TeamRole.Team == Smod2.API.Team.SCP)
                 {
-                    plugin.Warn($"[scplist_add] {ev.Player.Name}");
-                    scplist.Add(new SCPPlayerData(ev.Player.PlayerId, ev.Player.Name, ev.TeamRole.Role, ev.Player.GetPosition(), ev.Player.TeamRole.MaxHP));
+                    plugin.Warn($"[SCPList/Add] [{ev.Player.PlayerId}]{ev.Player.Name}:{ev.Role}:{ev.Player.GetPosition()}:{ev.Player.TeamRole.MaxHP}");
+                    scplist.Add(new SCPPlayerData(ev.Player.PlayerId, ev.Player.Name, ev.Role, ev.Player.GetPosition(), ev.Player.TeamRole.MaxHP));
                 }
-                else if(target != null && ev.TeamRole.Team != Smod2.API.Team.SCP && target.id == ev.Player.PlayerId)
+                else if(target != null && ev.TeamRole.Team != Smod2.API.Team.SCP && ev.TeamRole.Team != Smod2.API.Team.TUTORIAL && target.id == ev.Player.PlayerId)
                 {
-                    plugin.Warn($"[scplist_remove] {target.name}");
+                    plugin.Warn($"[SCPList/Remove] {target.name}");
                     scplist.Remove(target);
                 }
             }
