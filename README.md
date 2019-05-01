@@ -33,7 +33,6 @@ sanya_endround_all_godmode | Bool | False | ラウンド終了時全員を無敵
 --- | :---: | :---: | ---
 sanya_generator_engaged_cantopen | Bool | False | 発電機が起動完了した場合に開かないように
 sanya_scp914_changing | Bool | False | SCP-914に入った人の扱いを少し変更
-sanya_scp106_portal_to_human | Bool | False | SCP-106が生存者の足元にポータルを作成可能に
 sanya_scp106_portal_to_human_wait　| Int | 180 | SCP-106ポータルの初回使用可能までの時間
 sanya_scp106_lure_speaktime | Int | -1 | SCP-106の囮コンテナに入った際一定時間死なずに放送可能に
 sanya_scp106_cleanup | Bool | False | Smodのscp106_cleanupが動かないときに使う用
@@ -102,6 +101,3 @@ sanya_default_ammo_ntfscientist | List<int> | 80,40,40 | NTF Scientistが初期�
 sanya_default_ammo_cadet | List<int> | 10,10,80 | NTF Cadetが初期で所持する弾数
 sanya_default_ammo_lieutenant | List<int> | 80,40,40 | NTF Lieutenantが初期で所持する弾数
 sanya_default_ammo_commander | List<int> | 130,50,50 | NTF Commanderが初期で所持する弾数
-  
-# 更新履歴(History)
-HISTORY.md を参照
