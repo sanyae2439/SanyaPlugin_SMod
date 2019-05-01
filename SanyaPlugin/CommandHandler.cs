@@ -397,6 +397,8 @@ namespace SanyaPlugin
                     //}
 
                     //plugin.Error($"return:{MEC.Timing.KillCoroutines("FollowingGrenade")}");
+
+                    //gameObject.GetComponent<PlyMovementSync>().SetAllowInput(SanyaPlugin.test);
                     
 
                     return new string[] { "test ok" };

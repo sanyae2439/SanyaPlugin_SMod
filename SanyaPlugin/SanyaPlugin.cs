@@ -14,7 +14,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.7.2",
+    version = "12.8",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
@@ -64,8 +64,6 @@ namespace SanyaPlugin
         internal bool generator_engaged_cantopen = false;
         [ConfigOption] //SCP-914にプレイヤーが入った際の挙動を少し変更
         internal bool scp914_changing = false;
-        [ConfigOption] //SCP-106のポータルを生存者の足元に作成する機能
-        internal bool scp106_portal_to_human = false;
         [ConfigOption] //ポータル機能の最初のクールタイム
         internal int scp106_portal_to_human_wait = 180;
         [ConfigOption] //SCP-106の囮コンテナに入った際の放送できる時間
@@ -442,6 +440,25 @@ namespace SanyaPlugin
             }
         }
 
+        static public void CallRpcTargetDecontaminationLCZ(Player target)
+        {
+            GameObject gameObject = target.GetGameObject() as GameObject;
+            if(gameObject != null)
+            {
+                int rpcid = -1569315677;
+
+                UnityEngine.Networking.NetworkWriter writer = new UnityEngine.Networking.NetworkWriter();
+                writer.Write((short)0);
+                writer.Write((short)2);
+                writer.WritePackedUInt32((uint)rpcid);
+                writer.Write(gameObject.GetComponent<UnityEngine.Networking.NetworkIdentity>().netId);
+                writer.WritePackedUInt32((uint)4);
+                writer.Write(true);
+                writer.FinishMessage();
+                gameObject.GetComponent<CharacterClassManager>().connectionToClient.SendWriter(writer, 0);
+            }
+        }
+
         static public void Explode(Player attacker, Vector explode_posion, bool flashbang = false, bool effectonly = false)
         {
             GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
@@ -449,6 +466,25 @@ namespace SanyaPlugin
             gm.CallRpcThrowGrenade(flashbang ? 1 : 0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, effectonly ? new Vector3(0f,0f,0f) : new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), false, 0);
             gm.CallRpcUpdate(gid, new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), Quaternion.Euler(Vector3.zero), Vector3.zero, Vector3.zero);
             gm.CallRpcExplode(gid, attacker.PlayerId);
+        }
+
+        static public void ShowHitmarker(Player target)
+        {
+            GameObject gameObject = target.GetGameObject() as GameObject;
+            if(gameObject != null)
+            {
+                int rpcid = -986408589;
+
+                UnityEngine.Networking.NetworkWriter writer = new UnityEngine.Networking.NetworkWriter();
+                writer.Write((short)0);
+                writer.Write((short)2);
+                writer.WritePackedUInt32((uint)rpcid);
+                writer.Write(gameObject.GetComponent<UnityEngine.Networking.NetworkIdentity>().netId);
+                writer.Write(true);
+                writer.WritePackedUInt32((uint)0);
+                writer.FinishMessage();
+                gameObject.GetComponent<CharacterClassManager>().connectionToClient.SendWriter(writer, 0);
+            }
         }
 
         static public void SetExtraDoorNames()
@@ -572,14 +608,14 @@ namespace SanyaPlugin
             return null;
         }
 
-        static public IEnumerator<float> DelayedTeleport(Player player, Vector pos, bool unstack)
+        static public IEnumerator<float> _DelayedTeleport(Player player, Vector pos, bool unstack)
         {
             yield return Timing.WaitForSeconds(0.1f);
             player.Teleport(pos, unstack);
             yield break;
         }
 
-        static public IEnumerator<float> DelayedSuicideWithWeaponSound(Player player, DamageType cause, float delay = 0.25f)
+        static public IEnumerator<float> _DelayedSuicideWithWeaponSound(Player player, DamageType cause, float delay = 0.25f)
         {
             WeaponManager wpm = (player.GetGameObject() as GameObject).GetComponent<WeaponManager>();
             wpm.CallRpcConfirmShot(false, wpm.curWeapon);
@@ -588,7 +624,7 @@ namespace SanyaPlugin
             yield break;
         }
 
-        static public IEnumerator<float> DeleyadCloseOutsideWarHeadCap(float delay = 10.0f)
+        static public IEnumerator<float> _DeleyadCloseOutsideWarHeadCap(float delay = 10.0f)
         {
             yield return Timing.WaitForSeconds(0.1f);
             if(!GameObject.FindObjectOfType<AlphaWarheadOutsitePanel>().keycardEntered)
@@ -600,7 +636,7 @@ namespace SanyaPlugin
             yield break;
         }
 
-        static public IEnumerator<float> DelayedSetReSetRole(SCPPlayerData data,Player player)
+        static public IEnumerator<float> _DelayedSetReSetRole(SCPPlayerData data,Player player)
         {
             yield return Timing.WaitForSeconds(1f);
             player.ChangeRole(data.role, false, false, false, false);
@@ -619,7 +655,7 @@ namespace SanyaPlugin
             yield break;
         }
 
-        static public IEnumerator<float> SuicideWithFollowingGrenade(Player attacker)
+        static public IEnumerator<float> _SuicideWithFollowingGrenade(Player attacker)
         {
             GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
             string gid = "SERVER_" + attacker.PlayerId + ":" + (gm.smThrowInteger + 4096);
@@ -637,7 +673,7 @@ namespace SanyaPlugin
             yield break;
         }
 
-        static public IEnumerator<float> EscapeEmulateForElevator(Elevator elevator)
+        static public IEnumerator<float> _EscapeEmulateForElevator(Elevator elevator)
         {
             yield return Timing.WaitForSeconds(2f);
 
@@ -684,7 +720,7 @@ namespace SanyaPlugin
             yield break;
         }
 
-        static public IEnumerator<float> BeforeSpawnMoving(Elevator elevator)
+        static public IEnumerator<float> _BeforeSpawnMoving(Elevator elevator)
         {
             Lift lift = elevator.GetComponent() as Lift;
             lift.NetworkstatusID = (int)Lift.Status.Down;
@@ -693,7 +729,7 @@ namespace SanyaPlugin
             yield break;
         }
 
-        static public IEnumerator<float> DeductBatteryHasTransmission(Player player)
+        static public IEnumerator<float> _DeductBatteryHasTransmission(Player player)
         {
             yield return Timing.WaitForSeconds(2.25f);
 
@@ -741,7 +777,66 @@ namespace SanyaPlugin
             }
         }
 
-        static public IEnumerator<float> SCPRadio(Radio radio)
+        static public IEnumerator<float> _106CreatePortalEX(Player scp, Player human)
+        {
+            GameObject gameObject_scp = scp.GetGameObject() as GameObject;
+            GameObject gameObject_human = human.GetGameObject() as GameObject;
+            Scp106PlayerScript p106_scp = gameObject_scp.GetComponent<Scp106PlayerScript>();
+            Scp106PlayerScript p106_human = gameObject_human.GetComponent<Scp106PlayerScript>();
+            PlyMovementSync pms_scp = gameObject_human.GetComponent<PlyMovementSync>();
+            PlyMovementSync pms_human = gameObject_human.GetComponent<PlyMovementSync>();
+
+            pms_human.SetAllowInput(false);
+            pms_scp.SetAllowInput(false);
+            RaycastHit raycastHit;
+            if(Physics.Raycast(new Ray(gameObject_human.transform.position, -gameObject_human.transform.up), out raycastHit, 10f, p106_scp.teleportPlacementMask))
+            {
+                p106_human.NetworkportalPosition = raycastHit.point - Vector3.up;
+                p106_scp.NetworkportalPosition = raycastHit.point - Vector3.up;
+            }
+
+            yield return Timing.WaitForSeconds(0.1f);
+            p106_scp.CallCmdUsePortal();
+            p106_human.CallRpcTeleportAnimation();
+            for(float i = 0f; i < 200; i++)
+            {
+                var pos = gameObject_human.transform.position;
+                if(i > 180)
+                {
+                    pos.y -= i * 0.001f;
+                }
+                else
+                {
+                    pos.y -= i * 0.0001f;
+                }
+                pms_human.SetPosition(pos);
+                yield return 0f;
+            }
+            pms_human.SetPosition(new Vector3(0, -1998.67f, 0));
+            pms_human.SetAllowInput(true);
+            yield break;
+        }
+
+        static public IEnumerator<float> _JammingName(Player player)
+        {
+            while(true)
+            {
+                if(test)
+                {
+                    NicknameSync nick = (player.GetGameObject() as GameObject).GetComponent<NicknameSync>();
+
+                    nick.NetworkmyNick = System.Guid.NewGuid().ToString("N").Substring(0, 12).ToUpper();
+
+                    yield return Timing.WaitForSeconds(0.1f);
+                }
+                else
+                {
+                    yield break;
+                }
+            }
+        }
+
+        static public IEnumerator<float> _SCPRadio(Radio radio)
         {
             while(true)
             {

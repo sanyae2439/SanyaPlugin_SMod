@@ -101,6 +101,7 @@ namespace SanyaPlugin
         IEventHandlerSCP914Activate,
         IEventHandlerCallCommand,
         IEventHandler106CreatePortal,
+        IEventHandler106Teleport,
         IEventHandlerGeneratorAccess,
         IEventHandlerGeneratorUnlock,
         IEventHandlerGeneratorInsertTablet,
@@ -117,6 +118,7 @@ namespace SanyaPlugin
         IEventHandlerWarheadChangeLever,
         IEventHandlerWarheadKeycardAccess,
         IEventHandlerIntercom,
+        IEventHandlerGrenadeHitPlayer,
         IEventHandlerUpdate
     {
         private readonly SanyaPlugin plugin;
@@ -170,10 +172,6 @@ namespace SanyaPlugin
         //106Lure
         private int lure_id = -1;
 
-        //106Portal
-        private Vector portaltemp = new Vector(0, 0, 0);
-        private int portal_cooltime = 0;
-
         //Update
         private int updatecounter = 0;
         private Vector traitor_pos = new Vector(170, 984, 28);
@@ -187,6 +185,7 @@ namespace SanyaPlugin
         private bool scp939_53_boosting = false;
         private bool scp939_89_boosting = false;
         private int scp079_boost_cooltime = 0;
+        private int scp079_attack_cooltime = 0;
 
         //-----------------------Event---------------------
         public EventHandler(SanyaPlugin plugin)
@@ -550,8 +549,8 @@ namespace SanyaPlugin
                     plugin.Warn($"[SCPList/ReSet] {target.name}:{target.role} ({target.health}/{target.level079}/{target.ap079})");
                     target.id = ev.Player.PlayerId;
                     ev.Player.PersonalClearBroadcasts();
-                    ev.Player.PersonalBroadcast(5, $"<size=30>切断前のSCPに復帰します。</size>",false);
-                    Timing.RunCoroutine(SanyaPlugin.DelayedSetReSetRole(target, ev.Player), Segment.Update);
+                    ev.Player.PersonalBroadcast(3, $"<size=30>切断前のSCPに復帰します。</size>",false);
+                    Timing.RunCoroutine(SanyaPlugin._DelayedSetReSetRole(target, ev.Player), Segment.Update);
                 }
             }
         }
@@ -629,7 +628,7 @@ namespace SanyaPlugin
         {
             plugin.Debug($"[OnStartCountdown] {ev.Activator?.Name}:{ev.Cancel}:{ev.TimeLeft}");
 
-            if(!ev.Cancel)
+            if(!ev.Cancel && AlphaWarheadController.host.inProgress)
             {
                 if(plugin.cassie_subtitle && roundduring)
                 {
@@ -737,7 +736,7 @@ namespace SanyaPlugin
             if(ev.Allow && plugin.nuke_button_auto_close > 0f)
             {
                 plugin.Debug($"[OnWarheadKeycardAccess] RunCoroutine:DeleyadCloseOutsideWarHeadCap delay:{plugin.nuke_button_auto_close}");
-                Timing.RunCoroutine(SanyaPlugin.DeleyadCloseOutsideWarHeadCap(plugin.nuke_button_auto_close), Segment.Update);
+                Timing.RunCoroutine(SanyaPlugin._DeleyadCloseOutsideWarHeadCap(plugin.nuke_button_auto_close), Segment.Update);
             }
         }
 
@@ -777,7 +776,7 @@ namespace SanyaPlugin
                 if((ev.Player.TeamRole.Role == Role.CLASSD && ev.Player.IsHandcuffed()) || (ev.Player.TeamRole.Role == Role.SCIENTIST && !ev.Player.IsHandcuffed()))
                 {
                     plugin.Debug($"Call Teleport");
-                    Timing.RunCoroutine(SanyaPlugin.DelayedTeleport(ev.Player, ev.Player.GetPosition(), false), Segment.Update);
+                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, ev.Player.GetPosition(), false), Segment.Update);
                 }
             }
         }
@@ -838,13 +837,13 @@ namespace SanyaPlugin
             {
                 if(cam173chamber != null && ev.Role == Role.CLASSD && chamber173count < 4)
                 {
-                    Timing.RunCoroutine(SanyaPlugin.DelayedTeleport(ev.Player, cam173chamber, false), Segment.Update);
+                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam173chamber, false), Segment.Update);
                     chamber173count++;
                 }
 
                 if(cam173hall != null && ev.Role == Role.SCIENTIST && hall173count < 4)
                 {
-                    Timing.RunCoroutine(SanyaPlugin.DelayedTeleport(ev.Player, cam173hall, false), Segment.Update);
+                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam173hall, false), Segment.Update);
                     hall173count++;
                 }
 
@@ -897,7 +896,7 @@ namespace SanyaPlugin
                         }
                         if(containpos != null)
                         {
-                            Timing.RunCoroutine(SanyaPlugin.DelayedTeleport(ev.Player, containpos, false), Segment.Update);
+                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, containpos, false), Segment.Update);
                         }
                     }
                 }
@@ -906,7 +905,7 @@ namespace SanyaPlugin
             {
                 if(armory != null && ev.Role == Role.CLASSD)
                 {
-                    Timing.RunCoroutine(SanyaPlugin.DelayedTeleport(ev.Player, armory, false), Segment.Update);
+                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, armory, false), Segment.Update);
                 }
             }
             else if(eventmode == SANYA_GAME_MODE.HCZ)
@@ -917,7 +916,7 @@ namespace SanyaPlugin
                 if(hcz_hallways != null && (ev.Role == Role.CLASSD || ev.Role == Role.SCIENTIST))
                 {
                     plugin.Debug($"HCZ Teleport:{room.RoomType} : {pos}");
-                    Timing.RunCoroutine(SanyaPlugin.DelayedTeleport(ev.Player, pos, false), Segment.Update);
+                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, pos, false), Segment.Update);
                 }
             }
             else if(eventmode == SANYA_GAME_MODE.NO_SCP)
@@ -947,7 +946,7 @@ namespace SanyaPlugin
                         }
                         if(plugin.Round.Duration < 10)
                         {
-                            Timing.RunCoroutine(SanyaPlugin.DelayedTeleport(ev.Player, SanyaPlugin.GetSpawnElevatorPos(plugin.Server.Map.GetElevators().ToArray(), true, false), false), Segment.Update);
+                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, SanyaPlugin.GetSpawnElevatorPos(plugin.Server.Map.GetElevators().ToArray(), true, false), false), Segment.Update);
                         }
                         break;
                 }
@@ -1081,7 +1080,12 @@ namespace SanyaPlugin
                 if(ev.Attacker != null &&
                     ev.DamageType != DamageType.NONE &&
                     ev.Attacker.Name != "Server" &&
-                    ev.Attacker.TeamRole.Team == ev.Player.TeamRole.Team &&
+                    (ev.Attacker.TeamRole.Team == ev.Player.TeamRole.Team 
+                    || ev.Attacker.TeamRole.Team == Smod2.API.Team.NINETAILFOX && ev.Player.TeamRole.Team == Smod2.API.Team.SCIENTIST 
+                    || ev.Attacker.TeamRole.Team == Smod2.API.Team.CLASSD && ev.Player.TeamRole.Team == Smod2.API.Team.CHAOS_INSURGENCY
+                    || ev.Attacker.TeamRole.Team == Smod2.API.Team.SCIENTIST && ev.Player.TeamRole.Team == Smod2.API.Team.NINETAILFOX
+                    || ev.Attacker.TeamRole.Team == Smod2.API.Team.CHAOS_INSURGENCY && ev.Player.TeamRole.Team == Smod2.API.Team.CLASSD
+                    ) &&
                     ev.Attacker.PlayerId != ev.Player.PlayerId &&
                     ev.Player.GetGodmode() == false &&
                     roundduring)
@@ -1090,7 +1094,7 @@ namespace SanyaPlugin
                     if(plugin.friendly_warn)
                     {
                         ev.Attacker.PersonalClearBroadcasts();
-                        ev.Attacker.PersonalBroadcast(5, $"<color=#ff0000><size=25>《誤射に注意。味方へのダメージは容認されません。(<{ev.Player.Name}>への攻撃。)》\n</size><size=20>《Check your fire! Damage to ally forces not be tolerated.(Damaged to <{ev.Player.Name}>)》\n</size></color>", false);
+                        ev.Attacker.PersonalBroadcast(3, $"<color=#ff0000><size=25>《誤射に注意。味方へのダメージは容認されません。(<{ev.Player.Name}>への攻撃。)》\n</size><size=20>《Check your fire! Damage to ally forces not be tolerated.(Damaged to <{ev.Player.Name}>)》\n</size></color>", false);
                     }
                     if(plugin.friendly_warn_console)
                     {
@@ -1227,6 +1231,16 @@ namespace SanyaPlugin
             //----------------------------------------------------ペスト治療------------------------------------------------
         }
 
+        public void OnGrenadeHitPlayer(PlayerGrenadeHitPlayer ev)
+        {
+            plugin.Debug($"[OnGrenadeHitPlayer] {ev.Player?.Name}:{ev.Victim?.Name}");
+
+            if(ev.Player != null && ev.Victim != null && ev.Player.PlayerId != ev.Victim.PlayerId)
+            {
+                SanyaPlugin.ShowHitmarker(ev.Player);
+            }
+        }
+
         public void OnLure(PlayerLureEvent ev)
         {
             if(plugin.scp106_lure_speaktime > 0)
@@ -1278,11 +1292,11 @@ namespace SanyaPlugin
                 ev.Player.PersonalClearBroadcasts();
                 if(plugin.Server.GetPlayers().FindIndex(x => x.Name == ev.Target.Name) == -1)
                 {
-                    ev.Player.PersonalBroadcast(5, "<size=25>《治療失敗。対象プレイヤーは切断済みです。》\n </size><size=20>《Recall failed.》\n</size>", false);
+                    ev.Player.PersonalBroadcast(3, "<size=25>《治療失敗。対象プレイヤーは切断済みです。》\n </size><size=20>《Recall failed.》\n</size>", false);
                 }
                 else
                 {
-                    ev.Player.PersonalBroadcast(5, "<size=25>《治療失敗。対象プレイヤーはリスポーン済みです。》\n </size><size=20>《Recall failed.》\n</size>", false);
+                    ev.Player.PersonalBroadcast(3, "<size=25>《治療失敗。対象プレイヤーはリスポーン済みです。》\n </size><size=20>《Recall failed.》\n</size>", false);
                 }
             }
         }
@@ -1395,7 +1409,7 @@ namespace SanyaPlugin
             {
                 if(ev.Elevator.ElevatorStatus == ElevatorStatus.Up && (ev.Elevator.ElevatorType == ElevatorType.GateA || ev.Elevator.ElevatorType == ElevatorType.GateB))
                 {
-                    Timing.RunCoroutine(SanyaPlugin.EscapeEmulateForElevator(ev.Elevator), Segment.Update);
+                    Timing.RunCoroutine(SanyaPlugin._EscapeEmulateForElevator(ev.Elevator), Segment.Update);
                 }
                 else if(ev.Elevator.ElevatorStatus == ElevatorStatus.Down && (ev.Elevator.ElevatorType == ElevatorType.GateA || ev.Elevator.ElevatorType == ElevatorType.GateB))
                 {
@@ -1436,11 +1450,11 @@ namespace SanyaPlugin
 
                 if(pos != null && elevator != null)
                 {
-                    Timing.RunCoroutine(SanyaPlugin.BeforeSpawnMoving(elevator), Segment.Update);
+                    Timing.RunCoroutine(SanyaPlugin._BeforeSpawnMoving(elevator), Segment.Update);
                     foreach(Player p in ev.PlayerList)
                     {
                         Vector rndpos = new Vector(pos.x + rnd.Next(-2, 2), pos.y, pos.z + rnd.Next(-2, 2));
-                        Timing.RunCoroutine(SanyaPlugin.DelayedTeleport(p, rndpos, false), Segment.Update);
+                        Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(p, rndpos, false), Segment.Update);
                     }
                 }
             }
@@ -1448,72 +1462,17 @@ namespace SanyaPlugin
 
         public void On106CreatePortal(Player106CreatePortalEvent ev)
         {
-            plugin.Debug($"[On106CreatePortal] {ev.Player.Name} [{ev.Player.Get106Portal().x}/{ev.Player.Get106Portal().y}/{ev.Player.Get106Portal().z}] - ({ev.Position.x}/{ev.Position.y}/{ev.Position.z})");
+            plugin.Debug($"[On106CreatePortal] {ev.Player.Name} ({ev.Position.x}/{ev.Position.y}/{ev.Position.z})");
+        }
 
-            if(plugin.scp106_portal_to_human)
-            {
-                if((ev.Position.x == portaltemp.x &&
-                ev.Position.y == portaltemp.y &&
-                ev.Position.z == portaltemp.z) &&
-              !(ev.Position.x == ev.Player.Get106Portal().x &&
-                ev.Position.y == ev.Player.Get106Portal().y &&
-                ev.Position.z == ev.Player.Get106Portal().z))
-                {
-                    plugin.Debug("through");
-                }
-                else
-                {
-                    if(portal_cooltime >= 3)
-                    {
-                        if(ev.Position.x == ev.Player.Get106Portal().x &&
-                           ev.Position.y == ev.Player.Get106Portal().y &&
-                           ev.Position.z == ev.Player.Get106Portal().z)
-                        {
-                            List<Player> humanlist = new List<Player>();
-                            foreach(Player item in plugin.Server.GetPlayers())
-                            {
-                                if(item.TeamRole.Team != Smod2.API.Team.SCP &&
-                                    item.TeamRole.Team != Smod2.API.Team.SPECTATOR)
-                                {
-                                    if(!(item.GetPosition().y < -1900 && item.GetPosition().y > -2000))
-                                    {
-                                        humanlist.Add(item);
-                                    }
-                                }
-                            }
+        public void On106Teleport(Player106TeleportEvent ev)
+        {
+            plugin.Debug($"[On106Teleport] {ev.Player.Name} ({ev.Position.x}/{ev.Position.y}/{ev.Position.z})");
 
-                            if(roundduring)
-                            {
-                                if(plugin.Server.Round.Duration > plugin.scp106_portal_to_human_wait)
-                                {
-                                    if(humanlist.Count <= 0)
-                                    {
-                                        ev.Player.PersonalClearBroadcasts();
-                                        ev.Player.PersonalBroadcast(5, $"<size=25>《ターゲットが見つからないようだ。》\n </size><size=20>《Target not found.》\n</size>", false);
-                                        plugin.Info("[106Portal] No Humans");
-                                    }
-                                    else
-                                    {
-                                        int rndresult = rnd.Next(0, humanlist.Count);
-                                        Vector temppos = new Vector(humanlist[rndresult].GetPosition().x, humanlist[rndresult].GetPosition().y - 2.3f, humanlist[rndresult].GetPosition().z);
-                                        ev.Position = temppos;
-                                        ev.Player.PersonalClearBroadcasts();
-                                        ev.Player.PersonalBroadcast(5, $"<size=25>《生存者<{humanlist[rndresult].Name}>の近くにポータルを作成します。》\n </size><size=20>《Create portal at close to <{humanlist[rndresult].Name}>.》\n</size>", false);
-                                        plugin.Info("[106Portal] Target:" + humanlist[rndresult].Name);
-                                    }
-                                }
-                                else
-                                {
-                                    ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, $"<size=25>《まだ使えないようだ。》\n </size><size=20>《Not available yet.》\n</size>", false);
-                                }
-                            }
-                        }
-                        portaltemp = ev.Position;
-                        portal_cooltime = 0;
-                    }
-                }
-            }
+            //Portal補正
+            Scp106PlayerScript p106 = (ev.Player.GetGameObject() as GameObject).GetComponent<Scp106PlayerScript>();
+            Vector3 pos = p106.portalPosition + Vector3.up * 1.5f;
+            ev.Position = new Vector(pos.x, pos.y, pos.z);
         }
 
         public void OnSCP914Activate(SCP914ActivateEvent ev)
@@ -1579,7 +1538,7 @@ namespace SanyaPlugin
                                     int targetspec = rnd.Next(0, speclist.Count);
 
                                     speclist[targetspec].ChangeRole(player.TeamRole.Role, true, false, true, true);
-                                    Timing.RunCoroutine(SanyaPlugin.DelayedTeleport(speclist[targetspec], newpos, false));
+                                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(speclist[targetspec], newpos, false));
 
                                     foreach(Smod2.API.Item specitem in speclist[targetspec].GetInventory())
                                     {
@@ -1874,6 +1833,11 @@ namespace SanyaPlugin
                     scp079_boost_cooltime--;
                 }
 
+                if(scp079_attack_cooltime > 0)
+                {
+                    scp079_attack_cooltime--;
+                }
+
                 if(eventmode == SANYA_GAME_MODE.STORY || eventmode == SANYA_GAME_MODE.HCZ)
                 {
                     if(startwait < plugin.Round.Duration && !storyshaker)
@@ -1979,14 +1943,6 @@ namespace SanyaPlugin
                             plugin.Round.RestartRound();
                             t.Enabled = false;
                         };
-                    }
-                }
-
-                if(plugin.scp106_portal_to_human)
-                {
-                    if(portal_cooltime < 3)
-                    {
-                        portal_cooltime++;
                     }
                 }
 
@@ -2189,7 +2145,7 @@ namespace SanyaPlugin
                             {
                                 ev.ReturnMessage = "Success.";
                                 ev.Player.PersonalClearBroadcasts();
-                                ev.Player.PersonalBroadcast(5, "<size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>", false);
+                                ev.Player.PersonalBroadcast(3, "<size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>", false);
                                 ev.Player.SetGodmode(false);
                                 ev.Player.Kill(DamageType.TESLA);
                             }
@@ -2202,37 +2158,37 @@ namespace SanyaPlugin
                                         case ItemType.FRAG_GRENADE:
                                             ev.ReturnMessage = "Success.";
                                             ev.Player.PersonalClearBroadcasts();
-                                            ev.Player.PersonalBroadcast(5, "<size=25>《あなたはグレネードのピンを抜き、自爆します。》\n </size><size=20>《You suicided.》\n</size>", false);
+                                            ev.Player.PersonalBroadcast(3, "<size=25>《あなたはグレネードのピンを抜き、自爆します。》\n </size><size=20>《You suicided.》\n</size>", false);
                                             ev.Player.SetGodmode(false);
                                             foreach(Smod2.API.Item i in ev.Player.GetInventory().FindAll(x => x.ItemType == ItemType.FRAG_GRENADE))
                                             {
                                                 i.Remove();
                                             }
-                                            Timing.RunCoroutine(SanyaPlugin.SuicideWithFollowingGrenade(ev.Player), Segment.Update);
+                                            Timing.RunCoroutine(SanyaPlugin._SuicideWithFollowingGrenade(ev.Player), Segment.Update);
                                             break;
                                         case ItemType.COM15:
                                         case ItemType.P90:
                                         case ItemType.USP:
                                             ev.ReturnMessage = "Success.";
                                             ev.Player.PersonalClearBroadcasts();
-                                            ev.Player.PersonalBroadcast(5, "<size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>", false);
+                                            ev.Player.PersonalBroadcast(3, "<size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>", false);
                                             ev.Player.SetGodmode(false);
-                                            Timing.RunCoroutine(SanyaPlugin.DelayedSuicideWithWeaponSound(ev.Player, DamageType.COM15), Segment.Update);
+                                            Timing.RunCoroutine(SanyaPlugin._DelayedSuicideWithWeaponSound(ev.Player, DamageType.COM15), Segment.Update);
                                             break;
                                         case ItemType.E11_STANDARD_RIFLE:
                                             ev.ReturnMessage = "Success.";
                                             ev.Player.PersonalClearBroadcasts();
-                                            ev.Player.PersonalBroadcast(5, "<size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>", false);
+                                            ev.Player.PersonalBroadcast(3, "<size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>", false);
                                             ev.Player.SetGodmode(false);
-                                            Timing.RunCoroutine(SanyaPlugin.DelayedSuicideWithWeaponSound(ev.Player, DamageType.E11_STANDARD_RIFLE), Segment.Update);
+                                            Timing.RunCoroutine(SanyaPlugin._DelayedSuicideWithWeaponSound(ev.Player, DamageType.E11_STANDARD_RIFLE), Segment.Update);
                                             break;
                                         case ItemType.LOGICER:
                                         case ItemType.MP4:
                                             ev.ReturnMessage = "Success.";
                                             ev.Player.PersonalClearBroadcasts();
-                                            ev.Player.PersonalBroadcast(5, "<size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>", false);
+                                            ev.Player.PersonalBroadcast(3, "<size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>", false);
                                             ev.Player.SetGodmode(false);
-                                            Timing.RunCoroutine(SanyaPlugin.DelayedSuicideWithWeaponSound(ev.Player, DamageType.LOGICER), Segment.Update);
+                                            Timing.RunCoroutine(SanyaPlugin._DelayedSuicideWithWeaponSound(ev.Player, DamageType.LOGICER), Segment.Update);
                                             break;
                                         default:
                                             ev.ReturnMessage = "手に武器を持っていません。";
@@ -2338,7 +2294,7 @@ namespace SanyaPlugin
 
                             ev.ReturnMessage = scplist;
                             ev.Player.PersonalClearBroadcasts();
-                            ev.Player.PersonalBroadcast(10, $"<size=25>{scplist}</size>", false);
+                            ev.Player.PersonalBroadcast(5, $"<size=25>{scplist}</size>", false);
                         }
                         else
                         {
@@ -2362,7 +2318,7 @@ namespace SanyaPlugin
                             {
                                 plugin.Server.Map.SetIntercomSpeaker(ev.Player);
                                 ev.Player.PersonalClearBroadcasts();
-                                ev.Player.PersonalBroadcast(5, "<size=25>《放送を開始します。》\n </size><size=20>《You will broadcast.》\n</size>", false);
+                                ev.Player.PersonalBroadcast(3, "<size=25>《放送を開始します。》\n </size><size=20>《You will broadcast.》\n</size>", false);
                                 ev.ReturnMessage = "放送を開始します。";
                             }
                             else
@@ -2371,13 +2327,13 @@ namespace SanyaPlugin
                                 {
                                     plugin.Server.Map.SetIntercomSpeaker(null);
                                     ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, "<size=25>《放送を終了しました。》\n </size><size=20>《You finished broadcasting.》\n</size>", false);
+                                    ev.Player.PersonalBroadcast(3, "<size=25>《放送を終了しました。》\n </size><size=20>《You finished broadcasting.》\n</size>", false);
                                     ev.ReturnMessage = "放送を終了しました。";
                                 }
                                 else
                                 {
                                     ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, "<size=25>《誰かが放送中です。》\n </size><size=20>《Someone is broadcasting.》\n</size>", false);
+                                    ev.Player.PersonalBroadcast(3, "<size=25>《誰かが放送中です。》\n </size><size=20>《Someone is broadcasting.》\n</size>", false);
                                     ev.ReturnMessage = "誰かが放送中です。";
                                 }
                             }
@@ -2477,13 +2433,13 @@ namespace SanyaPlugin
                                 if(ev.Player.RadioStatus != RadioStatus.CLOSE)
                                 {
                                     ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, $"<size=25>《無線機をオフにしました。》\n </size><size=20>《Disabled radio.》\n</size>", false);
+                                    ev.Player.PersonalBroadcast(3, $"<size=25>《無線機をオフにしました。》\n </size><size=20>《Disabled radio.》\n</size>", false);
                                     radio.CallCmdUpdatePreset((int)RadioStatus.CLOSE);
                                 }
                                 else
                                 {
                                     ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, $"<size=25>《無線機をオンにしました。》\n </size><size=20>《Enabled radio.》\n</size>", false);
+                                    ev.Player.PersonalBroadcast(3, $"<size=25>《無線機をオンにしました。》\n </size><size=20>《Enabled radio.》\n</size>", false);
                                     radio.CallCmdUpdatePreset((int)RadioStatus.SHORT_RANGE);
                                 }
                                 ev.ReturnMessage = $"無線機の状態:{ev.Player.RadioStatus}";
@@ -2515,20 +2471,20 @@ namespace SanyaPlugin
 
                             if(health > usehp && ply096 != null)
                             {
-                                if(ply096.Networkenraged == Scp096PlayerScript.RageState.NotEnraged)
+                                if(ply096.Networkenraged == Scp096PlayerScript.RageState.Enraged)
                                 {
                                     ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-096ブーストを使用しました。(HP消費:{usehp})》\n </size><size=20>《Used <SCP-096> boost. (used HP:{usehp})》\n</size>", false);
+                                    ev.Player.PersonalBroadcast(3, $"<size=25>《SCP-096ブーストを使用しました。(HP消費:{usehp})》\n </size><size=20>《Used <SCP-096> boost. (used HP:{usehp})》\n</size>", false);
                                     if(!ev.Player.GetBypassMode())
                                     {
                                         ev.Player.SetHealth(health - usehp, DamageType.NONE);
                                     }
-                                    ply096.IncreaseRage(1f);
+                                    ply096.rageProgress = 1f;
                                     ev.ReturnMessage = $"Boost!(-{usehp})";
                                 }
                                 else
                                 {
-                                    ev.ReturnMessage = "クールタイム中です。";
+                                    ev.ReturnMessage = "発狂中ではありません。";
                                 }
                             }
                             else
@@ -2557,7 +2513,7 @@ namespace SanyaPlugin
                             if(health > usehp && ply939 != null && canboost)
                             {
                                 ev.Player.PersonalClearBroadcasts();
-                                ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-939ブーストを使用しました。(HP消費:{usehp})》\n </size><size=20>《Used <SCP-939> boost. (used HP:{usehp})》\n</size>", false);
+                                ev.Player.PersonalBroadcast(3, $"<size=25>《SCP-939ブーストを使用しました。(HP消費:{usehp})》\n </size><size=20>《Used <SCP-939> boost. (used HP:{usehp})》\n</size>", false);
                                 if(!ev.Player.GetBypassMode())
                                 {
                                     ev.Player.SetHealth(health - usehp, DamageType.NONE);
@@ -2595,7 +2551,7 @@ namespace SanyaPlugin
                                             scp939_89_boosting = false;
                                         }
                                         ev.Player.PersonalClearBroadcasts();
-                                        ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-939ブーストが終了。》\n </size><size=20>《Ended <SCP-939> boost.》\n</size>", false);
+                                        ev.Player.PersonalBroadcast(3, $"<size=25>《SCP-939ブーストが終了。》\n </size><size=20>《Ended <SCP-939> boost.》\n</size>", false);
                                         t.Enabled = false;
                                     }
                                 };
@@ -2605,6 +2561,71 @@ namespace SanyaPlugin
                             else
                             {
                                 ev.ReturnMessage = "HPが足りません。";
+                            }
+                        }
+                        else if(ev.Player.TeamRole.Role == Role.SCP_106)
+                        {
+                            if((ev.Player.GetGameObject() as GameObject).GetComponent<FallDamage>().isGrounded)
+                            {
+                                Scp106PlayerScript ply106 = (ev.Player.GetGameObject() as GameObject).GetComponent<Scp106PlayerScript>();
+                                int health = ev.Player.GetHealth();
+                                int usehp = (int)Math.Floor(ev.Player.TeamRole.MaxHP * 0.2);
+
+                                List<Player> humanlist = new List<Player>();
+                                foreach(Player item in plugin.Server.GetPlayers())
+                                {
+                                    if(item.TeamRole.Team != Smod2.API.Team.SCP &&
+                                        item.TeamRole.Team != Smod2.API.Team.SPECTATOR &&
+                                        item.TeamRole.Team != Smod2.API.Team.NONE &&
+                                        (item.GetGameObject() as GameObject).GetComponent<FallDamage>().isGrounded)
+                                    {
+                                        if(!(item.GetPosition().y < -1900 && item.GetPosition().y > -2000))
+                                        {
+                                            humanlist.Add(item);
+                                        }
+                                    }
+                                }
+                                if(plugin.Server.Round.Duration > plugin.scp106_portal_to_human_wait)
+                                {
+                                    if(health > usehp)
+                                    {
+                                        if(humanlist.Count > 0)
+                                        {
+                                            int rndres = rnd.Next(0, humanlist.Count);
+                                            ev.Player.PersonalClearBroadcasts();
+                                            ev.Player.PersonalBroadcast(3, $"<size=25>《生存者<{humanlist[rndres].Name}>の近くにワープします。》\n </size><size=20>《Warp to <{humanlist[rndres].Name}>.》\n</size>", false);
+                                            ev.ReturnMessage = $"{humanlist[rndres].Name}の近くにワープ。(-{usehp})";
+                                            if(!ev.Player.GetBypassMode())
+                                            {
+                                                ev.Player.SetHealth(health - usehp, DamageType.NONE);
+                                            }
+                                            SanyaPlugin.ShowHitmarker(ev.Player);
+                                            Timing.RunCoroutine(SanyaPlugin._106CreatePortalEX(ev.Player, humanlist[rndres]), Segment.Update);
+                                        }
+                                        else
+                                        {
+                                            ev.Player.PersonalClearBroadcasts();
+                                            ev.Player.PersonalBroadcast(3, $"<size=25>《ターゲットが見つからないようだ。》\n </size><size=20>《Target not found.》\n</size>", false);
+                                            ev.ReturnMessage = "No target";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        ev.ReturnMessage = "HPが足りません。";
+                                    }
+                                }
+                                else
+                                {
+                                    ev.Player.PersonalClearBroadcasts();
+                                    ev.Player.PersonalBroadcast(3, $"<size=25>《まだ使えないようだ。》\n </size><size=20>《Not available yet.》\n</size>", false);
+                                    ev.ReturnMessage = "まだ使えません。";
+                                }
+                            }
+                            else
+                            {
+                                ev.Player.PersonalClearBroadcasts();
+                                ev.Player.PersonalBroadcast(3, $"<size=25>《空中では使えない。》\n </size><size=20>《Don't jump for use.》\n</size>", false);
+                                ev.ReturnMessage = "空中では使えません。";
                             }
                         }
                         else if(ev.Player.TeamRole.Role == Role.SCP_049)
@@ -2653,7 +2674,7 @@ namespace SanyaPlugin
                                     ev.Player.SetHealth(health - usehp, DamageType.NONE);
                                 }
                                 ev.Player.PersonalClearBroadcasts();
-                                ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-049ブーストを使用しました。(HP消費:{usehp})》\n </size><size=20>《Used <SCP-049> boost. (used HP:{usehp})》\n</size>", false);
+                                ev.Player.PersonalBroadcast(3, $"<size=25>《SCP-049ブーストを使用しました。(HP消費:{usehp})》\n </size><size=20>《Used <SCP-049> boost. (used HP:{usehp})》\n</size>", false);
                                 ev.ReturnMessage = $"Boost!(-{usehp})";
                             }
                             else
@@ -2663,58 +2684,61 @@ namespace SanyaPlugin
                         }
                         else if(ev.Player.TeamRole.Role == Role.SCP_173)
                         {
-                            Scp173PlayerScript ply173 = GameObject.Find("Host").GetComponent<Scp173PlayerScript>();
+                            GameObject gameObject = (ev.Player.GetGameObject() as GameObject);
+                            Scp173PlayerScript ply173 = gameObject.GetComponent<Scp173PlayerScript>();
+                            Scp049PlayerScript ply049 = gameObject.GetComponent<Scp049PlayerScript>();
                             int health = ev.Player.GetHealth();
-                            int befhp = -1;
                             int usehp = (int)Math.Floor(ev.Player.TeamRole.MaxHP * 0.2);
 
-                            if(health > usehp && ply173 != null)
+                            if(health > usehp && ply173 != null && ply049 != null)
                             {
-                                if(!scp173_boosting && !ev.Player.GetGodmode())
+                                foreach(Scp173PlayerScript scp173PlayerScript in GameObject.FindObjectsOfType<Scp173PlayerScript>())
                                 {
-                                    befhp = health;
-                                    ev.Player.PersonalClearBroadcasts();
-                                    ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-173ブーストを使用しました。(10秒間)》\n </size><size=20>《Used <SCP-173> boost. (effective:10 seconds)》\n</size>", false);
-
-                                    ev.Player.SetHealth(1, DamageType.NONE);
-                                    ev.Player.SetGodmode(true);
-                                    scp173_boosting = true;
-
-                                    ev.ReturnMessage = $"Boost!(-{usehp})";
-
-                                    System.Timers.Timer t = new System.Timers.Timer
+                                    if(!scp173PlayerScript.iAm173)
                                     {
-                                        Interval = 10000,
-                                        AutoReset = false,
-                                        Enabled = true
-                                    };
-                                    t.Elapsed += delegate
+                                        scp173PlayerScript.CallRpcBlinkTime();
+                                    }
+                                }
+
+                                if(!ev.Player.GetBypassMode())
+                                {
+                                    ev.Player.SetHealth(health - usehp, DamageType.NONE);
+                                }
+
+                                RaycastHit raycastHit;
+                                if(Physics.Raycast(ply049.plyCam.transform.position, ply049.plyCam.transform.forward, out raycastHit, 500f, ply173.teleportMask) && raycastHit.transform.GetComponent<CharacterClassManager>() != null)
+                                {
+                                    Vector3 b = raycastHit.transform.position - gameObject.transform.position;
+                                    b = b.normalized * Mathf.Clamp(b.magnitude - 1f, 0f, 500f);
+                                    gameObject.GetComponent<PlyMovementSync>().SetPosition(gameObject.transform.position + b);
+                                    var target = new ServerMod2.API.SmodPlayer(raycastHit.transform.gameObject);
+                                    if(target.PlayerId != ev.Player.PlayerId)
                                     {
-                                        if(!ev.Player.GetBypassMode())
-                                        {
-                                            ev.Player.SetHealth(befhp - usehp, DamageType.NONE);
-                                        }
-                                        else
-                                        {
-                                            ev.Player.SetHealth(befhp, DamageType.NONE);
-                                        }
-                                        ev.Player.SetGodmode(false);
-                                        scp173_boosting = false;
-
-                                        if(plugin.Server.Map.WarheadDetonated && ev.Player.GetPosition().y < 900)
-                                        {
-                                            ev.Player.Kill(DamageType.NUKE);
-                                        }
-
-                                        ev.Player.PersonalClearBroadcasts();
-                                        ev.Player.PersonalBroadcast(5, $"<size=25>《SCP-173ブーストが終了。(HP:{befhp}-{usehp})》\n </size><size=20>《Ended <SCP-173> boost. (HP:{befhp}-{usehp})》\n</size>", false);
-                                        t.Enabled = false;
-                                    };
+                                        SanyaPlugin.ShowHitmarker(ev.Player);
+                                        SanyaPlugin.Call173SnapSound(target);
+                                        gameObject.GetComponent<PlayerStats>().HurtPlayer(
+                                            new PlayerStats.HitInfo(999990f,
+                                            gameObject.GetComponent<NicknameSync>().myNick + " (" + gameObject.GetComponent<CharacterClassManager>().SteamId + ")",
+                                            DamageTypes.Scp173,
+                                            gameObject.GetComponent<QueryProcessor>().PlayerId),
+                                            raycastHit.transform.gameObject);
+                                    }
                                 }
                                 else
                                 {
-                                    ev.ReturnMessage = "ブースト中か、GodModeが有効です。";
+                                    RaycastHit raycastHit2;
+                                    if(Physics.Raycast(ply049.plyCam.transform.position, ply049.plyCam.transform.forward, out raycastHit2, 500f, ply173.teleportMask))
+                                    {
+                                        Vector3 b = raycastHit2.point - gameObject.transform.position;
+                                        b = b.normalized * Mathf.Clamp(b.magnitude - 1f, 0f, 20.3f);
+                                        b.y = Mathf.Clamp(b.y, 0, b.y);
+                                        gameObject.GetComponent<PlyMovementSync>().SetPosition(gameObject.transform.position + b);
+                                    }
                                 }
+
+                                ev.Player.PersonalClearBroadcasts();
+                                ev.Player.PersonalBroadcast(3, $"<size=25>《SCP-173ブーストを使用しました。(HP消費:{usehp})》\n </size><size=20>《Used <SCP-173> boost.(used HP:{usehp})》\n</size>", false);
+                                ev.ReturnMessage = $"Boost!(-{usehp})";
                             }
                             else
                             {
@@ -2812,6 +2836,35 @@ namespace SanyaPlugin
                         {
                             ev.ReturnMessage = "ブーストが可能なSCPではありません。";
                         }
+
+                        if(ev.Player.GetCurrentItem() != null && ev.Player.GetCurrentItem().ItemType == ItemType.CUP)
+                        {
+                            GameObject gameObject = ev.Player.GetGameObject() as GameObject;
+                            Scp049PlayerScript scp049sc = gameObject.GetComponent<Scp049PlayerScript>();
+                            Vector3 forward = scp049sc.plyCam.transform.forward;
+                            Vector3 position = scp049sc.plyCam.transform.position;
+                            forward.Scale(new Vector3(0.5f, 0.5f, 0.5f));
+
+                            if(gameObject != null)
+                            {
+                                RaycastHit raycastHit;
+                                if(Physics.Raycast(position + forward, forward, out raycastHit, 500f, SanyaPlugin.playermask))
+                                {
+                                    ServerMod2.API.SmodPlayer target = new ServerMod2.API.SmodPlayer(raycastHit.transform.gameObject);
+                                    CharacterClassManager comp = raycastHit.transform.GetComponent<CharacterClassManager>();
+
+                                    if(target != null && comp != null)
+                                    {
+                                        if(target.PlayerId != ev.Player.PlayerId && target.TeamRole.Team != Smod2.API.Team.SCP)
+                                        {
+                                            (target.GetGameObject() as GameObject).GetComponent<Inventory>().ServerDropAll();
+                                            (ev.Player.GetGameObject() as GameObject).GetComponent<Handcuffs>().NetworkcuffTarget = raycastHit.transform.gameObject;
+                                        }
+                                    }
+                                }
+                            }
+                            ev.ReturnMessage = "CUP EFFECT!";
+                        }
                     }
                     else
                     {
@@ -2824,7 +2877,7 @@ namespace SanyaPlugin
                     {
                         if(ev.Player.TeamRole.Role == Role.SCP_079)
                         {
-                            if(ev.Player.Scp079Data.AP > 5)
+                            if(ev.Player.Scp079Data.AP > 5 && scp079_attack_cooltime <= 0)
                             {
                                 UnityEngine.GameObject gameObject = ev.Player.GetGameObject() as UnityEngine.GameObject;
                                 WeaponManager wpm = gameObject.GetComponent<WeaponManager>();
@@ -2858,6 +2911,7 @@ namespace SanyaPlugin
                                                     , raycastHit.transform.gameObject
                                                 );
                                                 raycastHit.transform.gameObject.GetComponent<FallDamage>().CallRpcDoSound(raycastHit.transform.position, 1.0f);
+                                                SanyaPlugin.ShowHitmarker(ev.Player);
                                             }
                                         }
                                         wpm.CallRpcPlaceDecal(false, 0, raycastHit.point + raycastHit.normal * 0.01f, Quaternion.FromToRotation(Vector3.up, raycastHit.normal));
@@ -2869,10 +2923,11 @@ namespace SanyaPlugin
                                     }
                                 }
                                 ev.ReturnMessage = "079 Attack!";
+                                scp079_attack_cooltime = 5;
                             }
                             else
                             {
-                                ev.ReturnMessage = "APが足りません。";
+                                ev.ReturnMessage = $"APが足らないか、クールタイム中です。(CT残り:{scp079_attack_cooltime}秒)";
                             }
                         }
                         else if(ev.Player.GetCurrentItem() != null && ev.Player.GetCurrentItem().ItemType == ItemType.CUP)
@@ -2894,7 +2949,7 @@ namespace SanyaPlugin
                             }
                             ev.ReturnMessage = "CUP EFFECT!";
                         }
-                        else if(ev.Player.GetCurrentItemIndex() == -1 && ev.Player.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR)
+                        else if(ev.Player.GetCurrentItemIndex() == -1 && ev.Player.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR && !ev.Player.IsHandcuffed())
                         {
                             UnityEngine.GameObject gameObject = ev.Player.GetGameObject() as UnityEngine.GameObject;
                             CharacterClassManager plychm = gameObject.GetComponent<CharacterClassManager>();
@@ -2943,6 +2998,7 @@ namespace SanyaPlugin
                                                     gameObject.GetComponent<QueryProcessor>().PlayerId)
                                                 , raycastHit.transform.gameObject
                                             );
+                                            SanyaPlugin.ShowHitmarker(ev.Player);
                                         }
                                     }
                                 }
@@ -3044,6 +3100,60 @@ namespace SanyaPlugin
                     //AlphaWarheadController.host.Networksync_resumeScenario = 5;
 
                     //ev.Player.SetRadioBattery(10);
+
+                    //SanyaPlugin.CallRpcTargetConfirmShoot(ev.Player);
+
+                    //SanyaPlugin.CallRpcTargetDecontaminationLCZ(ev.Player);
+
+                    //Timing.RunCoroutine(SanyaPlugin.JammingName(ev.Player),Segment.Update);
+
+                    //var p106 = (ev.Player.GetGameObject() as GameObject).GetComponent<Scp106PlayerScript>();
+
+                    //p106.CallRpcContainAnimation();
+
+                    //Scp173PlayerScript ply173 = gameObject.GetComponent<Scp173PlayerScript>();
+                    //Scp049PlayerScript ply049 = gameObject.GetComponent<Scp049PlayerScript>();
+
+                    //foreach(Scp173PlayerScript scp173PlayerScript in GameObject.FindObjectsOfType<Scp173PlayerScript>())
+                    //{
+                    //    if(!scp173PlayerScript.iAm173)
+                    //    {
+                    //        scp173PlayerScript.CallRpcBlinkTime();
+                    //    }
+                    //}
+
+                    //RaycastHit raycastHit;
+                    //if(Physics.Raycast(ply049.plyCam.transform.position, ply049.plyCam.transform.forward, out raycastHit, 500f, ply173.teleportMask) && raycastHit.transform.GetComponent<CharacterClassManager>() != null)
+                    //{
+                    //    Vector3 b = raycastHit.transform.position - gameObject.transform.position;
+                    //    b = b.normalized * Mathf.Clamp(b.magnitude - 1f, 0f, 500f);
+                    //    gameObject.GetComponent<PlyMovementSync>().SetPosition(gameObject.transform.position + b);
+                    //    var target = new ServerMod2.API.SmodPlayer(raycastHit.transform.gameObject);
+                    //    if(target.PlayerId != ev.Player.PlayerId)
+                    //    {
+                    //        SanyaPlugin.ShowHitmarker(ev.Player);
+                    //        SanyaPlugin.Call173SnapSound(target);
+                    //        gameObject.GetComponent<PlayerStats>().HurtPlayer(
+                    //            new PlayerStats.HitInfo(999990f, 
+                    //            gameObject.GetComponent<NicknameSync>().myNick + " (" + gameObject.GetComponent<CharacterClassManager>().SteamId + ")", 
+                    //            DamageTypes.Scp173, 
+                    //            gameObject.GetComponent<QueryProcessor>().PlayerId), 
+                    //            raycastHit.transform.gameObject);
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    RaycastHit raycastHit2;
+                    //    if(Physics.Raycast(ply049.plyCam.transform.position, ply049.plyCam.transform.forward, out raycastHit2, 500f, ply173.teleportMask))
+                    //    {
+                    //        Vector3 b = raycastHit2.point - gameObject.transform.position;
+                    //        b = b.normalized * Mathf.Clamp(b.magnitude - 1f, 0f, 20.3f);
+                    //        b.y = Mathf.Clamp(b.y, 0, b.y);
+                    //        plugin.Error($"{b}");
+                    //        gameObject.GetComponent<PlyMovementSync>().SetPosition(gameObject.transform.position + b);
+                    //    }
+                    //}
+
 
                     ev.ReturnMessage = "test ok(user command)";
                 }
