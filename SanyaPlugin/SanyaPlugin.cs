@@ -14,7 +14,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.8",
+    version = "12.8.1",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
@@ -812,7 +812,8 @@ namespace SanyaPlugin
                 pms_human.SetPosition(pos);
                 yield return 0f;
             }
-            pms_human.SetPosition(new Vector3(0, -1998.67f, 0));
+            human.Damage(40, DamageType.SCP_106);
+            pms_human.SetPosition(Vector3.down * 1997f);
             pms_human.SetAllowInput(true);
             yield break;
         }
