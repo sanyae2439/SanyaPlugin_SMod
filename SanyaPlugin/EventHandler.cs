@@ -1683,7 +1683,7 @@ namespace SanyaPlugin
 
             if((plugin.stop_mtf_after_nuke && plugin.Server.Map.WarheadDetonated) || !roundduring)
             {
-                //ev.AllowSummon = false;
+                ev.AllowSummon = false;
             }
         }
 
