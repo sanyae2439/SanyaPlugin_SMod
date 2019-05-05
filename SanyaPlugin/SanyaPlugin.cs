@@ -14,7 +14,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.8.1",
+    version = "12.8.2",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
@@ -58,6 +58,8 @@ namespace SanyaPlugin
         internal bool summary_less_mode = false;
         [ConfigOption] //ラウンド終了時に全員を無敵にする
         internal bool endround_all_godmode = false;
+        [ConfigOption] //核起動開始時に一部を除きすべてのドアをオープンする
+        internal bool nuke_start_countdown_door_lock = false;
 
         //SCP系
         [ConfigOption] //発電機が起動完了した場合開かないように
@@ -608,6 +610,15 @@ namespace SanyaPlugin
             return null;
         }
 
+        static public IEnumerator<float> _SummaryLessRoundrestart(SanyaPlugin plugin,int restarttime)
+        {
+            yield return Timing.WaitForSeconds(restarttime);
+            RoundSummary.singleton.CallRpcDimScreen();
+            ServerConsole.AddLog("Round restarting");
+            plugin.Round.RestartRound();
+            yield break;
+        }
+
         static public IEnumerator<float> _DelayedTeleport(Player player, Vector pos, bool unstack)
         {
             yield return Timing.WaitForSeconds(0.1f);
@@ -812,9 +823,77 @@ namespace SanyaPlugin
                 pms_human.SetPosition(pos);
                 yield return 0f;
             }
-            human.Damage(40, DamageType.SCP_106);
+            if(AlphaWarheadController.host.doorsClosed)
+            {
+                human.Damage(500, DamageType.SCP_106);
+            }
+            else
+            {
+                human.Damage(40, DamageType.SCP_106);
+            }
             pms_human.SetPosition(Vector3.down * 1997f);
             pms_human.SetAllowInput(true);
+            yield break;
+        }
+
+        static public IEnumerator<float> _939Boost(Player player)
+        {
+            int counter = 0;
+            Role role = player.TeamRole.Role;
+            while(counter < 10)
+            {
+                SanyaPlugin.Call939CanSee();
+                SanyaPlugin.Call939SetSpeedMultiplier(player, 1.5f);
+                counter++;
+                yield return Timing.WaitForSeconds(1f);
+            }
+
+            if(role == Role.SCP_939_53)
+            {
+                EventHandler.scp939_53_boosting = false;
+            }
+            else if(role == Role.SCP_939_89)
+            {
+                EventHandler.scp939_89_boosting = false;
+            }
+            player.PersonalClearBroadcasts();
+            player.PersonalBroadcast(3, $"<size=25>《SCP-939ブーストが終了。》\n </size><size=20>《Ended <SCP-939> boost.》\n</size>", false);
+            yield break;
+        }
+
+        static public IEnumerator<float> _LureIntercom(Player player, SanyaPlugin plugin)
+        {
+            yield return Timing.WaitForSeconds(plugin.scp106_lure_speaktime);
+            plugin.Info($"[106Lure] Contained({player.Name}):Speaking ended");
+            player.SetGodmode(false);
+            if(plugin.Server.Map.GetIntercomSpeaker() == null)
+            {
+                plugin.Server.Map.SetIntercomSpeaker(null);
+            }
+            yield break;
+        }
+
+        static public IEnumerator<float> _DOTDamage(Player player, int perDamage, float waitSecond, int maxDamageAmount, DamageType type)
+        {
+            int curDamageAmount = 0;
+            while(curDamageAmount < maxDamageAmount)
+            {
+                if(player.GetHealth() - perDamage <= 0 || (player.GetGameObject() as GameObject).GetComponent<CharacterClassManager>().curClass == (int)Role.SPECTATOR)
+                {
+                    player.Damage(perDamage, type);
+                    break;
+                }
+                player.Damage(perDamage,type);
+                curDamageAmount += perDamage;
+                yield return Timing.WaitForSeconds(waitSecond);
+            }
+
+            Player ply = EventHandler.dot_target.Find(x => x.PlayerId == player.PlayerId);
+            if(ply != null)
+            {
+                EventHandler.dot_target.Remove(ply);
+            }
+
             yield break;
         }
 
