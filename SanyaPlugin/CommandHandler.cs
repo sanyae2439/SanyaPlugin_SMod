@@ -59,7 +59,7 @@ namespace SanyaPlugin
 
         public string GetUsage()
         {
-            return "SANYA < OVERRIDE | BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
+            return "SANYA < PING / OVERRIDE| AMMO | BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | NEXT (CI/MTF) | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
         }
 
         public string[] OnCall(ICommandSender sender, string[] args)
@@ -170,6 +170,24 @@ namespace SanyaPlugin
 
                     return new string[] { "van spawned." };
                 }
+                else if(args[0] == "next")
+                {
+                    if(args.Length > 1)
+                    {
+                        GameObject host = GameObject.Find("Host");
+                        MTFRespawn respawn = host.GetComponent<MTFRespawn>();
+                        if(args[1] == "ci")
+                        {
+                            respawn.nextWaveIsCI = true;
+                            return new string[] { $"nextIsCi:{respawn.nextWaveIsCI}" };
+                        }
+                        else if(args[1] == "mtf" || args[1] == "ntf")
+                        {
+                            respawn.nextWaveIsCI = false;
+                            return new string[] { $"nextisCi:{respawn.nextWaveIsCI}" };
+                        }
+                    }
+                }
                 else if(args[0] == "override")
                 {
                     Player ply = sender as Player;
@@ -179,6 +197,18 @@ namespace SanyaPlugin
                     }
 
                     return new string[] {$"set ok:{SanyaPlugin.scp_override_steamid}" };
+                }
+                else if(args[0] == "ammo")
+                {
+                    Player ply = sender as Player;
+                    if(ply != null)
+                    {
+                        ply.SetAmmo(AmmoType.DROPPED_5, 999);
+                        ply.SetAmmo(AmmoType.DROPPED_7, 999);
+                        ply.SetAmmo(AmmoType.DROPPED_9, 999);
+                    }
+
+                    return new string[] { $"Ammo set full." };
                 }
                 else if(args[0] == "914")
                 {

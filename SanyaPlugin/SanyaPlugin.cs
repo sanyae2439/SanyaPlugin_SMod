@@ -14,7 +14,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.8.2",
+    version = "12.8.4",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
@@ -60,6 +60,8 @@ namespace SanyaPlugin
         internal bool endround_all_godmode = false;
         [ConfigOption] //核起動開始時に一部を除きすべてのドアをオープンする
         internal bool nuke_start_countdown_door_lock = false;
+        [ConfigOption] //カオスとSCPが同時にいてもラウンド終了しない
+        internal bool ci_and_scp_noend = false;
 
         //SCP系
         [ConfigOption] //発電機が起動完了した場合開かないように

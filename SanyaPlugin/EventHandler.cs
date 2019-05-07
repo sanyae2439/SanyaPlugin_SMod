@@ -472,6 +472,14 @@ namespace SanyaPlugin
 
         public void OnCheckRoundEnd(CheckRoundEndEvent ev)
         {
+            if(plugin.ci_and_scp_noend)
+            {
+                if(ev.Status == ROUND_END_STATUS.SCP_CI_VICTORY)
+                {
+                    ev.Status = ROUND_END_STATUS.ON_GOING;
+                }
+            }
+
             if(plugin.summary_less_mode)
             {
                 if(tempStatus != ev.Status && !isEnded)
@@ -627,21 +635,21 @@ namespace SanyaPlugin
                 gm.CallRpcExplode(gid, -1);
                 plugin.Debug($"NukeExplode:{pos}");
             }
+
+            if(plugin.stop_mtf_after_nuke)
+            {
+                ChopperAutostart chop = UnityEngine.Object.FindObjectOfType<ChopperAutostart>();
+                if(chop.isLanded)
+                {
+                    chop.SetState(false);
+                }
+            }
         }
 
         public void OnStartCountdown(WarheadStartEvent ev)
         {
             plugin.Debug($"[OnStartCountdown] {ev.Activator?.Name}:{ev.Cancel}:{ev.TimeLeft}");
             int autoleft = (int)Math.Truncate(AlphaWarheadController.host.smtimeToScheduledDetonation);
-
-            if(autoleft == 0 && autowarheadtime != -1)
-            {
-                AlphaWarheadController.host.Networksync_resumeScenario = 4;
-                AlphaWarheadController.host.InstantPrepare();
-                AlphaWarheadController.host.NetworkinProgress = true;
-                ev.IsResumed = true;
-                ev.TimeLeft = 60f;
-            }
 
             if(!ev.Cancel && AlphaWarheadController.host.inProgress)
             {
@@ -651,12 +659,15 @@ namespace SanyaPlugin
                     {
                         if(autoleft == 0 && autowarheadtime != -1)
                         {
-                            door.Open = true;
-                            door.Locked = true;
+                            if(!door.Name.Contains("CHECKPOINT_"))
+                            {
+                                door.Open = true;
+                                door.Locked = true;
+                            }
                         }
                         else
                         {
-                            if(!door.Name.Contains("GATE_") && !door.Name.Contains("106_"))
+                            if(!door.Name.Contains("GATE_") && !door.Name.Contains("106_") && !door.Name.Contains("CHECKPOINT_"))
                             {
                                 door.Open = true;
                                 door.Locked = true;
