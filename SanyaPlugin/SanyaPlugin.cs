@@ -14,7 +14,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.8.4",
+    version = "12.9",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
@@ -66,6 +66,8 @@ namespace SanyaPlugin
         //SCP系
         [ConfigOption] //発電機が起動完了した場合開かないように
         internal bool generator_engaged_cantopen = false;
+        [ConfigOption] //SCP-079だけになった際発電機ロックがフリー&Tier5に
+        internal bool scp079_lone_boost = false;
         [ConfigOption] //SCP-914にプレイヤーが入った際の挙動を少し変更
         internal bool scp914_changing = false;
         [ConfigOption] //ポータル機能の最初のクールタイム
@@ -80,8 +82,6 @@ namespace SanyaPlugin
         //人間系
         [ConfigOption] //被拘束時にドア/エレベーターを操作不能に
         internal bool handcuffed_cantopen = false;
-        [ConfigOption] //レンジURで放送可能に
-        internal bool radio_enhance = false;
 
         //独自要素
         [ConfigOption] //切断したSCPが再接続で戻るように

@@ -96,7 +96,6 @@ namespace SanyaPlugin
         IEventHandlerInfected,
         IEventHandlerRecallZombie,
         IEventHandlerDoorAccess,
-        IEventHandlerRadioSwitch,
         IEventHandlerElevatorUse,
         IEventHandlerSCP914Activate,
         IEventHandlerCallCommand,
@@ -1311,6 +1310,32 @@ namespace SanyaPlugin
                 ev.Player.Infect(plugin.infect_limit_time);
             }
             //----------------------------------------------------ペスト治療------------------------------------------------
+
+            //-------079ラストboost-----
+            if(plugin.scp079_lone_boost)
+            {
+                if(ev.Player.TeamRole.Team == Smod2.API.Team.SCP)
+                {
+                    bool iswithoutscp079 = false;
+                    foreach(Smod2.API.Player player in plugin.Server.GetPlayers())
+                    {
+                        if(player.TeamRole.Team == Smod2.API.Team.SCP && player.TeamRole.Role != Role.SCP_079 && player.PlayerId != ev.Player.PlayerId)
+                        {
+                            iswithoutscp079 = true;
+                        }
+                    }
+
+                    if(!iswithoutscp079)
+                    {
+                        foreach(Smod2.API.Player player in plugin.Server.GetPlayers(Role.SCP_079))
+                        {
+                            plugin.Info($"[079loneboost] {player.Name}");
+                            player.Scp079Data.Level = 4;
+                            player.Scp079Data.ShowLevelUp(4);
+                        }
+                    }
+                }
+            }
         }
 
         public void OnGrenadeHitPlayer(PlayerGrenadeHitPlayer ev)
@@ -1460,34 +1485,6 @@ namespace SanyaPlugin
             }
         }
 
-        public void OnPlayerRadioSwitch(PlayerRadioSwitchEvent ev)
-        {
-            plugin.Debug($"[OnPlayerRadioSwitch] {ev.Player.Name}:{ev.ChangeTo}");
-
-            if(plugin.radio_enhance)
-            {
-                if(ev.ChangeTo == RadioStatus.ULTRA_RANGE)
-                {
-                    Inventory inv = (ev.Player.GetGameObject() as GameObject).GetComponent<Inventory>();
-
-                    if(plugin.Server.Map.GetIntercomSpeaker() == null && inv.items[ev.Player.GetItemIndex(ItemType.RADIO)].durability > 0)
-                    {
-                        plugin.Server.Map.SetIntercomSpeaker(ev.Player);
-                    }
-                }
-                else
-                {
-                    if(plugin.Server.Map.GetIntercomSpeaker() != null)
-                    {
-                        if(ev.Player.Name == plugin.Server.Map.GetIntercomSpeaker().Name)
-                        {
-                            plugin.Server.Map.SetIntercomSpeaker(null);
-                        }
-                    }
-                }
-            }
-        }
-
         public void OnElevatorUse(PlayerElevatorUseEvent ev)
         {
             plugin.Debug($"[OnElevatorUse] {ev.Player.Name} : {ev.Elevator.ElevatorType}[{ev.Elevator.ElevatorStatus}] - {ev.Elevator.MovingSpeed} : {ev.AllowUse}");
@@ -1515,7 +1512,7 @@ namespace SanyaPlugin
 
         public void OnTeamRespawn(TeamRespawnEvent ev)
         {
-            plugin.Debug($"[OnTeamRespawn] {ev.PlayerList.Count}:{ev.SpawnChaos}");
+            plugin.Info($"[OnTeamRespawn] {ev.PlayerList.Count}:{ev.SpawnChaos}");
 
             if((plugin.stop_mtf_after_nuke && plugin.Server.Map.WarheadDetonated) || !roundduring)
             {
@@ -1752,6 +1749,24 @@ namespace SanyaPlugin
 
                     plugin.Debug($"SanyaChecker:{SanyaPlugin.CanOpenDoor(permlist.ToArray(), genperm.ToArray()).ToString()}");
                     ev.Allow = SanyaPlugin.CanOpenDoor(permlist.ToArray(), genperm.ToArray());
+                }
+            }
+
+            if(plugin.scp079_lone_boost)
+            {
+                bool iswithoutscp079 = false;
+                foreach(Smod2.API.Player player in plugin.Server.GetPlayers())
+                {
+                    if(player.TeamRole.Team == Smod2.API.Team.SCP && player.TeamRole.Role != Role.SCP_079)
+                    {
+                        iswithoutscp079 = true;
+                    }
+                }
+
+                if(!iswithoutscp079)
+                {
+                    plugin.Debug($"[079loneUnlock] {ev.Generator.Room.RoomType}");
+                    ev.Allow = true;
                 }
             }
 
@@ -2201,10 +2216,10 @@ namespace SanyaPlugin
                 {
                     if(roundduring)
                     {
-                        if(ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR && ev.Player.TeamRole.Team != Smod2.API.Team.NONE && ev.Player.TeamRole.Team != Smod2.API.Team.SCP)
+                        if(ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR && ev.Player.TeamRole.Team != Smod2.API.Team.NONE && ev.Player.TeamRole.Team != Smod2.API.Team.SCP || ev.Player.GetBypassMode())
                         {
                             plugin.Debug($"[Suicide] {ev.Player.Name}");
-                            if(!plugin.suicide_need_weapon)
+                            if(!plugin.suicide_need_weapon || ev.Player.GetBypassMode())
                             {
                                 ev.ReturnMessage = "Success.";
                                 ev.Player.PersonalClearBroadcasts();
@@ -2284,7 +2299,8 @@ namespace SanyaPlugin
 
                             List<Player> scps = plugin.Server.GetPlayers().FindAll(fl => { return fl.TeamRole.Team == Smod2.API.Team.SCP; });
                             int scp049_2_count = scps.FindAll(x => x.TeamRole.Role == Role.SCP_049_2).Count;
-                            string scplist = $"仲間のSCP情報[計{scps.Count}体 / 049-2:{scp049_2_count}体]：\n";
+                            string scplist = $"- <color=#00ff00>S A N Y A P L U G I N</color> <color=#0000ff>#</color> <color=#ff0000>S C P I N F O</color> <color=#0000ff>#</color> <color=#ffff00>I N T E R F A C E</color> -\n";
+                            scplist += $"{{ <color=#ff0000>SCP陣営(049-2):</color>{scps.Count}({scp049_2_count}) / <color=#00ffff>MTF</color><color=#ffff00>陣営:</color>{plugin.Round.Stats.ScientistsAlive + plugin.Round.Stats.NTFAlive} / <color=#00ff00>CI</color><color=#ff7f00>陣営:</color>{plugin.Round.Stats.ClassDAlive + plugin.Round.Stats.CiAlive} }}\n";
                             foreach(Player items in scps)
                             {
                                 if(items.TeamRole.Role == Role.SCP_049_2)
@@ -2324,7 +2340,7 @@ namespace SanyaPlugin
                                             }
                                         }
                                     }
-                                    scplist += $"{items.Name} : {items.TeamRole.Name}(Tier{items.Scp079Data.Level + 1}:{(int)Math.Truncate(items.Scp079Data.AP)}AP) : {zonename} : {ply079.currentCamera.cameraName}\n";
+                                    scplist += $"{items.Name} : {items.TeamRole.Name} : Tier{items.Scp079Data.Level + 1}/{(int)Math.Truncate(items.Scp079Data.AP)}AP : {zonename} : {ply079.currentCamera.cameraName}\n";
                                 }
                                 else
                                 {
@@ -2351,13 +2367,13 @@ namespace SanyaPlugin
                                             zonename = "下層";
                                         }
                                     }
-                                    scplist += $"{items.Name} : {items.TeamRole.Name}({items.GetHealth()}HP) : {zonename}\n";
+                                    scplist += $"{items.Name} : {items.TeamRole.Name} : {items.GetHealth()}HP : {zonename}\n";
                                 }
                             }
 
                             ev.ReturnMessage = scplist;
                             ev.Player.PersonalClearBroadcasts();
-                            ev.Player.PersonalBroadcast(5, $"<size=25>{scplist}</size>", false);
+                            ev.Player.PersonalBroadcast(10, $"<size=35>{scplist}</size>", false);
                         }
                         else
                         {
@@ -2491,7 +2507,46 @@ namespace SanyaPlugin
                             && ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR
                             )
                         {
-                            if(ev.Player.GetInventory().FindIndex(x => x.ItemType == ItemType.RADIO) != -1)
+                            bool isIcom = false;
+                            if(ev.Player.GetCurrentItemIndex() > 0)
+                            {
+                                if(ev.Player.GetCurrentItem().ItemType == ItemType.RADIO)
+                                {
+                                    Inventory inv = (ev.Player.GetGameObject() as GameObject).GetComponent<Inventory>();
+
+                                    if(plugin.Server.Map.GetIntercomSpeaker() == null)
+                                    {
+                                        if(inv.items[ev.Player.GetItemIndex(ItemType.RADIO)].durability > 0)
+                                        {
+                                            ev.Player.PersonalClearBroadcasts();
+                                            ev.Player.PersonalBroadcast(3, $"<size=25>《全館放送を開始します。》\n </size><size=20>《Starting broadcast.》\n</size>", false);
+                                            ev.ReturnMessage = "放送を開始します。";
+                                            plugin.Server.Map.SetIntercomSpeaker(ev.Player);
+                                        }
+                                        else
+                                        {
+                                            ev.ReturnMessage = "バッテリーが足りません。";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(ev.Player.PlayerId == plugin.Server.Map.GetIntercomSpeaker().PlayerId)
+                                        {
+                                            ev.Player.PersonalClearBroadcasts();
+                                            ev.Player.PersonalBroadcast(3, $"<size=25>《全館放送を終了しました。》\n </size><size=20>《Stopped broadcast.》\n</size>", false);
+                                            ev.ReturnMessage = "放送を終了しました。";
+                                            plugin.Server.Map.SetIntercomSpeaker(null);
+                                        }
+                                        else
+                                        {
+                                            ev.ReturnMessage = "他の人が放送中です。";
+                                        }
+                                    }
+                                    isIcom = true;
+                                }
+                            }
+
+                            if(ev.Player.GetInventory().FindIndex(x => x.ItemType == ItemType.RADIO) != -1 && !isIcom)
                             {
                                 if(ev.Player.RadioStatus != RadioStatus.CLOSE)
                                 {
@@ -2507,7 +2562,7 @@ namespace SanyaPlugin
                                 }
                                 ev.ReturnMessage = $"無線機の状態:{ev.Player.RadioStatus}";
                             }
-                            else
+                            else if(!isIcom)
                             {
                                 ev.ReturnMessage = "無線機を持っていません。";
                             }
@@ -3219,6 +3274,11 @@ namespace SanyaPlugin
                     //        plugin.Error($"{b}");
                     //        gameObject.GetComponent<PlyMovementSync>().SetPosition(gameObject.transform.position + b);
                     //    }
+                    //}
+
+                    //if(ev.Player.TeamRole.Role == Role.SCP_079)
+                    //{
+                    //    plugin.Error($"{ev.Player.Scp079Data.Exp}/{ev.Player.Scp079Data.ExpToLevelUp} {ev.Player.Scp079Data.Level+1}:{ev.Player.Scp079Data.AP}");
                     //}
                     
 
