@@ -27,11 +27,14 @@ sanya_friendly_warn | Bool | False | FFした人に警告を表示
 sanya_friendly_warn_console | Bool | False | FFの被害者と加害者両方へ@キーコンソールへ表示（字幕と併用可能）
 sanya_summary_less_mode | Bool | False | リザルト画面をなしにラウンドを終了する機能
 sanya_endround_all_godmode | Bool | False | ラウンド終了時全員を無敵にする
+sanya_nuke_start_countdown_door_lock | Bool | False | 核起動開始時に一部(SCP-106、ゲート、チェックポイント)を除きすべてのドアをオープンする
+sanya_ci_and_scp_noend | Bool | False | CIとSCPだけが残ってもラウンドが終了しないようになる
 
 ## SCP系
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_generator_engaged_cantopen | Bool | False | 発電機が起動完了した場合に開かないように
+sanya_scp079_lone_boost | Bool | False | 079が最後のSCPになった際に発電機自由解放&Tier5に
 sanya_scp914_changing | Bool | False | SCP-914に入った人の扱いを少し変更
 sanya_scp106_portal_to_human_wait　| Int | 180 | SCP-106ポータルの初回使用可能までの時間
 sanya_scp106_lure_speaktime | Int | -1 | SCP-106の囮コンテナに入った際一定時間死なずに放送可能に
@@ -43,7 +46,6 @@ sanya_infect_limit_time | Int | 4 | SCP-049が治療できなくなるまでの�
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_handcuffed_cantopen | Bool | False | 被拘束時にドアとエレベーターの操作を不能に
-sanya_radio_enhance | Bool | False | RadioのRangeをURにした際に放送が可能に
 
 ## 独自要素
 設定名 | 値の型 | 初期値 | 説明
