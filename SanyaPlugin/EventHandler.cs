@@ -828,7 +828,7 @@ namespace SanyaPlugin
 
             if(plugin.escape_spawn)
             {
-                plugin.Info($"[OnCheckEscape] Escaped:{ev.Player.Name}");
+                plugin.Info($"[Escaped] Escaped:{ev.Player.Name}/{ev.Player.TeamRole.Role}");
                 (ev.Player.GetGameObject() as GameObject).GetComponent<Inventory>().ServerDropAll();
                 if((ev.Player.TeamRole.Role == Role.CLASSD && ev.Player.IsHandcuffed()) || (ev.Player.TeamRole.Role == Role.SCIENTIST && !ev.Player.IsHandcuffed()))
                 {
@@ -1512,7 +1512,7 @@ namespace SanyaPlugin
 
         public void OnTeamRespawn(TeamRespawnEvent ev)
         {
-            plugin.Info($"[OnTeamRespawn] {ev.PlayerList.Count}:{ev.SpawnChaos}");
+            plugin.Info($"[TeamRespawn] {ev.PlayerList.Count}/IsCI:{ev.SpawnChaos}");
 
             if((plugin.stop_mtf_after_nuke && plugin.Server.Map.WarheadDetonated) || !roundduring)
             {
@@ -2299,7 +2299,7 @@ namespace SanyaPlugin
 
                             List<Player> scps = plugin.Server.GetPlayers().FindAll(fl => { return fl.TeamRole.Team == Smod2.API.Team.SCP; });
                             int scp049_2_count = scps.FindAll(x => x.TeamRole.Role == Role.SCP_049_2).Count;
-                            string scplist = $"- <color=#00ff00>S A N Y A P L U G I N</color> <color=#0000ff>#</color> <color=#ff0000>S C P I N F O</color> <color=#0000ff>#</color> <color=#ffff00>I N T E R F A C E</color> -\n";
+                            string scplist = $"- <color=#00ff00>S A N Y A P L U G I N</color> <color=#0000ff>#</color> <color=#ff0000>S C P I N F O</color> <color=#0000ff>#</color> <color=#00ff00>I N T E R F A C E</color> -\n";
                             scplist += $"{{ <color=#ff0000>SCP陣営(049-2):</color>{scps.Count}({scp049_2_count}) / <color=#00ffff>MTF</color><color=#ffff00>陣営:</color>{plugin.Round.Stats.ScientistsAlive + plugin.Round.Stats.NTFAlive} / <color=#00ff00>CI</color><color=#ff7f00>陣営:</color>{plugin.Round.Stats.ClassDAlive + plugin.Round.Stats.CiAlive} }}\n";
                             foreach(Player items in scps)
                             {
@@ -2373,7 +2373,7 @@ namespace SanyaPlugin
 
                             ev.ReturnMessage = scplist;
                             ev.Player.PersonalClearBroadcasts();
-                            ev.Player.PersonalBroadcast(10, $"<size=35>{scplist}</size>", false);
+                            ev.Player.PersonalBroadcast(10, $"<size=25>{scplist}</size>", false);
                         }
                         else
                         {

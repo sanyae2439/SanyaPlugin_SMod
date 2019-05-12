@@ -59,7 +59,7 @@ namespace SanyaPlugin
 
         public string GetUsage()
         {
-            return "SANYA < PING / OVERRIDE| AMMO | BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | NEXT (CI/MTF) | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
+            return "SANYA < PING / OVERRIDE| AMMO | BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | NEXT (CI/MTF) | SPAWN | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
         }
 
         public string[] OnCall(ICommandSender sender, string[] args)
@@ -186,6 +186,22 @@ namespace SanyaPlugin
                             respawn.nextWaveIsCI = false;
                             return new string[] { $"nextisCi:{respawn.nextWaveIsCI}" };
                         }
+                    }
+                }
+                else if(args[0] == "spawn")
+                {
+                    GameObject host = GameObject.Find("Host");
+                    MTFRespawn respawn = host.GetComponent<MTFRespawn>();
+
+                    if(respawn.nextWaveIsCI)
+                    {
+                        respawn.timeToNextRespawn = 14f;
+                        return new string[] { $"SpawnSet. nextIsCi:{respawn.nextWaveIsCI}" };
+                    }
+                    else
+                    {
+                        respawn.timeToNextRespawn = 19f;
+                        return new string[] { $"SpawnSet. nextIsCi:{respawn.nextWaveIsCI}" };
                     }
                 }
                 else if(args[0] == "override")
