@@ -1,12 +1,17 @@
 # SanyaPlugin
 SCP SL Plugin <JP Plugin>
+(自分のサーバー用のため、他サーバーので動作は保証できません。)
 
 Smod2が必要です
 https://github.com/Grover-c13/Smod2
 
+# Contact
+Discord : 初音早猫#0001
+
 # Download
 
 https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Archives
+最新のコミットに合わせたものをダウンロードしてください
 
 # Install
 「sm_plugins」に入れるだけ
