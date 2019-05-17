@@ -446,10 +446,10 @@ namespace SanyaPlugin
 
                     //gameObject.GetComponent<PlyMovementSync>().SetAllowInput(SanyaPlugin.test);
 
-                    for(var i = 0; i < Scp079PlayerScript.allCameras.Length; i++)
-                    {
-                        plugin.Warn($"[{i}]{Scp079PlayerScript.allCameras[i].cameraName}");
-                    }
+                    //for(var i = 0; i < Scp079PlayerScript.allCameras.Length; i++)
+                    //{
+                    //    plugin.Warn($"[{i}]{Scp079PlayerScript.allCameras[i].cameraName}");
+                    //}
 
                     return new string[] { "test ok" };
                 }

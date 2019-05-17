@@ -1267,7 +1267,7 @@ namespace SanyaPlugin
         {
             if(plugin.scp106_lure_speaktime > 0)
             {
-                if(Intercom.host.speaking)
+                if(plugin.Server.Map.GetIntercomSpeaker() != null)
                 {
                     ev.AllowContain = false;
                 }
@@ -1548,6 +1548,7 @@ namespace SanyaPlugin
                                 player.ThrowGrenade(ItemType.FLASHBANG, true, new Vector(-0.25f, 1, 0), true, newpos, true, 1.0f);
                                 player.ChangeRole(Role.SCP_049_2, true, false, true, false);
 
+                                dot_target.Add(player);
                                 Timing.RunCoroutine(SanyaPlugin._DOTDamage(player, 10, 0.5f, 99999, DamageType.DECONT), Segment.Update);
                             }
 
