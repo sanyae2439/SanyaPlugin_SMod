@@ -458,7 +458,7 @@ namespace SanyaPlugin
         {
             if(roundduring)
             {
-                plugin.Info($"Round Ended [{ev.Status}] Duration:({ev.Round.Duration / 60}:{ev.Round.Duration % 60}");
+                plugin.Info($"Round Ended [{ev.Status}] Duration: {ev.Round.Duration / 60}:{ev.Round.Duration % 60}");
                 plugin.Info($"Class-D:{ev.Round.Stats.ClassDAlive} Scientist:{ev.Round.Stats.ScientistsAlive} NTF:{ev.Round.Stats.NTFAlive} SCP:{ev.Round.Stats.SCPAlive} CI:{ev.Round.Stats.CiAlive}");
 
                 if(plugin.endround_all_godmode)
@@ -2813,15 +2813,21 @@ namespace SanyaPlugin
                                                 {
 
                                                     plugin.Server.Map.AnnounceScpKill("939", null);
+                                                    plugin.Server.Map.ClearBroadcasts();
+                                                    plugin.Server.Map.Broadcast(10, $"<color=#ff0000><size=25>《<{target.TeamRole.Name}>の収容に成功しました。収容した部隊は<不明({target.Name})>です。》\n</size><size=20>《<{target.TeamRole.Name}> contained successfully. Containment unit:<Unknown({target.Name})>.》\n</size></color>", false);
                                                 }
                                                 else
                                                 {
-                                                    plugin.Server.Map.AnnounceScpKill(plys[rnd.Next(0, plys.Count)].TeamRole.Name.Replace("SCP-", ""), null);
+                                                    plugin.Server.Map.AnnounceScpKill(target.TeamRole.Name.Replace("SCP-", ""), null);
+                                                    plugin.Server.Map.ClearBroadcasts();
+                                                    plugin.Server.Map.Broadcast(10, $"<color=#ff0000><size=25>《<{target.TeamRole.Name}>の収容に成功しました。収容した部隊は<不明({target.Name})>です。》\n</size><size=20>《<{target.TeamRole.Name}> contained successfully. Containment unit:<Unknown({target.Name})>.》\n</size></color>", false);
                                                 }
                                             }
                                             else
                                             {
                                                 plugin.Server.Map.AnnounceScpKill("079", null);
+                                                plugin.Server.Map.ClearBroadcasts();
+                                                plugin.Server.Map.Broadcast(10, $"<color=#ff0000><size=25>《<{ev.Player.TeamRole.Name}>の収容に成功しました。収容した部隊は<不明({ev.Player.Name})>です。》\n</size><size=20>《<{ev.Player.TeamRole.Name}> contained successfully. Containment unit:<Unknown({ev.Player.Name})>.》\n</size></color>", false);
                                             }
 
                                             if(!ev.Player.GetBypassMode())
