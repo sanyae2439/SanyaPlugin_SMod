@@ -212,7 +212,7 @@ namespace SanyaPlugin
                         SanyaPlugin.scp_override_steamid = ply.SteamId;
                     }
 
-                    return new string[] {$"set ok:{SanyaPlugin.scp_override_steamid}" };
+                    return new string[] { $"set ok:{SanyaPlugin.scp_override_steamid}" };
                 }
                 else if(args[0] == "ammo")
                 {
@@ -262,7 +262,7 @@ namespace SanyaPlugin
                         {
                             foreach(Player player in plugin.Server.GetPlayers(Role.SCP_079))
                             {
-                                player.Scp079Data.Level = Mathf.Clamp(int.Parse(args[2])-1,0,4);
+                                player.Scp079Data.Level = Mathf.Clamp(int.Parse(args[2]) - 1, 0, 4);
                                 player.Scp079Data.ShowLevelUp(Mathf.Clamp(int.Parse(args[2]) - 1, 0, 4));
                             }
                             return new string[] { $"079 Level Set to:{Mathf.Clamp(int.Parse(args[2]), 1, 5)}" };
@@ -445,7 +445,11 @@ namespace SanyaPlugin
                     //plugin.Error($"return:{MEC.Timing.KillCoroutines("FollowingGrenade")}");
 
                     //gameObject.GetComponent<PlyMovementSync>().SetAllowInput(SanyaPlugin.test);
-                    
+
+                    for(var i = 0; i < Scp079PlayerScript.allCameras.Length; i++)
+                    {
+                        plugin.Warn($"[{i}]{Scp079PlayerScript.allCameras[i].cameraName}");
+                    }
 
                     return new string[] { "test ok" };
                 }

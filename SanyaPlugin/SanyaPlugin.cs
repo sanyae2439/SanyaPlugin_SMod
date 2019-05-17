@@ -14,7 +14,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.9.2",
+    version = "12.9.3",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 0
@@ -74,6 +74,8 @@ namespace SanyaPlugin
         internal int scp106_portal_to_human_wait = 180;
         [ConfigOption] //SCP-106の囮コンテナに入った際の放送できる時間
         internal int scp106_lure_speaktime = -1;
+        [ConfigOption] //SCP-096にダメージを与えた際に発狂開始する
+        internal bool scp096_damage_trigger = false;
         [ConfigOption] //SCP-049-2がキルした際もSCP-049が治療可能に
         internal bool infect_by_scp049_2 = false;
         [ConfigOption] //SCP-049が治療できなくなるまでの時間
@@ -124,6 +126,8 @@ namespace SanyaPlugin
         internal float damage_divisor_scp173 = 1.0f;
         [ConfigOption] //SCP-106が受けるダメージの減算値
         internal float damage_divisor_scp106 = 1.0f;
+        [ConfigOption] //SCP-106が受けるFRAGダメージ減算値
+        internal float damage_divisor_scp106_grenade = 1.0f;
         [ConfigOption] //SCP-049が受けるダメージの減算値
         internal float damage_divisor_scp049 = 1.0f;
         [ConfigOption] //SCP-049-2が受けるダメージの減算値
@@ -220,6 +224,18 @@ namespace SanyaPlugin
                 default:
                     return damage;
             }
+        }
+
+        static public Vector GetCameraPosByName(string name)
+        {
+            foreach(Camera079 camera in Scp079PlayerScript.allCameras)
+            {
+                if(camera.cameraName == name)
+                {
+                    return new Vector(camera.transform.position.x, camera.transform.position.y, camera.transform.position.z);
+                }
+            }
+            return null;
         }
 
         static public string[] TranslateGeneratorName(RoomType type)
@@ -467,7 +483,7 @@ namespace SanyaPlugin
         {
             GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
             string gid = "SERVER_" + attacker.PlayerId + ":" + (gm.smThrowInteger + 4096);
-            gm.CallRpcThrowGrenade(flashbang ? 1 : 0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, effectonly ? new Vector3(0f,0f,0f) : new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), false, 0);
+            gm.CallRpcThrowGrenade(flashbang ? 1 : 0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, effectonly ? new Vector3(0f, 0f, 0f) : new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), false, 0);
             gm.CallRpcUpdate(gid, new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), Quaternion.Euler(Vector3.zero), Vector3.zero, Vector3.zero);
             gm.CallRpcExplode(gid, attacker.PlayerId);
         }
@@ -542,6 +558,17 @@ namespace SanyaPlugin
                     {
                         item.DoorName = "SERVER";
                     }
+                    else if(item.transform.parent.name.Contains("Root_Airlock"))
+                    {
+                        if(!item.transform.parent.name.Contains("(1)"))
+                        {
+                            item.DoorName = "AIRLOCK_0";
+                        }
+                        else
+                        {
+                            item.DoorName = "AIRLOCK_1";
+                        }
+                    }
                     else if(item.transform.parent.name.Contains("All"))
                     {
                         if(item.name.Contains("(33)"))
@@ -612,7 +639,7 @@ namespace SanyaPlugin
             return null;
         }
 
-        static public IEnumerator<float> _SummaryLessRoundrestart(SanyaPlugin plugin,int restarttime)
+        static public IEnumerator<float> _SummaryLessRoundrestart(SanyaPlugin plugin, int restarttime)
         {
             yield return Timing.WaitForSeconds(restarttime);
             RoundSummary.singleton.CallRpcDimScreen();
@@ -649,7 +676,7 @@ namespace SanyaPlugin
             yield break;
         }
 
-        static public IEnumerator<float> _DelayedSetReSetRole(SCPPlayerData data,Player player)
+        static public IEnumerator<float> _DelayedSetReSetRole(SCPPlayerData data, Player player)
         {
             yield return Timing.WaitForSeconds(1f);
             player.ChangeRole(data.role, false, false, false, false);
@@ -880,12 +907,18 @@ namespace SanyaPlugin
             int curDamageAmount = 0;
             while(curDamageAmount < maxDamageAmount)
             {
+                Player target = EventHandler.dot_target.Find(x => x.PlayerId == player.PlayerId);
+                if(target == null)
+                {
+                    break;
+                }
+
                 if(player.GetHealth() - perDamage <= 0 || (player.GetGameObject() as GameObject).GetComponent<CharacterClassManager>().curClass == (int)Role.SPECTATOR)
                 {
                     player.Damage(perDamage, type);
                     break;
                 }
-                player.Damage(perDamage,type);
+                player.Damage(perDamage, type);
                 curDamageAmount += perDamage;
                 yield return Timing.WaitForSeconds(waitSecond);
             }
@@ -958,7 +991,6 @@ namespace SanyaPlugin
         NIGHT,
         STORY,
         CLASSD_INSURGENCY,
-        HCZ,
-        NO_SCP
+        HCZ
     }
 }
