@@ -44,6 +44,7 @@ sanya_scp079_lone_boost | Bool | False | 079が最後のSCPになった際に発
 sanya_scp914_changing | Bool | False | SCP-914に入った人の扱いを少し変更
 sanya_scp106_portal_to_human_wait　| Int | 180 | SCP-106ポータルの初回使用可能までの時間
 sanya_scp106_lure_speaktime | Int | -1 | SCP-106の囮コンテナに入った際一定時間死なずに放送可能に
+sanya_scp096_damage_trigger | Bool | False | 096がダメージを受けると発狂トリガー
 sanya_scp106_cleanup | Bool | False | Smodのscp106_cleanupが動かないときに使う用
 sanya_infect_by_scp049_2 | Bool | False | SCP-049-2がキルした死体をSCP-049が治療可能に
 sanya_infect_limit_time | Int | 4 | SCP-049が治療できなくなるまでの時間
@@ -81,6 +82,7 @@ sanya_usp_damage_multiplier_human | Float | 2.5 | USPのダメージ倍率（対
 sanya_usp_damage_multiplier_scp | Float | 5.0 | USPのダメージ倍率（対SCP）
 sanya_damage_divisor_scp173 | Float | 1.0 | SCP-173が受けるダメージ除数
 sanya_damage_divisor_scp106 | Float | 1.0 | SCP-106が受けるダメージ除数
+sanya_damage_divisor_scp106_grenade | Float | 1.0 | SCP-106が受けるグレネードのダメージ
 sanya_damage_divisor_scp049 | Float | 1.0 | SCP-049が受けるダメージ除数
 sanya_damage_divisor_scp049_2 | Float | 1.0 | SCP-049-2が受けるダメージ除数
 sanya_damage_divisor_scp096 | Float | 1.0 | SCP-096が受けるダメージ除数
