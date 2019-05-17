@@ -11,6 +11,7 @@ Discord : 初音早猫#0001
 # Download
 
 https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Archives
+
 最新のコミットに合わせたものをダウンロードしてください
 
 # Install
