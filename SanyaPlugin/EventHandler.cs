@@ -299,7 +299,7 @@ namespace SanyaPlugin
                     cam173chamber = SanyaPlugin.GetCameraPosByName("173 CHAMBER") - new Vector(0, 1, 0);
                     break;
                 case SANYA_GAME_MODE.CLASSD_INSURGENCY:
-                    camLCZarmory = SanyaPlugin.GetCameraPosByName("ARMORY") + new Vector(0, 2, 0);
+                    camLCZarmory = SanyaPlugin.GetCameraPosByName("ARMORY") - new Vector(0, 1, 0);
                     break;
                 case SANYA_GAME_MODE.HCZ:
                     foreach(Room item in plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA))
