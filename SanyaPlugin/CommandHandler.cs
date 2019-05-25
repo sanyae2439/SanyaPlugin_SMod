@@ -68,9 +68,9 @@ namespace SanyaPlugin
             {
                 if(args[0] == "reload")
                 {
-                    //plugin.ReloadConfig();
+                    plugin.LoadPlayersData();
 
-                    return new string[] { "failed. this command is outdated." };
+                    return new string[] { "Player Data Reload!" };
                 }
                 else if(args[0] == "blackout")
                 {
@@ -450,6 +450,21 @@ namespace SanyaPlugin
                     //{
                     //    plugin.Warn($"[{i}]{Scp079PlayerScript.allCameras[i].cameraName}");
                     //}
+
+                    //plugin.Error($"{plugin.Server.GetAppFolder(false,true)}");
+                    //plugin.Error($"{plugin.Server.GetAppFolder(true,true)}");
+                    //plugin.Warn($"{gameObject.GetComponent<ServerRoles>().GetUncoloredRoleString()}:{gameObject.GetComponent<ServerRoles>().MyColor}");
+
+                    //plugin.Error($"Count:{plugin.playersData.Count}");
+                    //foreach(PlayerData player in plugin.playersData)
+                    //{
+                    //    plugin.Error($"{player.steamid}:{player.level}:{player.exp}");
+                    //}
+
+                    foreach(PlayerData data in plugin.playersData)
+                    {
+                        plugin.Warn($"{data.steamid}:Level{data.level}({data.exp}EXP/Next:{Mathf.Clamp(data.level*3-data.exp,0,data.level*3-data.exp)})");
+                    }
 
                     return new string[] { "test ok" };
                 }

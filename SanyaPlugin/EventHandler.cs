@@ -109,6 +109,7 @@ namespace SanyaPlugin
         IEventHandlerGeneratorUnlock,
         IEventHandlerGeneratorInsertTablet,
         IEventHandlerGeneratorFinish,
+        IEventHandler079AddExp,
         IEventHandler079Door,
         IEventHandler079Elevator,
         IEventHandler079StartSpeaker,
@@ -468,6 +469,34 @@ namespace SanyaPlugin
                         item.SetGodmode(true);
                     }
                 }
+
+                if(plugin.level_enabled)
+                {
+                    foreach(Player player in plugin.Server.GetPlayers())
+                    {
+                        PlayerData curData = plugin.playersData.Find(x => x.steamid == player.SteamId);
+                        if(curData != null)
+                        {
+                            if(player.TeamRole.Role == Role.SPECTATOR)
+                            {
+                                plugin.Debug($"[ExpAdd/RoundEnd/Other] {curData.exp}+={plugin.level_exp_other} / { curData.steamid}:{ player.Name}");
+                                player.SendConsoleMessage($"[AddExp] +{plugin.level_exp_other}(Next:{Mathf.Clamp(curData.level * 3 - curData.exp + plugin.level_exp_other, 0, curData.level * 3 - curData.exp + plugin.level_exp_other)})");
+                                curData.AddExp(plugin.level_exp_other, player);
+                            }
+                            else
+                            {
+                                plugin.Debug($"[ExpAdd/RoundEnd/Win] {curData.exp}+={plugin.level_exp_win} / {curData.steamid}:{ player.Name}");
+                                player.SendConsoleMessage($"[AddExp] +{plugin.level_exp_win}(Next:{Mathf.Clamp(curData.level * 3 - curData.exp + plugin.level_exp_win, 0, curData.level * 3 - curData.exp + plugin.level_exp_win)})");
+                                curData.AddExp(plugin.level_exp_win, player);
+                            }
+                        }
+                        else
+                        {
+                            plugin.Error($"[ExpAdd/RoundEnd] Missing data,Passed...{player.SteamId}");
+                        }
+                    }
+                    plugin.SavePlayersData();
+                }
             }
             roundduring = false;
         }
@@ -499,6 +528,39 @@ namespace SanyaPlugin
         public void OnPlayerJoin(PlayerJoinEvent ev)
         {
             plugin.Info($"[PlayerJoin] {ev.Player.Name}[{ev.Player.IpAddress}]({ev.Player.SteamId})");
+
+            //Level
+            PlayerData curData = plugin.playersData.Find(x => x.steamid == ev.Player.SteamId);
+            if(curData != null)
+            {
+                plugin.Debug($"Already Exist.[{ev.Player.SteamId}:{curData.level}:{curData.exp}]");
+                if(plugin.level_enabled)
+                {
+                    Timing.RunCoroutine(SanyaPlugin._DelayedGrantedLevel(ev.Player, curData), Segment.Update);
+                }
+            }
+            else
+            {
+                plugin.Warn($"New SteamId.[{ev.Player.SteamId}]");
+                curData = new PlayerData(ev.Player.SteamId, 1, 0);
+                plugin.playersData.Add(curData);
+                plugin.SavePlayersData();
+                if(plugin.level_enabled)
+                {
+                    Timing.RunCoroutine(SanyaPlugin._DelayedGrantedLevel(ev.Player, curData), Segment.Update);
+                }
+            }
+
+            if(!string.IsNullOrEmpty(plugin.motd_target_role) && !string.IsNullOrEmpty(plugin.motd_target_message) && ev.Player.GetRankName() == plugin.motd_target_role)
+            {
+                ev.Player.PersonalClearBroadcasts();
+                ev.Player.PersonalBroadcast(10, $"{plugin.motd_target_message.Replace("$name", ev.Player.Name).Replace("$level",curData.level.ToString())}", false);
+            }
+            else if(!string.IsNullOrEmpty(plugin.motd_message))
+            {
+                ev.Player.PersonalClearBroadcasts();
+                ev.Player.PersonalBroadcast(10, $"{plugin.motd_message.Replace("$name",ev.Player.Name).Replace("$level", curData.level.ToString())}", false);
+            }
 
             //scplist
             if(plugin.scp_disconnect_at_resetrole)
@@ -1111,6 +1173,11 @@ namespace SanyaPlugin
                         ev.Damage /= plugin.damage_divisor_scp939;
                         break;
                 }
+
+                if(ev.Player.IsHandcuffed())
+                {
+                    ev.Damage /= plugin.damage_divisor_cuffed;
+                }
             }
 
             plugin.Debug($"[OnPlayerHurt] After {ev.Attacker.Name}<{ev.Attacker.TeamRole.Role}>({ev.DamageType}:{ev.Damage}) -> {ev.Player.Name}<{ev.Player.TeamRole.Role}>");
@@ -1119,6 +1186,40 @@ namespace SanyaPlugin
         public void OnPlayerDie(PlayerDeathEvent ev)
         {
             plugin.Debug($"[OnPlayerDie] {ev.Killer}:{ev.DamageTypeVar} -> {ev.Player.Name}");
+
+            //LevelExp
+            if(plugin.level_enabled)
+            {
+                if(ev.Killer.IpAddress != "localClient" || ev.Killer.TeamRole.Role != Role.UNASSIGNED || !string.IsNullOrEmpty(ev.Killer.SteamId))
+                {
+                    PlayerData curDataKiller = plugin.playersData.Find(x => x.steamid == ev.Killer.SteamId);
+                    if(curDataKiller != null)
+                    {
+                        plugin.Debug($"[ExpAdd/Kill] {curDataKiller.exp}+={plugin.level_exp_kill} / {curDataKiller.steamid}:{ev.Killer.Name}");
+                        ev.Killer.SendConsoleMessage($"[AddExp] +{plugin.level_exp_kill}(Next:{Mathf.Clamp(curDataKiller.level * 3 - curDataKiller.exp + plugin.level_exp_kill, 0, curDataKiller.level * 3 - curDataKiller.exp + plugin.level_exp_kill)})");
+                        curDataKiller.AddExp(plugin.level_exp_kill, ev.Killer);
+                    }
+                    else
+                    {
+                        plugin.Error($"[ExpAdd/Kill] Missing Data,Passed...[{ev.Killer.SteamId}]");
+                    }
+                }
+
+                if(ev.Player.IpAddress != "localClient" || ev.Player.TeamRole.Role != Role.UNASSIGNED || !string.IsNullOrEmpty(ev.Player.SteamId))
+                {
+                    PlayerData curDataDeath = plugin.playersData.Find(x => x.steamid == ev.Player.SteamId);
+                    if(curDataDeath != null)
+                    {
+                        plugin.Debug($"[ExpAdd/Death] {curDataDeath.exp}+={plugin.level_exp_death} / {curDataDeath.steamid}:{ev.Player.Name}");
+                        ev.Player.SendConsoleMessage($"[AddExp] {curDataDeath.exp}+={plugin.level_exp_death}(Next:{Mathf.Clamp(curDataDeath.level * 3 - curDataDeath.exp + plugin.level_exp_death, 0, curDataDeath.level * 3 - curDataDeath.exp + plugin.level_exp_death)})");
+                        curDataDeath.AddExp(plugin.level_exp_death, ev.Player);
+                    }
+                    else
+                    {
+                        plugin.Error($"[ExpAdd/Death] Missing Data,Passed...[{ev.Player.SteamId}]");
+                    }
+                }
+            }
 
             //scplist
             if(plugin.scp_disconnect_at_resetrole)
@@ -1474,9 +1575,9 @@ namespace SanyaPlugin
                                 player.SetAmmo(AmmoType.DROPPED_7, 0);
                                 player.SetAmmo(AmmoType.DROPPED_9, 0);
 
-                                player.ThrowGrenade(ItemType.FRAG_GRENADE, true, new Vector(0.25f, 1, 0), true, newpos, true, 1.0f);
-                                player.ThrowGrenade(ItemType.FRAG_GRENADE, true, new Vector(0, 1, 0), true, newpos, true, 1.0f);
-                                player.ThrowGrenade(ItemType.FRAG_GRENADE, true, new Vector(-0.25f, 1, 0), true, newpos, true, 1.0f);
+                                player.ThrowGrenade(GrenadeType.FRAG_GRENADE, true, new Vector(0.25f, 1, 0), true, newpos, true, 1.0f);
+                                player.ThrowGrenade(GrenadeType.FRAG_GRENADE, true, new Vector(0, 1, 0), true, newpos, true, 1.0f);
+                                player.ThrowGrenade(GrenadeType.FRAG_GRENADE, true, new Vector(-0.25f, 1, 0), true, newpos, true, 1.0f);
 
                                 player.Kill(DamageType.RAGDOLLLESS);
                             }
@@ -1532,9 +1633,9 @@ namespace SanyaPlugin
                                 player.SetAmmo(AmmoType.DROPPED_7, 0);
                                 player.SetAmmo(AmmoType.DROPPED_9, 0);
 
-                                player.ThrowGrenade(ItemType.FLASHBANG, true, new Vector(0.25f, 1, 0), true, newpos, true, 1.0f);
-                                player.ThrowGrenade(ItemType.FLASHBANG, true, new Vector(0, 1, 0), true, newpos, true, 1.0f);
-                                player.ThrowGrenade(ItemType.FLASHBANG, true, new Vector(-0.25f, 1, 0), true, newpos, true, 1.0f);
+                                player.ThrowGrenade(GrenadeType.FLASHBANG, true, new Vector(0.25f, 1, 0), true, newpos, true, 1.0f);
+                                player.ThrowGrenade(GrenadeType.FLASHBANG, true, new Vector(0, 1, 0), true, newpos, true, 1.0f);
+                                player.ThrowGrenade(GrenadeType.FLASHBANG, true, new Vector(-0.25f, 1, 0), true, newpos, true, 1.0f);
                                 player.Kill(DamageType.RAGDOLLLESS);
 
                                 plugin.Server.Map.SpawnItem((ItemType)rnd.Next(0, 30), newpos, new Vector(0, 0, 0));
@@ -1543,9 +1644,9 @@ namespace SanyaPlugin
                             {
                                 plugin.Info($"[SCP914] VERY_FINE:{player.Name}");
 
-                                player.ThrowGrenade(ItemType.FLASHBANG, true, new Vector(0.25f, 1, 0), true, newpos, true, 1.0f);
-                                player.ThrowGrenade(ItemType.FLASHBANG, true, new Vector(0, 1, 0), true, newpos, true, 1.0f);
-                                player.ThrowGrenade(ItemType.FLASHBANG, true, new Vector(-0.25f, 1, 0), true, newpos, true, 1.0f);
+                                player.ThrowGrenade(GrenadeType.FLASHBANG, true, new Vector(0.25f, 1, 0), true, newpos, true, 1.0f);
+                                player.ThrowGrenade(GrenadeType.FLASHBANG, true, new Vector(0, 1, 0), true, newpos, true, 1.0f);
+                                player.ThrowGrenade(GrenadeType.FLASHBANG, true, new Vector(-0.25f, 1, 0), true, newpos, true, 1.0f);
                                 player.ChangeRole(Role.SCP_049_2, true, false, true, false);
 
                                 dot_target.Add(player);
@@ -1715,6 +1816,36 @@ namespace SanyaPlugin
                         plugin.Server.Map.ClearBroadcasts();
                         plugin.Server.Map.Broadcast(20, $"<color=#bbee00><size=25>《5つ中{engcount}つ目の発電機<{genname[0]}>の起動が完了しました。\n全ての発電機が起動されました。最後再収容手順を開始します。\n中層は約一分後に過充電されます。》\n</size><size=20>《{engcount} out of 5 generators activated. <{genname[1]}>\nAll generators has been sucessfully engaged.\nFinalizing recontainment sequence.\nHeavy containment zone will overcharge in t-minus 1 minutes.》\n </size></color>", false);
                     }
+                }
+            }
+        }
+
+        public void On079AddExp(Player079AddExpEvent ev)
+        {
+            plugin.Debug($"[On079AddExp] {ev.Player.Name}:{ev.ExpToAdd}:{ev.ExperienceType.ToString()}");
+
+            if(plugin.level_enabled)
+            {
+                switch(ev.ExperienceType)
+                {
+                    case ExperienceType.KILL_ASSIST_CLASSD:
+                    case ExperienceType.KILL_ASSIST_CHAOS_INSURGENCY:
+                    case ExperienceType.KILL_ASSIST_NINETAILFOX:
+                    case ExperienceType.KILL_ASSIST_SCIENTIST:
+                    case ExperienceType.KILL_ASSIST_SCP:
+                    case ExperienceType.KILL_ASSIST_OTHER:
+                        PlayerData curData = plugin.playersData.Find(x => x.steamid == ev.Player.SteamId);
+                        if(curData != null)
+                        {
+                            plugin.Debug($"[ExpAdd/Assist] {curData.exp}+={plugin.level_exp_kill} / {curData.steamid}:{ev.Player.Name}");
+                            ev.Player.SendConsoleMessage($"[AddExp] +{plugin.level_exp_kill}(Next:{Mathf.Clamp(curData.level * 3 - curData.exp + plugin.level_exp_kill, 0, curData.level * 3 - curData.exp + plugin.level_exp_kill)})");
+                            curData.AddExp(plugin.level_exp_kill, ev.Player);
+                        }
+                        else
+                        {
+                            plugin.Error($"[ExpAdd/Assist] Missing Data,Passed...[{ev.Player.SteamId}]");
+                        }
+                        break;
                 }
             }
         }
@@ -3213,6 +3344,14 @@ namespace SanyaPlugin
                     //    plugin.Error($"{ev.Player.Scp079Data.Exp}/{ev.Player.Scp079Data.ExpToLevelUp} {ev.Player.Scp079Data.Level+1}:{ev.Player.Scp079Data.AP}");
                     //}
 
+                    //foreach(var data in plugin.playersData)
+                    //{
+                    //    if(ev.Player.SteamId == data.steamid)
+                    //    {
+                    //        data.AddExp(100,ev.Player);
+                    //    }
+                    //}
+
 
                     ev.ReturnMessage = "test ok(user command)";
                 }
@@ -3340,5 +3479,6 @@ namespace SanyaPlugin
             //    }
             //}
         }
+
     }
 }

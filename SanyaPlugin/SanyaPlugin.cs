@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using System.IO;
 using MEC;
 using Smod2;
 using Smod2.API;
@@ -14,12 +17,11 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.9.4.2",
+    version = "12.9.5",
     SmodMajor = 3,
     SmodMinor = 4,
-    SmodRevision = 0
+    SmodRevision = 1
     )]
-
     public class SanyaPlugin : Plugin
     {
         //LayerMask
@@ -35,11 +37,20 @@ namespace SanyaPlugin
         static public System.DateTime roundStartTime;
         static public string scp_override_steamid = "";
 
+        //playersdata
+        internal List<PlayerData> playersData;
+
         //システム系
         [ConfigOption] //サーバー情報送信先IP
         internal string info_sender_to_ip = "hatsunemiku24.ddo.jp";
         [ConfigOption] //サーバー情報送信先ポート
         internal int info_sender_to_port = 37813;
+        [ConfigOption] //ログイン時メッセージ
+        internal string motd_message = "";
+        [ConfigOption] //ログイン時メッセージ（特定role指定）
+        internal string motd_target_role = "";
+        [ConfigOption] //ログイン時メッセージ（特定role）
+        internal string motd_target_message = "";
         [ConfigOption] //ゲームモードランダムの率
         internal int[] event_mode_weight = new int[] { 1, -1, -1, -1, -1, -1 };
         [ConfigOption] //反乱時のドロップ追加数
@@ -62,6 +73,20 @@ namespace SanyaPlugin
         internal bool nuke_start_countdown_door_lock = false;
         [ConfigOption] //カオスとSCPが同時にいてもラウンド終了しない
         internal bool ci_and_scp_noend = false;
+
+        //Playersデータ&LevelEXP
+        [ConfigOption] //dataはglobalか
+        internal bool data_global = true;
+        [ConfigOption] //Level機能の有効
+        internal bool level_enabled = false;
+        [ConfigOption] //Kill時のExp
+        internal int level_exp_kill = 3;
+        [ConfigOption] //Death時のExp
+        internal int level_exp_death = 1;
+        [ConfigOption] //勝利時のExp
+        internal int level_exp_win = 10;
+        [ConfigOption] //勝利以外のExp
+        internal int level_exp_other = 3;
 
         //SCP系
         [ConfigOption] //発電機が起動完了した場合開かないように
@@ -122,6 +147,8 @@ namespace SanyaPlugin
         internal float usp_damage_multiplier_human = 2.5f;
         [ConfigOption] //USPの対SCPダメージ乗算値
         internal float usp_damage_multiplier_scp = 5.0f;
+        [ConfigOption] //被拘束者が受けるダメージの減算値
+        internal float damage_divisor_cuffed = 1.0f;
         [ConfigOption] //SCP-173が受けるダメージの減算値
         internal float damage_divisor_scp173 = 1.0f;
         [ConfigOption] //SCP-106が受けるダメージの減算値
@@ -178,12 +205,56 @@ namespace SanyaPlugin
         {
             Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
             Info("さにゃぱい");
+
+            LoadPlayersData();
         }
 
         public override void Register()
         {
             AddCommand("sanya", new CommandHandler(this));
             AddEventHandlers(new EventHandler(this), Smod2.Events.Priority.Highest);
+        }
+
+        public void LoadPlayersData()
+        {
+            try
+            {
+                if(!Directory.Exists(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin"))
+                {
+                    Directory.CreateDirectory(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin");
+                }
+                if(!File.Exists(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json"))
+                {
+                    File.WriteAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", "[\n]");
+                }
+                playersData = JsonConvert.DeserializeObject<List<PlayerData>>(File.ReadAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json"));
+                Info($"playersData Loaded.[Count:{playersData.Count}]");
+            }
+            catch(System.Exception e)
+            {
+                this.Error($"[DataLoader] {e.Message}");
+            }
+        }
+
+        public void SavePlayersData()
+        {
+            try
+            {
+                if(!Directory.Exists(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin"))
+                {
+                    Directory.CreateDirectory(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin");
+                }
+                if(!File.Exists(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json"))
+                {
+                    File.WriteAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", "[\n]");
+                }
+                File.WriteAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", JsonConvert.SerializeObject(playersData,Formatting.Indented));
+                Info($"playersData Saved.[Count:{playersData.Count}]");
+            }
+            catch(System.Exception e)
+            {
+                this.Error($"[DataSaver] {e.Message}");
+            }
         }
 
         static public int GetRandomIndexFromWeight(int[] list)
@@ -648,6 +719,34 @@ namespace SanyaPlugin
             yield break;
         }
 
+        static public IEnumerator<float> _DelayedGrantedLevel(Smod2.API.Player player, PlayerData data)
+        {
+            yield return Timing.WaitForSeconds(1f);
+
+            ServerRoles serverRoles = (player.GetGameObject() as GameObject).GetComponent<ServerRoles>();
+            string hasRank = serverRoles.GetUncoloredRoleString();
+            string hasColor = serverRoles.MyColor;
+            if(hasRank.Contains("Patreon"))
+            {
+                hasRank = "Patreon";
+            }
+            if(hasColor == "light_red")
+            {
+                hasColor = "pink";
+            }
+
+            if(!string.IsNullOrEmpty(hasRank))
+            {
+                player.SetRank(hasColor, $"Level{data.level} : {hasRank}", null);
+            }
+            else
+            {
+                player.SetRank(null, $"Level{data.level}", null);
+            }
+
+            yield break;
+        }
+
         static public IEnumerator<float> _DelayedTeleport(Player player, Vector pos, bool unstack)
         {
             yield return Timing.WaitForSeconds(0.1f);
@@ -992,5 +1091,41 @@ namespace SanyaPlugin
         STORY,
         CLASSD_INSURGENCY,
         HCZ
+    }
+
+    public class PlayerData
+    {
+        public PlayerData(string s,int l,int e) { steamid = s; level = l; exp = e; }
+        public void AddExp(int amount,Smod2.API.Player target)
+        {
+            if(string.IsNullOrEmpty(amount.ToString()))
+            {
+                return;
+            }
+
+            int sum = exp + amount;
+
+            //1*3 <= 10
+            //2*3 <= 7
+            //3*3 <= 1
+            if(level * 3 <= sum)
+            {
+                while(level * 3 <= sum)
+                {
+                    exp = sum - level * 3;
+                    sum -= level * 3;
+                    target.SendConsoleMessage($"[LevelUp] Level{level} -> {level + 1} (Now:{exp} Next:{Mathf.Clamp((level + 1) * 3 - exp,0, (level + 1) * 3 - exp)})");
+                    level++;
+                }
+            }
+            else
+            {
+                exp = sum;
+            }
+        }
+
+        public string steamid;
+        public int level;
+        public int exp;
     }
 }
