@@ -17,7 +17,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.9.5",
+    version = "12.9.5.1",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 1
@@ -75,6 +75,8 @@ namespace SanyaPlugin
         internal bool ci_and_scp_noend = false;
 
         //Playersデータ&LevelEXP
+        [ConfigOption] //playerDataを保存するか
+        internal bool data_enabled = false;
         [ConfigOption] //dataはglobalか
         internal bool data_global = true;
         [ConfigOption] //Level機能の有効
@@ -204,9 +206,7 @@ namespace SanyaPlugin
         public override void OnEnable()
         {
             Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            Info("さにゃぱい");
-
-            LoadPlayersData();
+            Info("さにゃぱい");;
         }
 
         public override void Register()

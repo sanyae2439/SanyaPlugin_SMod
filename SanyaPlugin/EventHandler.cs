@@ -277,6 +277,11 @@ namespace SanyaPlugin
             SanyaPlugin.roundStartTime = System.DateTime.Now;
             CharacterClassManager.smRoundStartTime = 0f;
             SanyaPlugin.SetExtraDoorNames();
+            if(plugin.data_enabled)
+            {
+                plugin.LoadPlayersData();
+            }
+
             if(plugin.nuke_button_auto_close > 0f)
             {
                 SanyaPlugin.SetExtraPermission("NUKE_SURFACE", "EXIT_ACC");
@@ -470,7 +475,7 @@ namespace SanyaPlugin
                     }
                 }
 
-                if(plugin.level_enabled)
+                if(plugin.level_enabled && plugin.data_enabled)
                 {
                     foreach(Player player in plugin.Server.GetPlayers())
                     {
@@ -530,36 +535,39 @@ namespace SanyaPlugin
             plugin.Info($"[PlayerJoin] {ev.Player.Name}[{ev.Player.IpAddress}]({ev.Player.SteamId})");
 
             //Level
-            PlayerData curData = plugin.playersData.Find(x => x.steamid == ev.Player.SteamId);
-            if(curData != null)
+            if(plugin.data_enabled)
             {
-                plugin.Debug($"Already Exist.[{ev.Player.SteamId}:{curData.level}:{curData.exp}]");
-                if(plugin.level_enabled)
+                PlayerData curData = plugin.playersData.Find(x => x.steamid == ev.Player.SteamId);
+                if(curData != null)
                 {
-                    Timing.RunCoroutine(SanyaPlugin._DelayedGrantedLevel(ev.Player, curData), Segment.Update);
+                    plugin.Debug($"Already Exist.[{ev.Player.SteamId}:{curData.level}:{curData.exp}]");
+                    if(plugin.level_enabled)
+                    {
+                        Timing.RunCoroutine(SanyaPlugin._DelayedGrantedLevel(ev.Player, curData), Segment.Update);
+                    }
                 }
-            }
-            else
-            {
-                plugin.Warn($"New SteamId.[{ev.Player.SteamId}]");
-                curData = new PlayerData(ev.Player.SteamId, 1, 0);
-                plugin.playersData.Add(curData);
-                plugin.SavePlayersData();
-                if(plugin.level_enabled)
+                else
                 {
-                    Timing.RunCoroutine(SanyaPlugin._DelayedGrantedLevel(ev.Player, curData), Segment.Update);
+                    plugin.Warn($"New SteamId.[{ev.Player.SteamId}]");
+                    curData = new PlayerData(ev.Player.SteamId, 1, 0);
+                    plugin.playersData.Add(curData);
+                    plugin.SavePlayersData();
+                    if(plugin.level_enabled)
+                    {
+                        Timing.RunCoroutine(SanyaPlugin._DelayedGrantedLevel(ev.Player, curData), Segment.Update);
+                    }
                 }
             }
 
             if(!string.IsNullOrEmpty(plugin.motd_target_role) && !string.IsNullOrEmpty(plugin.motd_target_message) && ev.Player.GetRankName() == plugin.motd_target_role)
             {
                 ev.Player.PersonalClearBroadcasts();
-                ev.Player.PersonalBroadcast(10, $"{plugin.motd_target_message.Replace("$name", ev.Player.Name).Replace("$level",curData.level.ToString())}", false);
+                ev.Player.PersonalBroadcast(10, $"{plugin.motd_target_message.Replace("$name", ev.Player.Name)}", false);
             }
             else if(!string.IsNullOrEmpty(plugin.motd_message))
             {
                 ev.Player.PersonalClearBroadcasts();
-                ev.Player.PersonalBroadcast(10, $"{plugin.motd_message.Replace("$name",ev.Player.Name).Replace("$level", curData.level.ToString())}", false);
+                ev.Player.PersonalBroadcast(10, $"{plugin.motd_message.Replace("$name",ev.Player.Name)}", false);
             }
 
             //scplist
@@ -1188,9 +1196,9 @@ namespace SanyaPlugin
             plugin.Debug($"[OnPlayerDie] {ev.Killer}:{ev.DamageTypeVar} -> {ev.Player.Name}");
 
             //LevelExp
-            if(plugin.level_enabled)
+            if(plugin.level_enabled && plugin.data_enabled)
             {
-                if(ev.Killer.IpAddress != "localClient" || ev.Killer.TeamRole.Role != Role.UNASSIGNED || !string.IsNullOrEmpty(ev.Killer.SteamId))
+                if(ev.Killer.IpAddress != "localClient" && ev.Killer.TeamRole.Role != Role.UNASSIGNED && !string.IsNullOrEmpty(ev.Killer.SteamId))
                 {
                     PlayerData curDataKiller = plugin.playersData.Find(x => x.steamid == ev.Killer.SteamId);
                     if(curDataKiller != null)
@@ -1205,13 +1213,13 @@ namespace SanyaPlugin
                     }
                 }
 
-                if(ev.Player.IpAddress != "localClient" || ev.Player.TeamRole.Role != Role.UNASSIGNED || !string.IsNullOrEmpty(ev.Player.SteamId))
+                if(ev.Player.IpAddress != "localClient" && ev.Player.TeamRole.Role != Role.UNASSIGNED && !string.IsNullOrEmpty(ev.Player.SteamId))
                 {
                     PlayerData curDataDeath = plugin.playersData.Find(x => x.steamid == ev.Player.SteamId);
                     if(curDataDeath != null)
                     {
                         plugin.Debug($"[ExpAdd/Death] {curDataDeath.exp}+={plugin.level_exp_death} / {curDataDeath.steamid}:{ev.Player.Name}");
-                        ev.Player.SendConsoleMessage($"[AddExp] {curDataDeath.exp}+={plugin.level_exp_death}(Next:{Mathf.Clamp(curDataDeath.level * 3 - curDataDeath.exp + plugin.level_exp_death, 0, curDataDeath.level * 3 - curDataDeath.exp + plugin.level_exp_death)})");
+                        ev.Killer.SendConsoleMessage($"[AddExp] +{plugin.level_exp_death}(Next:{Mathf.Clamp(curDataDeath.level * 3 - curDataDeath.exp + plugin.level_exp_death, 0, curDataDeath.level * 3 - curDataDeath.exp + plugin.level_exp_death)})");
                         curDataDeath.AddExp(plugin.level_exp_death, ev.Player);
                     }
                     else
@@ -1824,7 +1832,7 @@ namespace SanyaPlugin
         {
             plugin.Debug($"[On079AddExp] {ev.Player.Name}:{ev.ExpToAdd}:{ev.ExperienceType.ToString()}");
 
-            if(plugin.level_enabled)
+            if(plugin.level_enabled && plugin.data_enabled)
             {
                 switch(ev.ExperienceType)
                 {
