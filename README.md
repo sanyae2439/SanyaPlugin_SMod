@@ -23,7 +23,9 @@ https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Archives
 --- | :---: | :---: | ---
 sanya_info_sender_to_ip | String | hatsunemiku24.ddo.jp | サーバー情報送信先IP
 sanya_info_sender_to_port | String | 37813 | サーバー情報送信先ポート
-sanya_spectator_slot | Int | 0 | 観戦スロットの数
+sanya_motd_message | String | Empty | ログイン時のメッセージ（$nameは名前に置き換えられる）
+sanya_motd_target_role | String | Empty | 特定ロールは別のメッセージを表示
+sanya_motd_target_message | String | Empty | 特定ロールへのメッセージ
 sanya_event_mode_weight | List<Int> | 1,-1,-1,-1,-1 | モードのランダム比率（通常/Night/実験中/D反乱/中層）-1で無効 すべて-1の場合は通常になります
 sanya_classd_ins_items | Int | 10 | 反乱時のドロップ数 増やしすぎると重い
 sanya_hczstart_mtf_and_ci | Int | 3 | 中層モード時のガードの数
@@ -35,6 +37,11 @@ sanya_summary_less_mode | Bool | False | リザルト画面をなしにラウン
 sanya_endround_all_godmode | Bool | False | ラウンド終了時全員を無敵にする
 sanya_nuke_start_countdown_door_lock | Bool | False | 核起動開始時に一部(SCP-106、ゲート、チェックポイント)を除きすべてのドアをオープンする
 sanya_ci_and_scp_noend | Bool | False | CIとSCPだけが残ってもラウンドが終了しないようになる
+  
+## データ&EXP
+sanya_data_enabled | Bool | False | プレイヤーデータのDBを作成する
+sanya_data_global | Bool | False | 複数サーバー共通のDBを使うか
+sanya_level_enabled | Bool | False | Badge欄にLevelを表示
 
 ## SCP系
 設定名 | 値の型 | 初期値 | 説明
@@ -80,6 +87,7 @@ sanya_doorlock_interval_second | Int | 60 | 次にロックできるまでの時
 sanya_fallen_limit | Float | 10.0 | この値以下の落下ダメージを無効にする
 sanya_usp_damage_multiplier_human | Float | 2.5 | USPのダメージ倍率（対人間）
 sanya_usp_damage_multiplier_scp | Float | 5.0 | USPのダメージ倍率（対SCP）
+sanya_damage_divisor_cuffed | Float | 1.0 | 被拘束時に受けるダメージ除数
 sanya_damage_divisor_scp173 | Float | 1.0 | SCP-173が受けるダメージ除数
 sanya_damage_divisor_scp106 | Float | 1.0 | SCP-106が受けるダメージ除数
 sanya_damage_divisor_scp106_grenade | Float | 1.0 | SCP-106が受けるグレネードのダメージ
