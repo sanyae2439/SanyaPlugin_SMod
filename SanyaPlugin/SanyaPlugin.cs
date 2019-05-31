@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
+using System.Xml;
 using System.IO;
 using MEC;
 using Smod2;
@@ -17,7 +17,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.9.5.1",
+    version = "12.9.6",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 1
@@ -45,6 +45,8 @@ namespace SanyaPlugin
         internal string info_sender_to_ip = "hatsunemiku24.ddo.jp";
         [ConfigOption] //サーバー情報送信先ポート
         internal int info_sender_to_port = 37813;
+        [ConfigOption] //SteamがLimitedかどうかチェックする
+        internal bool steam_kick_limited = false;
         [ConfigOption] //ログイン時メッセージ
         internal string motd_message = "";
         [ConfigOption] //ログイン時メッセージ（特定role指定）
@@ -248,7 +250,7 @@ namespace SanyaPlugin
                 {
                     File.WriteAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", "[\n]");
                 }
-                File.WriteAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", JsonConvert.SerializeObject(playersData,Formatting.Indented));
+                File.WriteAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", JsonConvert.SerializeObject(playersData, Newtonsoft.Json.Formatting.Indented));
                 Info($"playersData Saved.[Count:{playersData.Count}]");
             }
             catch(System.Exception e)
@@ -708,6 +710,54 @@ namespace SanyaPlugin
                 }
             }
             return null;
+        }
+
+        public IEnumerator<float> _CheckIsLimitedSteam(Player player)
+        {
+            using(WWW www = new WWW("https://steamcommunity.com/profiles/" + player.SteamId + "?xml=1"))
+            {
+                yield return Timing.WaitUntilDone(www);
+                if(string.IsNullOrEmpty(www.error))
+                {
+
+                    XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
+                    xmlReaderSettings.IgnoreComments = true;
+                    xmlReaderSettings.IgnoreWhitespace = true;
+                    XmlReader xmlReader = XmlReader.Create(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(www.text)),xmlReaderSettings);
+
+                    while(xmlReader.Read())
+                    {
+                        if(xmlReader.ReadToFollowing("isLimitedAccount"))
+                        {
+                            string isLimited = xmlReader.ReadElementContentAsString();
+                            Debug($"isLimited:{isLimited}");
+                            if(isLimited == "0")
+                            {
+                                Info($"[SteamCheck] OK.[NotLimited]:{player.SteamId}");
+                                yield break;
+                            }
+                            else
+                            {
+                                Warn($"[SteamCheck] NG.[Limited]:{player.SteamId}");
+                                player.Ban(0, "This server does not allow new Steam accounts, you have to buy something on Steam before playing.");
+                                yield break;
+                            }
+                        }
+                        else
+                        {
+                            Warn($"[SteamCheck] Falied.[NoProfile]:{player.SteamId}");
+                            player.Ban(0, "This server does not allow new Steam accounts, you have to buy something on Steam before playing.");
+                            yield break;
+                        }
+                    }
+                }
+                else
+                {
+                    Error($"[SteamCheck] Error.[{www.error}]");
+                    yield break;
+                }
+            }
+            yield break;
         }
 
         static public IEnumerator<float> _SummaryLessRoundrestart(SanyaPlugin plugin, int restarttime)

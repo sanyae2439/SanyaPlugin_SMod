@@ -534,6 +534,11 @@ namespace SanyaPlugin
         {
             plugin.Info($"[PlayerJoin] {ev.Player.Name}[{ev.Player.IpAddress}]({ev.Player.SteamId})");
 
+            if(plugin.steam_kick_limited)
+            {
+                Timing.RunCoroutine(plugin._CheckIsLimitedSteam(ev.Player), Segment.FixedUpdate);
+            }
+
             //Level
             if(plugin.data_enabled)
             {

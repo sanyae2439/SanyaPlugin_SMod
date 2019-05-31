@@ -307,6 +307,10 @@ namespace SanyaPlugin
 
                     return pinglist.ToArray();
                 }
+                else if(args[0] == "now")
+                {
+                    return new string[] { TimeBehaviour.CurrentTimestamp().ToString() };
+                }
                 else if(args[0] == "test")
                 {
                     Player ply = sender as Player;
@@ -461,10 +465,12 @@ namespace SanyaPlugin
                     //    plugin.Error($"{player.steamid}:{player.level}:{player.exp}");
                     //}
 
-                    foreach(PlayerData data in plugin.playersData)
-                    {
-                        plugin.Warn($"{data.steamid}:Level{data.level}({data.exp}EXP/Next:{Mathf.Clamp(data.level*3-data.exp,0,data.level*3-data.exp)})");
-                    }
+                    //foreach(PlayerData data in plugin.playersData)
+                    //{
+                    //    plugin.Warn($"{data.steamid}:Level{data.level}({data.exp}EXP/Next:{Mathf.Clamp(data.level*3-data.exp,0,data.level*3-data.exp)})");
+                    //}
+
+                    //MEC.Timing.RunCoroutine(plugin._CheckIsLimitedSteam(ply), MEC.Segment.FixedUpdate);
 
                     return new string[] { "test ok" };
                 }
@@ -472,6 +478,8 @@ namespace SanyaPlugin
 
             return new string[] { GetUsage() };
         }
+
+
     }
 }
 
