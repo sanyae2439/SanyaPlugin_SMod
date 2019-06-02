@@ -23,7 +23,7 @@ https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Archives
 --- | :---: | :---: | ---
 sanya_info_sender_to_ip | String | hatsunemiku24.ddo.jp | サーバー情報送信先IP
 sanya_info_sender_to_port | String | 37813 | サーバー情報送信先ポート
-sanya_steam_kick_limited ｜ Bool | False | Steamの制限付きアカウントをキックします
+sanya_steam_kick_limited | Bool | False | Steamの制限付きアカウントをキックします
 sanya_steam_kick_limited_message | String | あなたのSteamIDは「制限付きユーザーアカウント」です。Steamのヘルプを読み、制限を解除してください。 | 上記のメッセージ
 sanya_motd_message | String | Empty | ログイン時のメッセージ（$nameは名前に置き換えられる）
 sanya_motd_target_role | String | Empty | 特定ロールは別のメッセージを表示
