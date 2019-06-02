@@ -315,6 +315,7 @@ namespace SanyaPlugin
                 {
                     Player ply = sender as Player;
                     GameObject gameObject = null;
+                    GameObject host = GameObject.Find("Host");
                     System.Random rnd = new System.Random();
 
                     if(ply != null)
@@ -471,6 +472,19 @@ namespace SanyaPlugin
                     //}
 
                     //MEC.Timing.RunCoroutine(plugin._CheckIsLimitedSteam(ply), MEC.Segment.FixedUpdate);
+
+                    //ServerConsole.Disconnect(gameObject, plugin.steam_kick_limited_message);
+
+                    //plugin.Error($"{host.GetComponent<MTFRespawn>().timeToNextRespawn}");
+
+                    //foreach(var i in gameObject.GetComponent<Medkit>().Medkits)
+                    //{
+                    //    plugin.Error($"{i.InventoryID}:{i.Label}:{i.MaximumHealthRegeneration}:{i.MinimumHealthRegeneration}");
+                    //}
+
+                    //gameObject.GetComponent<Inventory>().NetworkcurItem = -1;
+
+                    //plugin.Error($"{LayerMask.GetMask(new string[] { "Ragdoll" })}");
 
                     return new string[] { "test ok" };
                 }

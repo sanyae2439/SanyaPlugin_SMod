@@ -17,7 +17,7 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.9.6",
+    version = "12.9.7",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 1
@@ -29,6 +29,7 @@ namespace SanyaPlugin
         public const int doormask = 134234112;
         public const int playermask = 1208246273;
         public const int teslamask = 4;
+        public const int ragdollmask = 131072;
 
         //test
         static public bool test = false;
@@ -47,6 +48,8 @@ namespace SanyaPlugin
         internal int info_sender_to_port = 37813;
         [ConfigOption] //SteamがLimitedかどうかチェックする
         internal bool steam_kick_limited = false;
+        [ConfigOption] //Steamキック時のメッセージ
+        internal string steam_kick_limited_message = "あなたのSteamIDは「制限付きユーザーアカウント」です。Steamのヘルプを読み、制限を解除してください。";
         [ConfigOption] //ログイン時メッセージ
         internal string motd_message = "";
         [ConfigOption] //ログイン時メッセージ（特定role指定）
@@ -75,6 +78,8 @@ namespace SanyaPlugin
         internal bool nuke_start_countdown_door_lock = false;
         [ConfigOption] //カオスとSCPが同時にいてもラウンド終了しない
         internal bool ci_and_scp_noend = false;
+        [ConfigOption] //最初の増援を早める倍率
+        internal float first_respawn_time_fast = 1.0f;
 
         //Playersデータ&LevelEXP
         [ConfigOption] //playerDataを保存するか
@@ -127,6 +132,8 @@ namespace SanyaPlugin
         internal float nuke_button_auto_close = -1f;
         [ConfigOption] //核起爆後は増援が出ないように
         internal bool stop_mtf_after_nuke = false;
+        [ConfigOption] //核起爆までは地上のゲートが開かないように
+        internal bool lock_surface_gate_before_nuke = false;
         [ConfigOption] //カードを持たなくても使用可能に
         internal bool inventory_card_act = false;
         [ConfigOption] //NTFになる際の脱出地点を変更
@@ -730,7 +737,6 @@ namespace SanyaPlugin
                         if(xmlReader.ReadToFollowing("isLimitedAccount"))
                         {
                             string isLimited = xmlReader.ReadElementContentAsString();
-                            Debug($"isLimited:{isLimited}");
                             if(isLimited == "0")
                             {
                                 Info($"[SteamCheck] OK.[NotLimited]:{player.SteamId}");
@@ -739,14 +745,14 @@ namespace SanyaPlugin
                             else
                             {
                                 Warn($"[SteamCheck] NG.[Limited]:{player.SteamId}");
-                                player.Ban(0, "This server does not allow new Steam accounts, you have to buy something on Steam before playing.");
+                                ServerConsole.Disconnect(player.GetGameObject() as GameObject, this.steam_kick_limited_message);
                                 yield break;
                             }
                         }
                         else
                         {
                             Warn($"[SteamCheck] Falied.[NoProfile]:{player.SteamId}");
-                            player.Ban(0, "This server does not allow new Steam accounts, you have to buy something on Steam before playing.");
+                            ServerConsole.Disconnect(player.GetGameObject() as GameObject, this.steam_kick_limited_message);
                             yield break;
                         }
                     }
@@ -841,6 +847,13 @@ namespace SanyaPlugin
                 player.Teleport(data.pos);
                 player.SetHealth(data.health);
             }
+            yield break;
+        }
+
+        static public IEnumerator<float> _DelayedFastSpawn(float fast)
+        {
+            yield return Timing.WaitForSeconds(0.2f);
+            GameObject.Find("Host").GetComponent<MTFRespawn>().timeToNextRespawn /= fast;
             yield break;
         }
 
@@ -1024,15 +1037,6 @@ namespace SanyaPlugin
                 SanyaPlugin.Call939SetSpeedMultiplier(player, 1.5f);
                 counter++;
                 yield return Timing.WaitForSeconds(1f);
-            }
-
-            if(role == Role.SCP_939_53)
-            {
-                EventHandler.scp939_53_boosting = false;
-            }
-            else if(role == Role.SCP_939_89)
-            {
-                EventHandler.scp939_89_boosting = false;
             }
             player.PersonalClearBroadcasts();
             player.PersonalBroadcast(3, $"<size=25>《SCP-939ブーストが終了。》\n </size><size=20>《Ended <SCP-939> boost.》\n</size>", false);
