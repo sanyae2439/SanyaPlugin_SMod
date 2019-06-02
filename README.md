@@ -23,6 +23,8 @@ https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Archives
 --- | :---: | :---: | ---
 sanya_info_sender_to_ip | String | hatsunemiku24.ddo.jp | サーバー情報送信先IP
 sanya_info_sender_to_port | String | 37813 | サーバー情報送信先ポート
+sanya_steam_kick_limited ｜ Bool | False | Steamの制限付きアカウントをキックします
+sanya_steam_kick_limited_message | String | あなたのSteamIDは「制限付きユーザーアカウント」です。Steamのヘルプを読み、制限を解除してください。 | 上記のメッセージ
 sanya_motd_message | String | Empty | ログイン時のメッセージ（$nameは名前に置き換えられる）
 sanya_motd_target_role | String | Empty | 特定ロールは別のメッセージを表示
 sanya_motd_target_message | String | Empty | 特定ロールへのメッセージ
@@ -37,6 +39,7 @@ sanya_summary_less_mode | Bool | False | リザルト画面をなしにラウン
 sanya_endround_all_godmode | Bool | False | ラウンド終了時全員を無敵にする
 sanya_nuke_start_countdown_door_lock | Bool | False | 核起動開始時に一部(SCP-106、ゲート、チェックポイント)を除きすべてのドアをオープンする
 sanya_ci_and_scp_noend | Bool | False | CIとSCPだけが残ってもラウンドが終了しないようになる
+sanya_first_respawn_time_fast | Float | 1.0 | 最初の増援時間に対する除数（2.0だと半分になる）
   
 ## データ&EXP
 sanya_data_enabled | Bool | False | プレイヤーデータのDBを作成する
@@ -69,6 +72,7 @@ sanya_suicide_need_weapon | Bool | False | .killコマンド時に武器を持�
 sanya_original_auto_nuke | Bool | False | 独自判定の自動核を設定
 sanya_nuke_button_auto_close | Float | -1f | 核起動ボタンの蓋が自動で閉まる時間 & 核起動室の扉をEXIT_ACC持ちで開けられるように (-1で無効)
 sanya_stop_mtf_after_nuke | Bool | False | 核起爆後の増援停止
+sanya_lock_surface_gate_before_nuke | Bool | False | 核起爆までは地上A-Bゲートが開かないように
 sanya_inventory_card_act | Bool | False | カードキーがインベントリ内でも効果発揮
 sanya_escape_spawn | Bool | False | NTFに転生する際の場所を変更
 sanya_intercom_information | Bool | False | 放送室のモニターに生存者情報を表示＆放送室のキーカードが不要に
