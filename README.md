@@ -42,6 +42,8 @@ sanya_ci_and_scp_noend | Bool | False | CIとSCPだけが残ってもラウン�
 sanya_first_respawn_time_fast | Float | 1.0 | 最初の増援時間に対する除数（2.0だと半分になる）
   
 ## データ&EXP
+設定名 | 値の型 | 初期値 | 説明
+--- | :---: | :---: | ---
 sanya_data_enabled | Bool | False | プレイヤーデータのDBを作成する
 sanya_data_global | Bool | False | 複数サーバー共通のDBを使うか
 sanya_level_enabled | Bool | False | Badge欄にLevelを表示
