@@ -2711,14 +2711,26 @@ namespace SanyaPlugin
                                     Ragdoll ragdoll = raycastHit.transform.GetComponentInParent<Ragdoll>();
                                     if(ragdoll != null)
                                     {
-                                        if(ragdoll.gameObject.CompareTag("Ragdoll"))
+                                        plugin.Debug($"{(Role)ragdoll.owner.charclass}");
+
+                                        if(ragdoll.owner.charclass != (int)Role.SCP_049
+                                            && ragdoll.owner.charclass != (int)Role.SCP_049_2
+                                            && ragdoll.owner.charclass != (int)Role.SCP_096
+                                            && ragdoll.owner.charclass != (int)Role.SCP_106
+                                            && ragdoll.owner.charclass != (int)Role.SCP_173
+                                            && ragdoll.owner.charclass != (int)Role.SCP_939_53
+                                            && ragdoll.owner.charclass != (int)Role.SCP_939_89
+                                           )
                                         {
-                                            UnityEngine.Networking.NetworkServer.Destroy(ragdoll.gameObject);
-                                            ev.Player.SetHealth(Mathf.Clamp(health + recovhp, 0, maxhp),DamageType.NONE);
-                                            ev.Player.PersonalClearBroadcasts();
-                                            ev.Player.PersonalBroadcast(3, $"<size=25>《SCP-939ブーストを使用しました。(HP回復:{recovhp})》\n </size><size=20>《Used <SCP-939> boost. (healed HP:{recovhp})》\n</size>", false);
-                                            ply939.CallRpcShoot();
-                                            SanyaPlugin.Call939CanSee();
+                                            if(ragdoll.gameObject.CompareTag("Ragdoll"))
+                                            {
+                                                UnityEngine.Networking.NetworkServer.Destroy(ragdoll.gameObject);
+                                                ev.Player.SetHealth(Mathf.Clamp(health + recovhp, 0, maxhp), DamageType.NONE);
+                                                ev.Player.PersonalClearBroadcasts();
+                                                ev.Player.PersonalBroadcast(3, $"<size=25>《SCP-939ブーストを使用しました。(HP回復:{recovhp})》\n </size><size=20>《Used <SCP-939> boost. (healed HP:{recovhp})》\n</size>", false);
+                                                ply939.CallRpcShoot();
+                                                SanyaPlugin.Call939CanSee();
+                                            }
                                         }
                                     }
                                     ev.ReturnMessage = $"Boost!(+{recovhp}HP)";
