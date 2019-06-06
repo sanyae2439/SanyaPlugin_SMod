@@ -111,12 +111,6 @@ sanya_escape_spawn | Bool | False | NTFに転生する際の場所を変更
 sanya_intercom_information | Bool | False | 放送室のモニターに生存者情報を表示＆放送室のキーカードが不要に
 sanya_traitor_limitter | Int | -1 | 被拘束状態でNTF/カオスが脱出ポイントへ行くと敵対勢力に寝返ることができる。その際の寝返り元生存人数がこの値以下でないとできない
 sanya_traitor_chance_percent | Int | 50 | 寝返り成功率
-sanya_classd_startitem_percent | Int | -1 | クラスD収容房にアイテムを設置する(OK/NGのうちOKになる確率)
-sanya_classd_startitem_ok_itemid | ItemType | 0 | OKの際に落とすアイテム
-sanya_classd_startitem_no_itemid | ItemType | -1 | NGの際に落とすアイテム
-sanya_doorlock_itemid | ItemType | -1 | このアイテムを持っている隊長はドアを操作時ロックできる
-sanya_doorlock_locked_second | Int | 10 | ロックされ続ける時間
-sanya_doorlock_interval_second | Int | 60 | 次にロックできるまでの時間
 
 ## ダメージ調整系
 設定名 | 値の型 | 初期値 | 説明
