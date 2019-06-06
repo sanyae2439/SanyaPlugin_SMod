@@ -99,7 +99,10 @@ namespace SanyaPlugin
                         {
                             foreach(Generator items in plugin.Server.Map.GetGenerators())
                             {
-                                items.Open = true;
+                                if(!items.Engaged)
+                                {
+                                    items.Open = true;
+                                }
                             }
                             return new string[] { "gen open." };
                         }

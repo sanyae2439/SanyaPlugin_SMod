@@ -6,6 +6,7 @@ using MEC;
 using Smod2;
 using Smod2.API;
 using Smod2.Attributes;
+using Smod2.Lang;
 using Smod2.Config;
 using UnityEngine;
 
@@ -17,7 +18,8 @@ namespace SanyaPlugin
     description = "nya",
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
-    version = "12.9.7",
+    langFile = nameof(SanyaPlugin),
+    version = "13.0.0",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 1
@@ -48,14 +50,10 @@ namespace SanyaPlugin
         internal int info_sender_to_port = 37813;
         [ConfigOption] //SteamがLimitedかどうかチェックする
         internal bool steam_kick_limited = false;
-        [ConfigOption] //Steamキック時のメッセージ
-        internal string steam_kick_limited_message = "あなたのSteamIDは「制限付きユーザーアカウント」です。Steamのヘルプを読み、制限を解除してください。";
-        [ConfigOption] //ログイン時メッセージ
-        internal string motd_message = "";
+        [ConfigOption] //motdの有効化
+        internal bool motd_enabled = false;
         [ConfigOption] //ログイン時メッセージ（特定role指定）
         internal string motd_target_role = "";
-        [ConfigOption] //ログイン時メッセージ（特定role）
-        internal string motd_target_message = "";
         [ConfigOption] //ゲームモードランダムの率
         internal int[] event_mode_weight = new int[] { 1, -1, -1, -1, -1, -1 };
         [ConfigOption] //反乱時のドロップ追加数
@@ -85,7 +83,7 @@ namespace SanyaPlugin
         [ConfigOption] //playerDataを保存するか
         internal bool data_enabled = false;
         [ConfigOption] //dataはglobalか
-        internal bool data_global = true;
+        internal bool data_global = false;
         [ConfigOption] //Level機能の有効
         internal bool level_enabled = false;
         [ConfigOption] //Kill時のExp
@@ -97,17 +95,51 @@ namespace SanyaPlugin
         [ConfigOption] //勝利以外のExp
         internal int level_exp_other = 3;
 
+        //UserCommand
+        [ConfigOption] //ユーザーコマンドの有効化
+        internal bool user_command_enabled = false;
+        [ConfigOption] //コマンドクールタイム（フレーム）
+        internal int user_command_cooltime = 20;
+        [ConfigOption] //コマンドの個別有効化（.kill）
+        internal bool user_command_enabled_kill = true;
+        [ConfigOption] //コマンドの個別有効化（.sinfo）
+        internal bool user_command_enabled_sinfo = true;
+        [ConfigOption] //コマンドの個別有効化（.079nuke）
+        internal bool user_command_enabled_079nuke = true;
+        [ConfigOption] //コマンドの個別有効化（.939sp）
+        internal bool user_command_enabled_939sp = true;
+        [ConfigOption] //コマンドの個別有効化（.079sp）
+        internal bool user_command_enabled_079sp = true;
+        [ConfigOption] //コマンドの個別有効化（.radio）
+        internal bool user_command_enabled_radio = true;
+        [ConfigOption] //コマンドの個別有効化（.attack）
+        internal bool user_command_enabled_attack = true;
+        [ConfigOption] //コマンドの個別有効化（.boost）
+        internal bool user_command_enabled_boost = true;
+
         //SCP系
         [ConfigOption] //発電機が起動完了した場合開かないように
         internal bool generator_engaged_cantopen = false;
         [ConfigOption] //SCP-079だけになった際発電機ロックがフリー&Tier5に
         internal bool scp079_lone_boost = false;
+        [ConfigOption] //SCP-079がロックダウン時全館停電を起こせるTier
+        internal int scp079_all_flick_light_tier = -1;
+        [ConfigOption] //SCP-079がスピーカー使用時に電力を使わなくなる
+        internal bool scp079_speaker_no_ap_use = false;
+        [ConfigOption] //SCP-939に出血ダメージを付与
+        internal int scp939_dot_damage = -1;
+        [ConfigOption] //SCP-939の出血ダメージの総量
+        internal int scp939_dot_damage_total = 80;
+        [ConfigOption] //SCP-939の出血間隔
+        internal int scp939_dot_damage_interval = 1;
         [ConfigOption] //SCP-914にプレイヤーが入った際の挙動を少し変更
         internal bool scp914_changing = false;
         [ConfigOption] //ポータル機能の最初のクールタイム
         internal int scp106_portal_to_human_wait = 180;
         [ConfigOption] //SCP-106の囮コンテナに入った際の放送できる時間
         internal int scp106_lure_speaktime = -1;
+        [ConfigOption] //SCP-106のポケディメで人が死んだ際にマーク表示
+        internal bool scp106_hitmark_pocket_death = false;
         [ConfigOption] //SCP-096にダメージを与えた際に発狂開始する
         internal bool scp096_damage_trigger = false;
         [ConfigOption] //SCP-049-2がキルした際もSCP-049が治療可能に
@@ -118,6 +150,10 @@ namespace SanyaPlugin
         //人間系
         [ConfigOption] //被拘束時にドア/エレベーターを操作不能に
         internal bool handcuffed_cantopen = false;
+        [ConfigOption] //医療キットでdotダメージを停止
+        internal bool medkit_stop_dot_damage = false;
+        [ConfigOption] //グレネードでのヒットマーク
+        internal bool grenade_hitmark = false;
 
         //独自要素
         [ConfigOption] //切断したSCPが再接続で戻るように
@@ -132,8 +168,8 @@ namespace SanyaPlugin
         internal float nuke_button_auto_close = -1f;
         [ConfigOption] //核起爆後は増援が出ないように
         internal bool stop_mtf_after_nuke = false;
-        [ConfigOption] //核起爆までは地上のゲートが開かないように
-        internal bool lock_surface_gate_before_nuke = false;
+        [ConfigOption] //核カウントダウンまでは地上のゲートが開かないように
+        internal bool lock_surface_gate_before_countdown = false;
         [ConfigOption] //カードを持たなくても使用可能に
         internal bool inventory_card_act = false;
         [ConfigOption] //NTFになる際の脱出地点を変更
@@ -144,12 +180,6 @@ namespace SanyaPlugin
         internal int traitor_limitter = -1;
         [ConfigOption] //敵対陣営になるチャレンジの成功率
         internal int traitor_chance_percent = 50;
-        [ConfigOption] //クラスDスポーン地点にアイテムを設置（OKになる確率)
-        internal int classd_startitem_percent = -1;
-        [ConfigOption] //OKの場合に設置するアイテム
-        internal int classd_startitem_ok_itemid = 0;
-        [ConfigOption] //NGの場合に設置するアイテム
-        internal int classd_startitem_no_itemid = -1;
 
         //ダメージ系
         [ConfigOption] //指定以下の落下ダメージを無効にする
@@ -207,6 +237,69 @@ namespace SanyaPlugin
         [ConfigOption] //NTF Commanderの初期所持弾数
         internal int[] default_ammo_commander = new int[] { 130, 50, 50 };
 
+
+        //--------------------------LangOption--------------------------
+        [LangOption] //SteamがLimitedの場合のメッセージ
+        public readonly string steam_limited_message = "Your Steam account is Limited User Account.\\nThis server is not allowed Limited User.";
+        [LangOption] //MOTDメッセージ（通常時）
+        public readonly string motd_message = "[name], Welcome to our server!";
+        [LangOption] //MOTDメッセージ（指定role時）
+        public readonly string motd_role_message = "[name], Welcome to our server!\\nYou are VIP.";
+        [LangOption] //SCPで切断時の復帰メッセージ
+        public readonly string scp_rejoin_message = "Returns to the SCP from which it was disconnected.";
+        [LangOption] //LCZ閉鎖時のメッセージ
+        public readonly string decontaminated_message = "Light Containment Zone is locked down and ready for decontamination. The removal of organic substances has now begun.";
+        [LangOption] //核カウントダウン開始初回時のメッセージ
+        public readonly string alphawarhead_countdown_start_message = "Alpha Warhead emergency detonation sequence engaged by [[name]/[role]].\\nThe underground section of the facility will be detonated in t-minus [second] seconds.";
+        [LangOption] //核カウントダウン開始初回時のメッセージ（サーバー/コマンド/自動）
+        public readonly string alphawarhead_countdown_start_server_message = "Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\\nThe underground section of the facility will be detonated in t-minus [second] seconds.";
+        [LangOption] //核カウントダウン再開時のメッセージ
+        public readonly string alphawarhead_countdown_resume_message = "Detonation sequence resumed by [[name]/[role]]. t-minus [second] seconds.";
+        [LangOption] //核カウントダウン再開時のメッセージ（サーバー/コマンド/自動）
+        public readonly string alphawarhead_countdown_resume_server_message = "Detonation sequence resumed by Facility-Systems. t-minus [second] seconds.";
+        [LangOption] //核カウントダウン中断時のメッセージ
+        public readonly string alphawarhead_countdown_stop_message = "Detonation cancelled by [[name]/[role]]. Restarting systems.";
+        [LangOption] //核カウントダウン中断時のメッセージ（サーバー/コマンド/自動）
+        public readonly string alphawarhead_countdown_stop_server_message = "Detonation cancelled by Facility-Systems. Restarting systems.";
+        [LangOption] //MTFスポーン時のメッセージ
+        public readonly string mtfspawn_message = "Mobile Task Force Unit, Epsilon-11, designated, '[unit]', has entered the facility.\\nAll remaining personnel are advised to proceed with standard evacuation protocols until an MTF squad reaches your destination.\\nAwaiting recontainment of: [amount] SCP subject.";
+        [LangOption] //MTFスポーン時のメッセージ（残SCPなし）
+        public readonly string mtfspawn_noscp_message = "Mobile Task Force Unit, Epsilon-11, designated, '[unit]', has entered the facility.\\nAll remaining personnel are advised to proceed with standard evacuation protocols, until MTF squad has reached your destination.\\nSubstantial threat to safety is within the facility -- Exercise caution.";
+        [LangOption] //FF時のメッセージ
+        public readonly string friendlyfire_message = "Check your fire! Damage to ally forces not be tolerated.(Damaged to [[name]])";
+        [LangOption] //囮放送時のメッセージ
+        public readonly string lure_intercom_message = "You will be used for recontainment SCP-106. You can broadcast for [second] seconds.";
+        [LangOption] //SCP収容成功時のメッセージ（標準）
+        public readonly string scp_containment_message = "[role] contained successfully. Containment unit:[[unit]/[name]]";
+        [LangOption] //SCP収容成功時のメッセージ（テスラ）
+        public readonly string scp_containment_tesla_message = "[role] successfully terminated by automatic security system.";
+        [LangOption] //SCP収容成功時のメッセージ（核）
+        public readonly string scp_containment_alphawarhead_message = "[role] terminated by alpha warhead.";
+        [LangOption] //SCP収容成功時のメッセージ（下層）
+        public readonly string scp_containment_decont_message = "[role] lost in decontamination sequence.";
+        [LangOption] //SCP収容成功時のメッセージ（不明）
+        public readonly string scp_containment_unknown_message = "[role] contained successfully. Containment unit:[Unknown/[name]]";
+        [LangOption] //SCP-049治療失敗時のメッセージ（既リスポーン）
+        public readonly string scp049_recall_failed = "Recall failed. This player has already respawned.";
+        [LangOption] //コマンドリジェクト時（Toofast)
+        public readonly string user_command_rejected_toofast = "Command Rejected.(Too fast)";
+        [LangOption] //コマンドリジェクト時（ラウンド中ではない）
+        public readonly string user_command_rejected_not_round = "Command Rejected.(Can only used while round in progress)";
+        [LangOption] //コマンドリジェクト時（条件不足）
+        public readonly string user_command_rejected_miss_condition = "Command Rejected.(Condition is not met)";
+        [LangOption] //コマンド成功時（.kill)
+        public readonly string user_command_kill_success = "You suicided.";
+        [LangOption] //コマンド（放送の終了)
+        public readonly string user_command_boost_success = "Used [role] boost. ([hp]HP)";
+        [LangOption] //コマンド（ラジオのオン)
+        public readonly string user_command_radio_on = "Enabled Radio.";
+        [LangOption] //コマンド（ラジオのオフ)
+        public readonly string user_command_radio_off = "Disabled Radio.";
+        [LangOption] //コマンド（放送の開始)
+        public readonly string user_command_broadcast_start = "Starting broadcast.";
+        [LangOption] //コマンド（放送の終了)
+        public readonly string user_command_broadcast_stop = "Stopped broadcast.";
+
         public override void OnDisable()
         {
             Info("さにゃぷらぐいん Disabled");
@@ -215,7 +308,7 @@ namespace SanyaPlugin
         public override void OnEnable()
         {
             Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            Info("さにゃぱい");;
+            Info("さにゃぱい"); ;
         }
 
         public override void Register()
@@ -730,7 +823,7 @@ namespace SanyaPlugin
                     XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
                     xmlReaderSettings.IgnoreComments = true;
                     xmlReaderSettings.IgnoreWhitespace = true;
-                    XmlReader xmlReader = XmlReader.Create(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(www.text)),xmlReaderSettings);
+                    XmlReader xmlReader = XmlReader.Create(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(www.text)), xmlReaderSettings);
 
                     while(xmlReader.Read())
                     {
@@ -745,14 +838,14 @@ namespace SanyaPlugin
                             else
                             {
                                 Warn($"[SteamCheck] NG.[Limited]:{player.SteamId}");
-                                ServerConsole.Disconnect(player.GetGameObject() as GameObject, this.steam_kick_limited_message);
+                                ServerConsole.Disconnect(player.GetGameObject() as GameObject, this.steam_limited_message);
                                 yield break;
                             }
                         }
                         else
                         {
                             Warn($"[SteamCheck] Falied.[NoProfile]:{player.SteamId}");
-                            ServerConsole.Disconnect(player.GetGameObject() as GameObject, this.steam_kick_limited_message);
+                            ServerConsole.Disconnect(player.GetGameObject() as GameObject, this.steam_limited_message);
                             yield break;
                         }
                     }
@@ -1149,8 +1242,8 @@ namespace SanyaPlugin
 
     public class PlayerData
     {
-        public PlayerData(string s,int l,int e) { steamid = s; level = l; exp = e; }
-        public void AddExp(int amount,Smod2.API.Player target)
+        public PlayerData(string s, int l, int e) { steamid = s; level = l; exp = e; }
+        public void AddExp(int amount, Smod2.API.Player target)
         {
             if(string.IsNullOrEmpty(amount.ToString()))
             {
@@ -1168,7 +1261,7 @@ namespace SanyaPlugin
                 {
                     exp = sum - level * 3;
                     sum -= level * 3;
-                    target.SendConsoleMessage($"[LevelUp] Level{level} -> {level + 1} (Now:{exp} Next:{Mathf.Clamp((level + 1) * 3 - exp,0, (level + 1) * 3 - exp)})");
+                    target.SendConsoleMessage($"[LevelUp] Level{level} -> {level + 1} (Now:{exp} Next:{Mathf.Clamp((level + 1) * 3 - exp, 0, (level + 1) * 3 - exp)})");
                     level++;
                 }
             }

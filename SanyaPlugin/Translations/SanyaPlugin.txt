@@ -1,0 +1,30 @@
+steam_limited_message: Your Steam account is Limited User Account.\nThis server is not allowed Limited User.
+motd_message: [name], Welcome to our server!
+motd_role_message: [name], Welcome to our server!\nYou are VIP.
+scp_rejoin_message: Returns to the SCP from which it was disconnected.
+decontaminated_message: Light Containment Zone is locked down and ready for decontamination. The removal of organic substances has now begun.
+alphawarhead_countdown_start_message: Alpha Warhead emergency detonation sequence engaged by [[name]/[role]].\nThe underground section of the facility will be detonated in t-minus [second] seconds.
+alphawarhead_countdown_start_server_message: Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus [second] seconds.
+alphawarhead_countdown_resume_message: Detonation sequence resumed by [[name]/[role]]. t-minus [second] seconds.
+alphawarhead_countdown_resume_server_message: Detonation sequence resumed by Facility-Systems. t-minus [second] seconds.
+alphawarhead_countdown_stop_message: Detonation cancelled by [[name]/[role]]. Restarting systems.
+alphawarhead_countdown_stop_server_message: Detonation cancelled by Facility-Systems. Restarting systems.
+mtfspawn_message: Mobile Task Force Unit, Epsilon-11, designated, '[unit]', has entered the facility.\nAll remaining personnel are advised to proceed with standard evacuation protocols until an MTF squad reaches your destination.\nAwaiting recontainment of: [amount] SCP subject.
+mtfspawn_noscp_message: Mobile Task Force Unit, Epsilon-11, designated, '[unit]', has entered the facility.\nAll remaining personnel are advised to proceed with standard evacuation protocols, until MTF squad has reached your destination.\nSubstantial threat to safety is within the facility -- Exercise caution.
+friendlyfire_message: Check your fire! Damage to ally forces not be tolerated.(Damaged to [[name]])
+lure_intercom_message: You will be used for recontainment SCP-106. You can broadcast for [second] seconds.
+scp_containment_message: [role] contained successfully. Containment unit:[[unit]/[name]]
+scp_containment_tesla_message: [role] successfully terminated by automatic security system.
+scp_containment_alphawarhead_message: [role] terminated by alpha warhead.
+scp_containment_decont_message: [role] lost in decontamination sequence.
+scp_containment_unknown_message: [role] contained successfully. Containment unit:[Unknown/[name]]
+scp049_recall_failed: Recall failed. This player has already respawned.
+user_command_rejected_toofast: Command Rejected.(Too fast)
+user_command_rejected_not_round: Command Rejected.(Can only used while round in progress)
+user_command_rejected_miss_condition: Command Rejected.(Condition is not met)
+user_command_kill_success: You suicided.
+user_command_boost_success: Used [role] boost. ([hp]HP)
+user_command_radio_on: Enabled Radio.
+user_command_radio_off: Disabled Radio.
+user_command_broadcast_start: Starting broadcast.
+user_command_broadcast_stop: Stopped broadcast.

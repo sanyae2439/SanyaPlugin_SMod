@@ -1,0 +1,30 @@
+steam_limited_message: あなたのSteamIDは「制限付きユーザーアカウント」です。Steamのヘルプを読み、制限を解除してください。
+motd_message: <size=30>[name]さん、ようこそさにゃさばへ！\nこのサーバーのルールが書かれているため、Discordへの参加を推奨します。\n[https://discord.gg/5EVfd4g]</size>
+motd_role_message: <size=30>[name]さん、ようこそさにゃさばへ！\n<color=#ff0000>あなたはルールに違反したことがあり、警告を受けています。\nDiscordに参加し、ルールをよく確認してください。</color>\n[https://discord.gg/5EVfd4g]</size>
+scp_rejoin_message: <size=30>切断前のSCPに復帰します。</size>
+decontaminated_message: <size=25>《下層がロックされ、「再収容プロトコル」の準備が出来ました。全ての有機物は破壊されます。》\n </size><size=20>《Light Containment Zone is locked down and ready for decontamination. The removal of organic substances has now begun.》\n</size>
+alphawarhead_countdown_start_message: <color=#ff0000><size=25>《[[name]/[team]]により「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約[second]秒後に爆破されます。》\n</size><size=20>《Alpha Warhead emergency detonation sequence engaged by [[name]/[team]].\nThe underground section of the facility will be detonated in t-minus [second] seconds.》\n</size></color>
+alphawarhead_countdown_start_server_message: <color=#ff0000><size=25>《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約[second]秒後に爆破されます。》\n</size><size=20>《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus [second] seconds.》\n</size></color>
+alphawarhead_countdown_resume_message: <color=#ff0000><size=25>《[[name]/[team]]により緊急起爆シーケンスが再開されました。約[second]秒後に爆破されます。》\n</size><size=20>《Detonation sequence resumed by [[name]/[team]]. t-minus [second] seconds.》\n</size></color>
+alphawarhead_countdown_resume_server_message: <color=#ff0000><size=25>《施設システムにより緊急起爆シーケンスが再開されました。約[second]秒後に爆破されます。》\n</size><size=20>《Detonation sequence resumed by Facility-Systems. t-minus [second] seconds.》\n</size></color>
+alphawarhead_countdown_stop_message: <color=#ff0000><size=25>《[[name]/[team]]により起爆が取り消されました。システムを再起動します。》\n</size><size=20>《Detonation cancelled by [[name]/[team]]. Restarting systems.》\n</size></color>
+alphawarhead_countdown_stop_server_message: <color=#ff0000><size=25>《施設システムにより起爆が取り消されました。システムを再起動します。》\n</size><size=20>《Detonation cancelled by Facility-Systems. Restarting systems.》\n</size></color>
+mtfspawn_message: <color=#6c80ff><size=25>《機動部隊イプシロン-11「[unit]」が施設に到着しました。\n残りの全職員は、機動部隊が貴方の場所へ到着するまで「標準避難プロトコル」の続行を推奨します。\n「[amount]」オブジェクトが再収容されていません。》\n</size><size=20>《Mobile Task Force Unit, Epsilon-11, designated, '[unit]', has entered the facility.\nAll remaining personnel are advised to proceed with standard evacuation protocols until an MTF squad reaches your destination.\nAwaiting recontainment of: [amount] SCP subject.》\n</size></color>
+mtfspawn_noscp_message: <color=#6c80ff><size=25>《機動部隊イプシロン-11「[unit]」が施設に到着しました。\n残りの全職員は、機動部隊が貴方の場所へ到着するまで「標準避難プロトコル」の続行を推奨します。\n重大な脅威が施設内に存在します。注意してください。》\n </size><size=20>《Mobile Task Force Unit, Epsilon-11, designated, '{ev.Unit}', has entered the facility.\nAll remaining personnel are advised to proceed with standard evacuation protocols, until MTF squad has reached your destination.\nSubstantial threat to safety is within the facility -- Exercise caution.》\n</size></color>
+friendlyfire_message: <color=#ff0000><size=25>《誤射に注意。味方へのダメージは容認されません。([[name]]への攻撃。)》\n</size><size=20>《Check your fire! Damage to ally forces not be tolerated.(Damaged to [[name]])》\n</size></color>
+lure_intercom_message: <color=#ffff00><size=25>《あなたはSCP-106の再収容に使用されます。最後に[second]秒の放送時間が与えられます。》\n</size><size=20>《You will be used for recontainment SCP-106. You can broadcast for [second] seconds.》\n</size></color>
+scp_containment_message: <color=#ff0000><size=25>《[role]の収容に成功しました。収容した部隊は[[unit]/[name]]です。》\n</size><size=20>《[role] contained successfully. Containment unit:[[unit]/[name]]》\n</size></color>
+scp_containment_tesla_message: <color=#ff0000><size=25>《[role]は自動セキュリティシステムによって無力化されました。》\n</size><size=20>《[role] successfully terminated by automatic security system.》\n</size></color>
+scp_containment_alphawarhead_message: <color=#ff0000><size=25>《[role]はAlphaWarheadによって無力化されました。》\n</size><size=20>《[role] terminated by alpha warhead.》\n</size></color>
+scp_containment_decont_message: <color=#ff0000><size=25>《[role]は「再収容プロトコル」によって無力化されました。》\n</size><size=20>《[role] lost in decontamination sequence.》\n</size></color>
+scp_containment_unknown_message: <color=#ff0000><size=25>《[role]の収容に成功しました。収容した部隊は[不明/[name]]です。》\n</size><size=20>《[role] contained successfully. Containment unit:[Unknown/[name]].》\n</size></color>
+scp049_recall_failed: <size=25>《治療失敗。対象プレイヤーはリスポーン済みです。》\n </size><size=20>《Recall failed. This player has already respawned.》\n</size>
+user_command_rejected_toofast: Command Rejected.(間隔が短すぎます)
+user_command_rejected_not_round: Command Rejected.(ラウンド進行中ではありません)
+user_command_rejected_miss_condition: Command Rejected.(条件を満たしていません)
+user_command_kill_success: <size=25>《あなたは自殺しました。》\n </size><size=20>《You suicided.》\n</size>
+user_command_boost_success: <size=25>《[role]ブーストを使用しました。(HP:[hp])》\n </size><size=20>《Used [role] boost. (HP:[hp])》\n</size>
+user_command_radio_on: <size=25>《無線機をオンにしました。》\n </size><size=20>《Enabled radio.》\n</size>
+user_command_radio_off: <size=25>《無線機をオフにしました。》\n </size><size=20>《Disabled radio.》\n</size>
+user_command_broadcast_start: <size=25>《全館放送を開始します。》\n </size><size=20>《Starting broadcast.》\n</size>
+user_command_broadcast_stop: <size=25>《全館放送を終了しました。》\n </size><size=20>《Stopped broadcast.》\n</size>
