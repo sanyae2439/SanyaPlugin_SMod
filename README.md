@@ -14,6 +14,12 @@ https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Archives
 
 最新のコミットに合わせたものをダウンロードしてください
 
+# Translation
+
+https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Translations
+
+SanyaPlugin_ja.txtをsm_translationsに入れると日本語になります
+
 # Install
 「sm_plugins」に入れるだけ
 
@@ -24,10 +30,8 @@ https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Archives
 sanya_info_sender_to_ip | String | hatsunemiku24.ddo.jp | サーバー情報送信先IP
 sanya_info_sender_to_port | String | 37813 | サーバー情報送信先ポート
 sanya_steam_kick_limited | Bool | False | Steamの制限付きアカウントをキックします
-sanya_steam_kick_limited_message | String | あなたのSteamIDは「制限付きユーザーアカウント」です。Steamのヘルプを読み、制限を解除してください。 | 上記のメッセージ
-sanya_motd_message | String | Empty | ログイン時のメッセージ（$nameは名前に置き換えられる）
+sanya_motd_enabled | Bool | False | MOTDの有効化（メッセージはTranslationに）
 sanya_motd_target_role | String | Empty | 特定ロールは別のメッセージを表示
-sanya_motd_target_message | String | Empty | 特定ロールへのメッセージ
 sanya_event_mode_weight | List<Int> | 1,-1,-1,-1,-1 | モードのランダム比率（通常/Night/実験中/D反乱/中層）-1で無効 すべて-1の場合は通常になります
 sanya_classd_ins_items | Int | 10 | 反乱時のドロップ数 増やしすぎると重い
 sanya_hczstart_mtf_and_ci | Int | 3 | 中層モード時のガードの数
@@ -47,15 +51,40 @@ sanya_first_respawn_time_fast | Float | 1.0 | 最初の増援時間に対する�
 sanya_data_enabled | Bool | False | プレイヤーデータのDBを作成する
 sanya_data_global | Bool | False | 複数サーバー共通のDBを使うか
 sanya_level_enabled | Bool | False | Badge欄にLevelを表示
+sanya_level_exp_kill | Int | 3 | キル時の経験値
+sanya_level_exp_death | Int | 1 | デス時の経験値
+sanya_level_exp_win | Int | 10 | 勝利時の経験値
+sanya_level_exp_other | Int | 3 | 勝利以外時の経験値
+
+## ユーザーコマンド
+ \`キーで開くコンソールで使用するものです
+設定名 | 値の型 | 初期値 | 説明
+--- | :---: | :---: | ---
+sanya_user_command_enabled | Bool | False | ユーザーコマンドの有効化
+sanya_user_command_cooltime | Int | 20 | ユーザーコマンドを使用できる間隔（変更しないほうがいいでしょう）
+sanya_user_command_enabled_kill | Bool | True | .killコマンドの有効化
+sanya_user_command_enabled_sinfo | Bool | True | .sinfoコマンドの有効化
+sanya_user_command_enabled_079nuke | Bool | True | .079nukeコマンドの有効化
+sanya_user_command_enabled_939sp | Bool | True | .939spコマンドの有効化
+sanya_user_command_enabled_079sp | Bool | True | .079spコマンドの有効化
+sanya_user_command_enabled_radio | Bool | True | .radioコマンドの有効化
+sanya_user_command_enabled_boost | Bool | True | .boostコマンドの有効化
+sanya_user_command_enabled_attack | Bool | True | .attackコマンドの有効化
 
 ## SCP系
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_generator_engaged_cantopen | Bool | False | 発電機が起動完了した場合に開かないように
 sanya_scp079_lone_boost | Bool | False | 079が最後のSCPになった際に発電機自由解放&Tier5に
+sanya_scp079_all_flick_light_tier | Int | -1 | 079がロックダウン時全館停電を起こせるTier
+sanya_scp079_speaker_no_ap_use | Bool | False | 079がスピーカー使用時に電力を使わなくなる
 sanya_scp914_changing | Bool | False | SCP-914に入った人の扱いを少し変更
+sanya_scp939_dot_damage | Int | -1 | SCP-939に出血ダメージを付与
+sanya_scp939_dot_damage_total | Int | 80 | 出血ダメージの総量
+sanya_scp939_dot_damage_interval | Int(Second) | 1 | 出血ダメージの間隔
 sanya_scp106_portal_to_human_wait　| Int | 180 | SCP-106ポータルの初回使用可能までの時間
 sanya_scp106_lure_speaktime | Int | -1 | SCP-106の囮コンテナに入った際一定時間死なずに放送可能に
+sanya_scp106_hitmark_pocket_death | Bool | False | ポケットディメンション内で人が死ぬと106にヒットマークが出るように
 sanya_scp096_damage_trigger | Bool | False | 096がダメージを受けると発狂トリガー
 sanya_scp106_cleanup | Bool | False | Smodのscp106_cleanupが動かないときに使う用
 sanya_infect_by_scp049_2 | Bool | False | SCP-049-2がキルした死体をSCP-049が治療可能に
@@ -65,6 +94,8 @@ sanya_infect_limit_time | Int | 4 | SCP-049が治療できなくなるまでの�
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_handcuffed_cantopen | Bool | False | 被拘束時にドアとエレベーターの操作を不能に
+sanya_medkit_stop_dot_damage | Bool | False | 939の出血などを医療キットで止められるように
+sanya_grenade_hitmark | Bool | False | グレネード命中時投げた人にヒットマークが出るように
 
 ## 独自要素
 設定名 | 値の型 | 初期値 | 説明
@@ -74,7 +105,7 @@ sanya_suicide_need_weapon | Bool | False | .killコマンド時に武器を持�
 sanya_original_auto_nuke | Bool | False | 独自判定の自動核を設定
 sanya_nuke_button_auto_close | Float | -1f | 核起動ボタンの蓋が自動で閉まる時間 & 核起動室の扉をEXIT_ACC持ちで開けられるように (-1で無効)
 sanya_stop_mtf_after_nuke | Bool | False | 核起爆後の増援停止
-sanya_lock_surface_gate_before_nuke | Bool | False | 核起爆までは地上A-Bゲートが開かないように
+sanya_lock_surface_gate_before_countdown | Bool | False | 核カウントダウン開始までは地上A-Bゲートが開かないように
 sanya_inventory_card_act | Bool | False | カードキーがインベントリ内でも効果発揮
 sanya_escape_spawn | Bool | False | NTFに転生する際の場所を変更
 sanya_intercom_information | Bool | False | 放送室のモニターに生存者情報を表示＆放送室のキーカードが不要に
