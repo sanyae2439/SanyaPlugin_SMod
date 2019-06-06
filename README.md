@@ -20,7 +20,7 @@ https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Translation
 
 SanyaPlugin_ja.txtをsm_translationsに入れると日本語になります
 
-SanyaPlugin_kr.txt을 넣으면 한국어 자막이 붙습니다.
+SanyaPlugin_kr.txt을 넣으면 한국어 자막이 붙습니다.(By green1052#8022)
 
 SanyaPlugin.txtは自動生成され、それを編集することでゲーム内での字幕表示を変えることが出来ます。
 
