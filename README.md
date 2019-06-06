@@ -60,6 +60,7 @@ sanya_level_exp_other | Int | 3 | 勝利以外時の経験値
 
 ## ユーザーコマンド
  \`キーで開くコンソールで使用するものです
+
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_user_command_enabled | Bool | False | ユーザーコマンドの有効化
