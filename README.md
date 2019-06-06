@@ -20,6 +20,8 @@ https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Translation
 
 SanyaPlugin_ja.txtをsm_translationsに入れると日本語になります
 
+SanyaPlugin.txtは自動生成され、それを編集することでゲーム内での字幕表示を変えることが出来ます。
+
 # Install
 「sm_plugins」に入れるだけ
 
@@ -58,6 +60,7 @@ sanya_level_exp_other | Int | 3 | 勝利以外時の経験値
 
 ## ユーザーコマンド
  \`キーで開くコンソールで使用するものです
+
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_user_command_enabled | Bool | False | ユーザーコマンドの有効化
