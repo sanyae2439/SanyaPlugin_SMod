@@ -1,0 +1,30 @@
+steam_limited_message: 당신의 스팀 계정은 제한된 사용자 계정입니다.\n이 서버는 제한된 사용자를 허용되지 않습니다.
+motd_message: [name], 서버에 어서오세요
+motd_role_message: [name], 저희 서버에 오신 것을 환영합니다!\n당신은 VIP입니다.
+scp_rejoin_message: 연결이 끊어진 SCP로 돌아갑니다.
+decontaminated_message: 저위험군이 폐쇄되었고 오염 제거 준비가 완료되었습니다. 유기체의 제거가 시작되었습니다.
+alphawarhead_countdown_start_message: 알파 탄두 긴급 폭파 절차가 발동되었습니다. 시설 지하가 [second]초 후에 폭파됩니다.
+alphawarhead_countdown_start_server_message: 알파 탄두 긴급 폭파 절차가 시설에 의해 발동되었습니다. 시설 지하가 [second]초 후에 폭파됩니다.
+alphawarhead_countdown_resume_message: 폭파 절차를 재실행합니다. [second]초 남았습니다.
+alphawarhead_countdown_resume_server_message: 폭파 절차가 시설에 의해 재실행됬습니다. [second]초 남았습니다.
+alphawarhead_countdown_stop_message: 폭발이 취소되었습니다. 시스템을 재시작합니다.
+alphawarhead_countdown_stop_server_message: 폭발이 시설에 의해 취소되었습니다. 시스템을 재시작합니다.
+mtfspawn_message: 기동특무부대 Epsilon-11 분대 [unit]이 시설에 진입했습니다.\n남아있는 모든 인원들은 MTF 분대가 목표 지점에 도달할 때까지 표준 대피 절차를 따라주길 바랍니다.\n시설 내에 안전을 크게 위협하는 존재가 있으니 주의하도록 하라.
+mtfspawn_noscp_message: 기동특무부대 Epsilon-11 분대 [unit]이 시설에 진입했습니다.\n남아있는 모든 인원들은 MTF 분대가 목표 지점에 도달할 때까지 표준 대피 절차를 따라주길 바랍니다.\n[amount]개체의 SCP가 재격리 대기 중이다.
+friendlyfire_message: 당신은 팀에게 사격중입니다! 아군의 피해는 용납되지 않습니다.([[name]]에게 데미지를 주었습니다.)
+lure_intercom_message: SCP-106을 재격리하는 데 사용됩니다. 당신은 [second]초 동안 방송하실수있습니다.
+scp_containment_message: [role]이 격리되었습니다. 사유: MTF
+scp_containment_tesla_message: [role]이 격리되었습니다. 사유 : 테슬라 게이트
+scp_containment_alphawarhead_message: [role]이 격리되었습니다. 사유 : 핵탄두
+scp_containment_decont_message: [role]이 격리되었습니다. 사유 저위험군 격리
+scp_containment_unknown_message: [role]이 격리되었습니다. 사유 : 알수없음
+scp049_recall_failed: 호출에 실패했습니다. 이 플레이어는 이미 리스폰을 했습니다.
+user_command_rejected_toofast: 명령이 거부되었습니다.(너무 빠름)
+user_command_rejected_not_round: 명령이 거부되었습니다.(라운드 진행 중에만 사용할 수 있습니다.)
+user_command_rejected_miss_condition: 명령이 거부되었습니다.(조건이 충족되지 않습니다.)
+user_command_kill_success: 당신은 자살했습니다.
+user_command_boost_success: [role] 부스트를 사용했습니다. ([hp]HP)
+user_command_radio_on: 무전기 활성화
+user_command_radio_off: 무전기 비활성화
+user_command_broadcast_start: 방송 시작중
+user_command_broadcast_stop: 방송 중지하는중
