@@ -9,8 +9,8 @@ alphawarhead_countdown_resume_message: 폭파 절차를 재실행합니다. [sec
 alphawarhead_countdown_resume_server_message: 폭파 절차가 시설에 의해 재실행됬습니다. [second]초 남았습니다.
 alphawarhead_countdown_stop_message: 폭발이 취소되었습니다. 시스템을 재시작합니다.
 alphawarhead_countdown_stop_server_message: 폭발이 시설에 의해 취소되었습니다. 시스템을 재시작합니다.
-mtfspawn_message: 기동특무부대 Epsilon-11 분대 [unit]이 시설에 진입했습니다.\n남아있는 모든 인원들은 MTF 분대가 목표 지점에 도달할 때까지 표준 대피 절차를 따라주길 바랍니다.\n시설 내에 안전을 크게 위협하는 존재가 있으니 주의하도록 하라.
-mtfspawn_noscp_message: 기동특무부대 Epsilon-11 분대 [unit]이 시설에 진입했습니다.\n남아있는 모든 인원들은 MTF 분대가 목표 지점에 도달할 때까지 표준 대피 절차를 따라주길 바랍니다.\n[amount]개체의 SCP가 재격리 대기 중이다.
+mtfspawn_message: 기동특무부대 Epsilon-11 분대 [unit]이 시설에 진입했습니다.\n남아있는 모든 인원들은 MTF 분대가 목표 지점에 도달할 때까지 표준 대피 절차를 따라주길 바랍니다.\n[amount]개체의 SCP가 재격리 대기 중이다.
+mtfspawn_noscp_message: 기동특무부대 Epsilon-11 분대 [unit]이 시설에 진입했습니다.\n남아있는 모든 인원들은 MTF 분대가 목표 지점에 도달할 때까지 표준 대피 절차를 따라주길 바랍니다.\n시설 내에 안전을 크게 위협하는 존재가 있으니 주의하도록 하라.
 friendlyfire_message: 당신은 팀에게 사격중입니다! 아군의 피해는 용납되지 않습니다.([[name]]에게 데미지를 주었습니다.)
 lure_intercom_message: SCP-106을 재격리하는 데 사용됩니다. 당신은 [second]초 동안 방송하실수있습니다.
 scp_containment_message: [role]이 격리되었습니다. 사유: MTF
