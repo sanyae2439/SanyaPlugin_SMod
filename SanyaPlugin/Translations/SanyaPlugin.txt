@@ -2,6 +2,9 @@ steam_limited_message: Your Steam account is Limited User Account.\nThis server 
 motd_message: [name], Welcome to our server!
 motd_role_message: [name], Welcome to our server!\nYou are VIP.
 scp_rejoin_message: Returns to the SCP from which it was disconnected.
+generator_starting_message: Generator[[genname]] has starting.
+generator_complete_message: [cur] out of [max] generators activated. [[genname]]
+generator_readyforall_message: [cur] out of [max] generators activated. [[genname]]\nAll generators has been sucessfully engaged.\nFinalizing recontainment sequence.\nHeavy containment zone will overcharge in t-minus 1 minutes.
 decontaminated_message: Light Containment Zone is locked down and ready for decontamination. The removal of organic substances has now begun.
 alphawarhead_countdown_start_message: Alpha Warhead emergency detonation sequence engaged by [[name]/[role]].\nThe underground section of the facility will be detonated in t-minus [second] seconds.
 alphawarhead_countdown_start_server_message: Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus [second] seconds.
@@ -22,6 +25,16 @@ scp049_recall_failed: Recall failed. This player has already respawned.
 user_command_rejected_toofast: Command Rejected.(Too fast)
 user_command_rejected_not_round: Command Rejected.(Can only used while round in progress)
 user_command_rejected_miss_condition: Command Rejected.(Condition is not met)
+generator_ez_checkpoint_name: Entrance Checkpoint
+generator_hcz_armory_name: HCZ Armory
+generator_server_room_name: Server Room
+generator_microhid_room_name: MicroHID Room
+generator_scp049_name: SCP-049 Elevator
+generator_scp079_name: SCP-079 Chamber
+generator_scp096_name: SCP-096 Chamber
+generator_scp106_name: SCP-106 Chamber
+generator_scp939_name: SCP-939 Chamber
+generator_nuke_name: Nuke Chamber
 user_command_kill_success: You suicided.
 user_command_boost_success: Used [role] boost. ([hp]HP)
 user_command_radio_on: Enabled Radio.

@@ -2,6 +2,9 @@ steam_limited_message: あなたのSteamIDは「制限付きユーザーアカ�
 motd_message: <size=30>[name]さん、ようこそさにゃさばへ！\nこのサーバーのルールが書かれているため、Discordへの参加を推奨します。\n[https://discord.gg/5EVfd4g]</size>
 motd_role_message: <size=30>[name]さん、ようこそさにゃさばへ！\n<color=#ff0000>あなたはルールに違反したことがあり、警告を受けています。\nDiscordに参加し、ルールをよく確認してください。</color>\n[https://discord.gg/5EVfd4g]</size>
 scp_rejoin_message: <size=30>切断前のSCPに復帰します。</size>
+generator_starting_message: <color=#bbee00><size=25>《[[genname]]の発電機が起動を始めました。》\n</size><size=20>《Generator[[genname_en]] has starting.》\n</size></color>
+generator_complete_message: <color=#bbee00><size=25>《[max]つ中[cur]つ目の発電機[[genname]]の起動が完了しました。》\n</size><size=20>《[cur] out of [max] generators activated. [[genname_en]]》\n</size></color>
+generator_readyforall_message: <color=#bbee00><size=25>《[max]つ中[cur]つ目の発電機[[genname]]の起動が完了しました。\n全ての発電機が起動されました。最後再収容手順を開始します。\n中層は約一分後に過充電されます。》\n</size><size=20>《[cur] out of [max] generators activated. [[genname_en]]\nAll generators has been sucessfully engaged.\nFinalizing recontainment sequence.\nHeavy containment zone will overcharge in t-minus 1 minutes.》\n </size></color>
 decontaminated_message: <size=25>《下層がロックされ、「再収容プロトコル」の準備が出来ました。全ての有機物は破壊されます。》\n </size><size=20>《Light Containment Zone is locked down and ready for decontamination. The removal of organic substances has now begun.》\n</size>
 alphawarhead_countdown_start_message: <color=#ff0000><size=25>《[[name]/[team]]により「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約[second]秒後に爆破されます。》\n</size><size=20>《Alpha Warhead emergency detonation sequence engaged by [[name]/[team]].\nThe underground section of the facility will be detonated in t-minus [second] seconds.》\n</size></color>
 alphawarhead_countdown_start_server_message: <color=#ff0000><size=25>《施設システムにより「AlphaWarhead」の緊急起爆シーケンスが開始されました。\n施設の地下区画は、約[second]秒後に爆破されます。》\n</size><size=20>《Alpha Warhead emergency detonation sequence engaged by Facility-Systems.\nThe underground section of the facility will be detonated in t-minus [second] seconds.》\n</size></color>
@@ -19,6 +22,16 @@ scp_containment_alphawarhead_message: <color=#ff0000><size=25>《[role]はAlphaW
 scp_containment_decont_message: <color=#ff0000><size=25>《[role]は「再収容プロトコル」によって無力化されました。》\n</size><size=20>《[role] lost in decontamination sequence.》\n</size></color>
 scp_containment_unknown_message: <color=#ff0000><size=25>《[role]の収容に成功しました。収容した部隊は[不明/[name]]です。》\n</size><size=20>《[role] contained successfully. Containment unit:[Unknown/[name]].》\n</size></color>
 scp049_recall_failed: <size=25>《治療失敗。対象プレイヤーはリスポーン済みです。》\n </size><size=20>《Recall failed. This player has already respawned.》\n</size>
+generator_ez_checkpoint_name: 上層チェックポイント
+generator_hcz_armory_name: 中層弾薬庫
+generator_server_room_name: サーバールーム
+generator_microhid_room_name: MicroHID室
+generator_scp049_name: SCP-049 エレベーター
+generator_scp079_name: SCP-079 収容室
+generator_scp096_name: SCP-096 収容室
+generator_scp106_name: SCP-106 収容室
+generator_scp939_name: SCP-939 収容室
+generator_nuke_name: 核格納庫
 user_command_rejected_toofast: Command Rejected.(間隔が短すぎます)
 user_command_rejected_not_round: Command Rejected.(ラウンド進行中ではありません)
 user_command_rejected_miss_condition: Command Rejected.(条件を満たしていません)

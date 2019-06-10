@@ -9,6 +9,8 @@ using Smod2.Attributes;
 using Smod2.Lang;
 using Smod2.Config;
 using UnityEngine;
+using ServerMod2.API;
+using System;
 
 namespace SanyaPlugin
 {
@@ -19,7 +21,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.0.0",
+    version = "13.1.0",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 1
@@ -247,6 +249,12 @@ namespace SanyaPlugin
         public readonly string motd_role_message = "[name], Welcome to our server!\\nYou are VIP.";
         [LangOption] //SCPで切断時の復帰メッセージ
         public readonly string scp_rejoin_message = "Returns to the SCP from which it was disconnected.";
+        [LangOption] //発電機起動開始
+        public readonly string generator_starting_message = "Generator[[genname]] has starting.";
+        [LangOption] //発電機起動完了
+        public readonly string generator_complete_message = "[cur] out of [max] generators activated. [[genname]]";
+        [LangOption] //発電機全起動完了
+        public readonly string generator_readyforall_message = "[cur] out of [max] generators activated. [[genname]]\\nAll generators has been sucessfully engaged.\\nFinalizing recontainment sequence.\\nHeavy containment zone will overcharge in t-minus 1 minutes.";
         [LangOption] //LCZ閉鎖時のメッセージ
         public readonly string decontaminated_message = "Light Containment Zone is locked down and ready for decontamination. The removal of organic substances has now begun.";
         [LangOption] //核カウントダウン開始初回時のメッセージ
@@ -281,6 +289,29 @@ namespace SanyaPlugin
         public readonly string scp_containment_unknown_message = "[role] contained successfully. Containment unit:[Unknown/[name]]";
         [LangOption] //SCP-049治療失敗時のメッセージ（既リスポーン）
         public readonly string scp049_recall_failed = "Recall failed. This player has already respawned.";
+
+        [LangOption] //発電機の名前（EZチェックポイント）
+        public readonly string generator_ez_checkpoint_name = "Entrance Checkpoint";
+        [LangOption] //発電機の名前（HCZ弾薬庫）
+        public readonly string generator_hcz_armory_name = "HCZ Armory";
+        [LangOption] //発電機の名前（サーバールーム）
+        public readonly string generator_server_room_name = "Server Room";
+        [LangOption] //発電機の名前（MicroHIDルーム）
+        public readonly string generator_microhid_room_name = "MicroHID Room";
+        [LangOption] //発電機の名前（SCP-049エレベーター前）
+        public readonly string generator_scp049_name = "SCP-049 Elevator";
+        [LangOption] //発電機の名前（SCP-079収容室）
+        public readonly string generator_scp079_name = "SCP-079 Chamber";
+        [LangOption] //発電機の名前（SCP-096収容室）
+        public readonly string generator_scp096_name = "SCP-096 Chamber";
+        [LangOption] //発電機の名前（SCP-106収容室）
+        public readonly string generator_scp106_name = "SCP-106 Chamber";
+        [LangOption] //発電機の名前（SCP-939収容室）
+        public readonly string generator_scp939_name = "SCP-939 Chamber";
+        [LangOption] //発電機の名前（核格納庫）
+        public readonly string generator_nuke_name = "Nuke Chamber";
+
+
         [LangOption] //コマンドリジェクト時（Toofast)
         public readonly string user_command_rejected_toofast = "Command Rejected.(Too fast)";
         [LangOption] //コマンドリジェクト時（ラウンド中ではない）
@@ -359,6 +390,35 @@ namespace SanyaPlugin
             }
         }
 
+        public string[] TranslateGeneratorName(RoomType type)
+        {
+            switch(type)
+            {
+                case RoomType.ENTRANCE_CHECKPOINT:
+                    return new string[] { this.generator_ez_checkpoint_name, "Entrance Checkpoint" };
+                case RoomType.HCZ_ARMORY:
+                    return new string[] { this.generator_hcz_armory_name, "HCZ Armory" };
+                case RoomType.SERVER_ROOM:
+                    return new string[] { this.generator_server_room_name, "Server Room" };
+                case RoomType.MICROHID:
+                    return new string[] { this.generator_microhid_room_name, "MicroHID Room" };
+                case RoomType.SCP_049:
+                    return new string[] { this.generator_scp049_name, "SCP-049 Elevator" };
+                case RoomType.SCP_079:
+                    return new string[] { this.generator_scp079_name, "SCP-079 Chamber" };
+                case RoomType.SCP_096:
+                    return new string[] { this.generator_scp096_name, "SCP-096 Chamber" };
+                case RoomType.SCP_106:
+                    return new string[] { this.generator_scp106_name, "SCP-106 Chamber" };
+                case RoomType.SCP_939:
+                    return new string[] { this.generator_scp096_name, "SCP-939 Chamber" };
+                case RoomType.NUKE:
+                    return new string[] { this.generator_nuke_name, "Nuke Chamber" };
+                default:
+                    return new string[] { "???", "Unknown" };
+            }
+        }
+
         static public int GetRandomIndexFromWeight(int[] list)
         {
             System.Random rnd = new System.Random();
@@ -409,35 +469,6 @@ namespace SanyaPlugin
                 }
             }
             return null;
-        }
-
-        static public string[] TranslateGeneratorName(RoomType type)
-        {
-            switch(type)
-            {
-                case RoomType.ENTRANCE_CHECKPOINT:
-                    return new string[] { "上層チェックポイント", "Entrance Checkpoint" };
-                case RoomType.HCZ_ARMORY:
-                    return new string[] { "中層弾薬庫", "HCZ Armory" };
-                case RoomType.SERVER_ROOM:
-                    return new string[] { "サーバールーム", "Server Room" };
-                case RoomType.MICROHID:
-                    return new string[] { "MicroHID室", "MicroHID Room" };
-                case RoomType.SCP_049:
-                    return new string[] { "SCP-049 エレベーター", "SCP-049 Elevator" };
-                case RoomType.SCP_079:
-                    return new string[] { "SCP-079 収容室", "SCP-079 Chamber" };
-                case RoomType.SCP_096:
-                    return new string[] { "SCP-096 収容室", "SCP-096 Chamber" };
-                case RoomType.SCP_106:
-                    return new string[] { "SCP-106 収容室", "SCP-106 Chamber" };
-                case RoomType.SCP_939:
-                    return new string[] { "SCP-939 収容室", "SCP-939 Chamber" };
-                case RoomType.NUKE:
-                    return new string[] { "核格納庫", "Nuke Chamber" };
-                default:
-                    return new string[] { "不明", "Unknown" };
-            }
         }
 
         static public bool CanOpenDoor(string[] permission, Smod2.API.Door door)
@@ -1178,6 +1209,42 @@ namespace SanyaPlugin
             yield break;
         }
 
+        [Obsolete("unstable. dont use it.")]
+        static public IEnumerator<float> _GrenadeLauncher(Player attacker)
+        {
+            Scp049PlayerScript ply049 = (attacker.GetGameObject() as GameObject).GetComponent<Scp049PlayerScript>();
+            GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
+            string gid = "SERVER_" + attacker.PlayerId + ":" + (gm.smThrowInteger + 4096);
+            gm.CallRpcThrowGrenade(0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, new Vector3(0f, 0f, 0f), false, 0);
+
+            Vector3 forward = ply049.plyCam.transform.forward;
+            Vector3 position = ply049.plyCam.transform.position;
+            forward.Scale(new Vector3(0.5f, 0.5f, 0.5f));
+
+            Vector3 targetpoint;
+            Vector3 mypos = attacker.GetPosition().ToVector3();
+            Vector3 addvector = ply049.plyCam.transform.forward;
+            addvector.Scale(new Vector3(0.7f, 0.7f, 0.7f));
+
+            RaycastHit raycastHit;
+            if(Physics.Raycast(forward + position, forward, out raycastHit, 100f, SanyaPlugin.playermask))
+            {
+                targetpoint = raycastHit.point;
+
+                while(Vector3.Distance(targetpoint, mypos) > 1)
+                {
+                    mypos += addvector;
+                    gm.CallRpcUpdate(gid, mypos, Quaternion.Euler(addvector), Vector3.zero, Vector3.zero);
+                    yield return 0f;
+                }
+                gm.CallRpcExplode(gid, attacker.PlayerId);
+                SanyaPlugin.Explode(attacker, new Vector(targetpoint.x, targetpoint.y, targetpoint.z));
+            }
+
+            yield break;
+        }
+
+        [Obsolete("unstable. dont use it.")]
         static public IEnumerator<float> _JammingName(Player player)
         {
             while(true)
@@ -1197,6 +1264,7 @@ namespace SanyaPlugin
             }
         }
 
+        [Obsolete("unstable. dont use it.")]
         static public IEnumerator<float> _SCPRadio(Radio radio)
         {
             while(true)
@@ -1235,9 +1303,10 @@ namespace SanyaPlugin
         NULL = -1,
         NORMAL = 0,
         NIGHT,
-        STORY,
+        STORY_173,
         CLASSD_INSURGENCY,
-        HCZ
+        HCZ,
+        STORY_049,
     }
 
     public class PlayerData
