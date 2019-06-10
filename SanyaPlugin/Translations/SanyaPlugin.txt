@@ -22,9 +22,6 @@ scp_containment_alphawarhead_message: [role] terminated by alpha warhead.
 scp_containment_decont_message: [role] lost in decontamination sequence.
 scp_containment_unknown_message: [role] contained successfully. Containment unit:[Unknown/[name]]
 scp049_recall_failed: Recall failed. This player has already respawned.
-user_command_rejected_toofast: Command Rejected.(Too fast)
-user_command_rejected_not_round: Command Rejected.(Can only used while round in progress)
-user_command_rejected_miss_condition: Command Rejected.(Condition is not met)
 generator_ez_checkpoint_name: Entrance Checkpoint
 generator_hcz_armory_name: HCZ Armory
 generator_server_room_name: Server Room
@@ -35,6 +32,9 @@ generator_scp096_name: SCP-096 Chamber
 generator_scp106_name: SCP-106 Chamber
 generator_scp939_name: SCP-939 Chamber
 generator_nuke_name: Nuke Chamber
+user_command_rejected_toofast: Command Rejected.(Too fast)
+user_command_rejected_not_round: Command Rejected.(Can only used while round in progress)
+user_command_rejected_miss_condition: Command Rejected.(Condition is not met)
 user_command_kill_success: You suicided.
 user_command_boost_success: Used [role] boost. ([hp]HP)
 user_command_radio_on: Enabled Radio.
