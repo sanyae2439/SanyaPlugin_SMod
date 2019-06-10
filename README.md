@@ -12,7 +12,7 @@ Discord : 初音早猫#0001
 
 https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Archives
 
-最新のコミットに合わせたものをダウンロードしてください
+最新は「v13.1.0」です。
 
 # Translation
 
