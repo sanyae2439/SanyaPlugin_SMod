@@ -2,9 +2,9 @@ steam_limited_message: 당신의 스팀 계정은 제한된 사용자 계정입�
 motd_message: [name], 서버에 어서오세요
 motd_role_message: [name], 저희 서버에 오신 것을 환영합니다!\n당신은 VIP입니다.
 scp_rejoin_message: 연결이 끊어진 SCP로 돌아갑니다.
-generator_starting_message: Generator[[genname]] has starting.
-generator_complete_message: [cur] out of [max] generators activated. [[genname]]
-generator_readyforall_message: [cur] out of [max] generators activated. [[genname]]\nAll generators has been sucessfully engaged.\nFinalizing recontainment sequence.\nHeavy containment zone will overcharge in t-minus 1 minutes.
+generator_starting_message: 발전기가 [[genname]]에서 시작되었습니다.
+generator_complete_message: [max]개 중 [cur]개의 발전기가 가동되었습니다. 위치 [[genname]]
+generator_readyforall_message: [max]개중 [cur]개의 발전기가 가동되었습니다. 위치 [[genname]]\n모든 발전기가 성공적으로 가동되었으며.\n재격리 절차를 마무리합니다.\n고위험군 격리구역이 1분 후에 최대 과부하 상태가 됩니다.
 decontaminated_message: 저위험군이 폐쇄되었고 오염 제거 준비가 완료되었습니다. 유기체의 제거가 시작되었습니다.
 alphawarhead_countdown_start_message: 알파 탄두 긴급 폭파 절차가 발동되었습니다. 시설 지하가 [second]초 후에 폭파됩니다.
 alphawarhead_countdown_start_server_message: 알파 탄두 긴급 폭파 절차가 시설에 의해 발동되었습니다. 시설 지하가 [second]초 후에 폭파됩니다.
@@ -22,16 +22,16 @@ scp_containment_alphawarhead_message: [role]이 격리되었습니다. 사유 : 
 scp_containment_decont_message: [role]이 격리되었습니다. 사유 저위험군 격리
 scp_containment_unknown_message: [role]이 격리되었습니다. 사유 : 알수없음
 scp049_recall_failed: 호출에 실패했습니다. 이 플레이어는 이미 리스폰을 했습니다.
-generator_ez_checkpoint_name: Entrance Checkpoint
-generator_hcz_armory_name: HCZ Armory
-generator_server_room_name: Server Room
-generator_microhid_room_name: MicroHID Room
-generator_scp049_name: SCP-049 Elevator
-generator_scp079_name: SCP-079 Chamber
-generator_scp096_name: SCP-096 Chamber
-generator_scp106_name: SCP-106 Chamber
-generator_scp939_name: SCP-939 Chamber
-generator_nuke_name: Nuke Chamber
+generator_ez_checkpoint_name: 고위험군 체크포인트
+generator_hcz_armory_name: 고위험군 무기고
+generator_server_room_name: 서버실
+generator_microhid_room_name: MicroHID 방
+generator_scp049_name: SCP-049 엘레베이터
+generator_scp079_name: SCP-079 방
+generator_scp096_name: SCP-096 방
+generator_scp106_name: SCP-106 방
+generator_scp939_name: SCP-939 방
+generator_nuke_name: 핵방
 user_command_rejected_toofast: 명령이 거부되었습니다.(너무 빠름)
 user_command_rejected_not_round: 명령이 거부되었습니다.(라운드 진행 중에만 사용할 수 있습니다.)
 user_command_rejected_miss_condition: 명령이 거부되었습니다.(조건이 충족되지 않습니다.)
