@@ -21,7 +21,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.1.0",
+    version = "13.1.1",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 1
@@ -411,7 +411,7 @@ namespace SanyaPlugin
                 case RoomType.SCP_106:
                     return new string[] { this.generator_scp106_name, "SCP-106 Chamber" };
                 case RoomType.SCP_939:
-                    return new string[] { this.generator_scp096_name, "SCP-939 Chamber" };
+                    return new string[] { this.generator_scp939_name, "SCP-939 Chamber" };
                 case RoomType.NUKE:
                     return new string[] { this.generator_nuke_name, "Nuke Chamber" };
                 default:

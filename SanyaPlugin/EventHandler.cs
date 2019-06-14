@@ -2903,7 +2903,7 @@ namespace SanyaPlugin
                                                 plugin.Debug($"Hit");
                                                 ServerMod2.API.SmodPlayer target = new ServerMod2.API.SmodPlayer(raycastHit.transform.gameObject);
                                                 CharacterClassManager comp = raycastHit.transform.GetComponent<CharacterClassManager>();
-                                                if(target != null && comp != null && target.PlayerId != ev.Player.PlayerId && target.TeamRole.Team != Smod2.API.Team.SCP && (target.GetGameObject() as GameObject).GetComponent<FallDamage>().isGrounded)
+                                                if(target != null && comp != null && target.PlayerId != ev.Player.PlayerId && !target.GetGodmode() && target.TeamRole.Team != Smod2.API.Team.SCP && (target.GetGameObject() as GameObject).GetComponent<FallDamage>().isGrounded)
                                                 {
                                                     plugin.Debug($"[106boost_target] [{target.PlayerId}]{target.Name}");
                                                     humanlist.Add(target);
@@ -2919,6 +2919,7 @@ namespace SanyaPlugin
                                                     if(item.TeamRole.Team != Smod2.API.Team.SCP &&
                                                         item.TeamRole.Team != Smod2.API.Team.SPECTATOR &&
                                                         item.TeamRole.Team != Smod2.API.Team.NONE &&
+                                                        !item.GetGodmode() &&
                                                         (item.GetGameObject() as GameObject).GetComponent<FallDamage>().isGrounded)
                                                     {
                                                         if(!(item.GetPosition().y < -1900 && item.GetPosition().y > -2000))

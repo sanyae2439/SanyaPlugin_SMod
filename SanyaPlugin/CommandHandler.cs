@@ -12,44 +12,6 @@ namespace SanyaPlugin
         public CommandHandler(SanyaPlugin plugin)
         {
             this.plugin = plugin;
-
-            /*
-            int count1 = 0;
-            int count2 = 0;
-            foreach (Scp079Interactable items in Interface079.singleton.allInteractables)
-            {
-                if (items.type == Scp079Interactable.InteractableType.Lockdown)
-                {
-                    count1++;
-                    foreach (Scp079Interactable.ZoneAndRoom zar in items.currentZonesAndRooms)
-                    {
-                        count2++;
-                        Interface079.lply.CallRpcFlickerLights(zar.currentRoom, zar.currentZone);
-                        plugin.Info(zar.currentRoom + "/" + zar.currentZone);
-                    }
-                }
-            }
-
-            /*
-            FlickerableLight[] array = UnityEngine.Object.FindObjectsOfType<FlickerableLight>();
-
-            foreach (FlickerableLight items in array)
-            {
-                Interface079.lply.CallRpcFlickerLights()
-            }
-
-
-            List<Room> temprooms = plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA);
-            List<Room> ent = temprooms.FindAll(items => { return items.ZoneType == ZoneType.ENTRANCE; });
-            List<Room> lcz = temprooms.FindAll(items => { return items.ZoneType == ZoneType.LCZ; });
-            List<Room> hcz = temprooms.FindAll(items => { return items.ZoneType == ZoneType.HCZ; });
-            List<Room> und = temprooms.FindAll(items => { return items.ZoneType == ZoneType.UNDEFINED; });
-            plugin.Info("ent:" + ent.Count + " hcz:" + hcz.Count + " lcz:" + lcz.Count + " und:" + und.Count);
-
-            ent.ForEach(items => { plugin.Info(items.ZoneType + ":" + items.RoomType); });
-            hcz.ForEach(items => { plugin.Info(items.ZoneType + ":" + items.RoomType); });
-            lcz.ForEach(items => { plugin.Info(items.ZoneType + ":" + items.RoomType); });
-            */
         }
 
         public string GetCommandDescription()
@@ -228,6 +190,15 @@ namespace SanyaPlugin
                     }
 
                     return new string[] { $"Ammo set full." };
+                }
+                else if(args[0] == "106")
+                {
+                    foreach(PocketDimensionExit pde in plugin.Server.Map.GetPocketDimensionExits())
+                    {
+                        pde.ExitType = PocketDimensionExitType.Exit;
+                    }
+
+                    return new string[] { $"All set to [Exit]." };
                 }
                 else if(args[0] == "914")
                 {
