@@ -10,9 +10,7 @@ Discord : 初音早猫#0001
 
 # Download
 
-https://github.com/hatsunemiku24/SanyaPlugin/tree/master/SanyaPlugin/Archives
-
-最新は「v13.1.0」です。
+https://github.com/sanyae2439/SanyaPlugin/releases
 
 # Translation
 
