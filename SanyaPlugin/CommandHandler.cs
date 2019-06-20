@@ -460,6 +460,14 @@ namespace SanyaPlugin
 
                     //plugin.Error($"{LayerMask.GetMask(new string[] { "Ragdoll" })}");
 
+                    //foreach(var i in plugin.playersData)
+                    //{
+                    //    plugin.Error($"{i.steamid}:{i.limited}");
+                    //    i.limited = true;
+                    //}
+
+                    //plugin.SavePlayersData();
+
                     return new string[] { "test ok" };
                 }
             }

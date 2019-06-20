@@ -21,7 +21,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.1.1",
+    version = "13.1.2",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 1
@@ -850,11 +850,22 @@ namespace SanyaPlugin
                 yield return Timing.WaitUntilDone(www);
                 if(string.IsNullOrEmpty(www.error))
                 {
-
                     XmlReaderSettings xmlReaderSettings = new XmlReaderSettings();
                     xmlReaderSettings.IgnoreComments = true;
                     xmlReaderSettings.IgnoreWhitespace = true;
                     XmlReader xmlReader = XmlReader.Create(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(www.text)), xmlReaderSettings);
+
+                    var targetdata = this.playersData.Find(x => x.steamid == player.SteamId);
+
+                    if(this.data_enabled)
+                    {
+                        if(targetdata != null && !targetdata.limited)
+                        {
+                            Info($"[SteamCheck] Already Checked:{player.SteamId}");
+                            yield break;
+                        }
+                    }
+
 
                     while(xmlReader.Read())
                     {
@@ -864,6 +875,10 @@ namespace SanyaPlugin
                             if(isLimited == "0")
                             {
                                 Info($"[SteamCheck] OK.[NotLimited]:{player.SteamId}");
+                                if(this.data_enabled && targetdata != null)
+                                {
+                                    targetdata.limited = false;
+                                }
                                 yield break;
                             }
                             else
@@ -1311,7 +1326,7 @@ namespace SanyaPlugin
 
     public class PlayerData
     {
-        public PlayerData(string s, int l, int e) { steamid = s; level = l; exp = e; }
+        public PlayerData(string s, bool m, int l, int e) { steamid = s; limited = m; level = l; exp = e; }
         public void AddExp(int amount, Smod2.API.Player target)
         {
             if(string.IsNullOrEmpty(amount.ToString()))
@@ -1341,6 +1356,7 @@ namespace SanyaPlugin
         }
 
         public string steamid;
+        public bool limited;
         public int level;
         public int exp;
     }

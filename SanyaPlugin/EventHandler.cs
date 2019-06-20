@@ -547,7 +547,7 @@ namespace SanyaPlugin
                 else
                 {
                     plugin.Warn($"New SteamId.[{ev.Player.SteamId}]");
-                    curData = new PlayerData(ev.Player.SteamId, 1, 0);
+                    curData = new PlayerData(ev.Player.SteamId, true, 1, 0);
                     plugin.playersData.Add(curData);
                     plugin.SavePlayersData();
                     if(plugin.level_enabled)
@@ -578,11 +578,28 @@ namespace SanyaPlugin
                 var target = scplist.Find(x => x.name == ev.Player.Name);
                 if(target != null)
                 {
-                    plugin.Warn($"[SCPList/ReSet] {target.name}:{target.role} (HP:{target.health}/Tier:{target.level079}/AP:{target.ap079})");
-                    target.id = ev.Player.PlayerId;
-                    ev.Player.PersonalClearBroadcasts();
-                    ev.Player.PersonalBroadcast(3, plugin.scp_rejoin_message, false);
-                    Timing.RunCoroutine(SanyaPlugin._DelayedSetReSetRole(target, ev.Player), Segment.Update);
+                    bool canreset = false;
+                    if(target.role == Role.SCP_106 && !UnityEngine.Object.FindObjectOfType<OneOhSixContainer>().used)
+                    {
+                        canreset = true;
+                    }
+                    else if(target.role == Role.SCP_079 && Generator079.mainGenerator.totalVoltage < 5)
+                    {
+                        canreset = true;
+                    }
+                    else if(target.role != Role.SCP_106 && target.role != Role.SCP_079)
+                    {
+                        canreset = true;
+                    }
+
+                    if(canreset)
+                    {
+                        plugin.Warn($"[SCPList/ReSet] {target.name}:{target.role} (HP:{target.health}/Tier:{target.level079}/AP:{target.ap079})");
+                        target.id = ev.Player.PlayerId;
+                        ev.Player.PersonalClearBroadcasts();
+                        ev.Player.PersonalBroadcast(3, plugin.scp_rejoin_message, false);
+                        Timing.RunCoroutine(SanyaPlugin._DelayedSetReSetRole(target, ev.Player), Segment.Update);
+                    }
                 }
             }
         }
