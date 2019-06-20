@@ -25,6 +25,8 @@ SanyaPlugin.txtは自動生成され、それを編集することでゲーム�
 # Install
 「sm_plugins」に入れるだけ
 
+追加で上記のTranslationを「sm_translation」へ入れましょう
+
 # Config
 ## システム系
 設定名 | 値の型 | 初期値 | 説明
