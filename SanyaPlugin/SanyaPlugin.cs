@@ -21,7 +21,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.1.2",
+    version = "13.1.3",
     SmodMajor = 3,
     SmodMinor = 4,
     SmodRevision = 1
@@ -845,6 +845,17 @@ namespace SanyaPlugin
 
         public IEnumerator<float> _CheckIsLimitedSteam(Player player)
         {
+            var targetdata = this.playersData.Find(x => x.steamid == player.SteamId);
+
+            if(this.data_enabled)
+            {
+                if(targetdata != null && !targetdata.limited)
+                {
+                    Info($"[SteamCheck] Already Checked:{player.SteamId}");
+                    yield break;
+                }
+            }
+
             using(WWW www = new WWW("https://steamcommunity.com/profiles/" + player.SteamId + "?xml=1"))
             {
                 yield return Timing.WaitUntilDone(www);
@@ -854,18 +865,6 @@ namespace SanyaPlugin
                     xmlReaderSettings.IgnoreComments = true;
                     xmlReaderSettings.IgnoreWhitespace = true;
                     XmlReader xmlReader = XmlReader.Create(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(www.text)), xmlReaderSettings);
-
-                    var targetdata = this.playersData.Find(x => x.steamid == player.SteamId);
-
-                    if(this.data_enabled)
-                    {
-                        if(targetdata != null && !targetdata.limited)
-                        {
-                            Info($"[SteamCheck] Already Checked:{player.SteamId}");
-                            yield break;
-                        }
-                    }
-
 
                     while(xmlReader.Read())
                     {
