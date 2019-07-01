@@ -21,7 +21,7 @@ namespace SanyaPlugin
 
         public string GetUsage()
         {
-            return "SANYA < PING / OVERRIDE| AMMO | BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | NEXT (CI/MTF) | SPAWN | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
+            return "SANYA < RELOAD | PRUNE | PING | OVERRIDE | LCZA (0-5) | AMMO | BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | NEXT (CI/MTF) | SPAWN | 106 | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
         }
 
         public string[] OnCall(ICommandSender sender, string[] args)
@@ -30,9 +30,36 @@ namespace SanyaPlugin
             {
                 if(args[0] == "reload")
                 {
-                    plugin.LoadPlayersData();
+                    if(plugin.data_enabled)
+                    {
+                        plugin.LoadPlayersData();
+                        return new string[] { "Player Data Reload!" };
+                    }
+                    else
+                    {
+                        return new string[] { "Player Data Disabled, not load." };
+                    }
+                }
+                else if(args[0] == "prune")
+                {
+                    if(plugin.data_enabled)
+                    {
+                        foreach(var tar in plugin.playersData.ToArray())
+                        {
+                            if(tar.level == 1 && tar.exp == 0)
+                            {
+                                plugin.playersData.Remove(tar);
+                            }
+                        }
 
-                    return new string[] { "Player Data Reload!" };
+                        plugin.SavePlayersData();
+
+                        return new string[] { "database pruned." };
+                    }
+                    else
+                    {
+                        return new string[] { "Player Data Disabled" };
+                    }
                 }
                 else if(args[0] == "blackout")
                 {
@@ -44,6 +71,17 @@ namespace SanyaPlugin
                     Generator079.mainGenerator.CallRpcOvercharge();
 
                     return new string[] { "blackout success." };
+                }
+                else if(args[0] == "lcza")
+                {
+                    DecontaminationLCZ lcz = GameObject.Find("Host").GetComponent<DecontaminationLCZ>();
+
+                    int anm;
+                    if(args.Length > 1 && int.TryParse(args[1], out anm))
+                    {
+                        lcz.CallRpcPlayAnnouncement(Mathf.Clamp(anm, 0, 5), true);
+                        return new string[] { $"lcz announcement:{Mathf.Clamp(anm, 0, 5)}" };
+                    }
                 }
                 else if(args[0] == "gen")
                 {

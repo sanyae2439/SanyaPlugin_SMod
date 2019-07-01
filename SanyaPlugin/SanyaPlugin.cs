@@ -21,13 +21,16 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.1.3",
+    version = "13.1.4",
     SmodMajor = 3,
-    SmodMinor = 4,
-    SmodRevision = 1
+    SmodMinor = 5,
+    SmodRevision = 0
     )]
     public class SanyaPlugin : Plugin
     {
+        //instance
+        static public SanyaPlugin plugin;
+
         //LayerMask
         public const int cctvmask = 262144;
         public const int doormask = 134234112;
@@ -156,6 +159,8 @@ namespace SanyaPlugin
         internal bool medkit_stop_dot_damage = false;
         [ConfigOption] //グレネードでのヒットマーク
         internal bool grenade_hitmark = false;
+        [ConfigOption] //D脱出時の追加アイテム
+        internal int classd_escaped_additemid = -1;
 
         //独自要素
         [ConfigOption] //切断したSCPが再接続で戻るように
@@ -338,8 +343,9 @@ namespace SanyaPlugin
 
         public override void OnEnable()
         {
+            SanyaPlugin.plugin = this;
             Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            Info("さにゃぱい"); ;
+            Info("さにゃぱい");
         }
 
         public override void Register()
@@ -913,6 +919,34 @@ namespace SanyaPlugin
             yield break;
         }
 
+        static public IEnumerator<float> _DelayedRecall(Player player,float delay = 10.0f)
+        {
+            CharacterClassManager ccm = (player.GetGameObject() as GameObject).GetComponent<CharacterClassManager>();
+            yield return Timing.WaitForSeconds(delay);
+
+            foreach(var ragdoll in GameObject.FindObjectsOfType<Ragdoll>())
+            {
+                if(ragdoll.owner.PlayerId == player.PlayerId && ragdoll.CompareTag("Ragdoll"))
+                {
+                    UnityEngine.Networking.NetworkServer.Destroy(ragdoll.gameObject);
+                }
+            }
+            if(ccm.curClass == (int)Role.SPECTATOR)
+            {
+                player.ChangeRole(Role.SCP_049_2, true, false, false, false);
+            }
+            yield break;
+        }
+
+        static public IEnumerator<float> _DelayedAddItem(Player player, ItemType item)
+        {
+            yield return Timing.WaitForSeconds(0.1f);
+
+            player.GiveItem(item);
+
+            yield break;
+        }
+
         static public IEnumerator<float> _DelayedGrantedLevel(Smod2.API.Player player, PlayerData data)
         {
             yield return Timing.WaitForSeconds(1f);
@@ -1224,24 +1258,23 @@ namespace SanyaPlugin
         }
 
         [Obsolete("unstable. dont use it.")]
-        static public IEnumerator<float> _GrenadeLauncher(Player attacker)
+        static public IEnumerator<float> _GrenadeLauncher(Player attacker,Vector positon, Vector forward)
         {
-            Scp049PlayerScript ply049 = (attacker.GetGameObject() as GameObject).GetComponent<Scp049PlayerScript>();
+            Vector3 position3 = positon.ToVector3();
+            Vector3 forward3 = forward.ToVector3();
+            Vector3 targetpoint;
+            Vector3 addvector = forward3;
+            Vector3 mypos = position3;
             GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
+
             string gid = "SERVER_" + attacker.PlayerId + ":" + (gm.smThrowInteger + 4096);
             gm.CallRpcThrowGrenade(0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, new Vector3(0f, 0f, 0f), false, 0);
 
-            Vector3 forward = ply049.plyCam.transform.forward;
-            Vector3 position = ply049.plyCam.transform.position;
-            forward.Scale(new Vector3(0.5f, 0.5f, 0.5f));
-
-            Vector3 targetpoint;
-            Vector3 mypos = attacker.GetPosition().ToVector3();
-            Vector3 addvector = ply049.plyCam.transform.forward;
+            forward3.Scale(new Vector3(0.5f, 0.5f, 0.5f));
             addvector.Scale(new Vector3(0.7f, 0.7f, 0.7f));
 
             RaycastHit raycastHit;
-            if(Physics.Raycast(forward + position, forward, out raycastHit, 100f, SanyaPlugin.playermask))
+            if(Physics.Raycast(forward3 + position3, forward3, out raycastHit, 100f, SanyaPlugin.playermask))
             {
                 targetpoint = raycastHit.point;
 

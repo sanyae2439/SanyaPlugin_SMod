@@ -893,7 +893,7 @@ namespace SanyaPlugin
 
             if(plugin.escape_spawn)
             {
-                plugin.Info($"[Escaped] Escaped:{ev.Player.Name}/{ev.Player.TeamRole.Role}");
+                plugin.Info($"[EscapeSpawn] Escaped:{ev.Player.Name}/{ev.Player.TeamRole.Role}:isCuffed({ev.Player.IsHandcuffed()})");
                 (ev.Player.GetGameObject() as GameObject).GetComponent<Inventory>().ServerDropAll();
                 if((ev.Player.TeamRole.Role == Role.CLASSD && ev.Player.IsHandcuffed()) || (ev.Player.TeamRole.Role == Role.SCIENTIST && !ev.Player.IsHandcuffed()))
                 {
@@ -903,8 +903,13 @@ namespace SanyaPlugin
                 else
                 {
                     plugin.Debug($"Call Teleport(CI)");
-                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, new Vector(-56, 983, -58), false), Segment.Update);
+                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, new Vector(-55, 988, -49), false), Segment.Update);
                 }
+            }
+
+            if(plugin.classd_escaped_additemid != -1 && ev.Player.TeamRole.Role == Role.CLASSD && !ev.Player.IsHandcuffed())
+            {
+                Timing.RunCoroutine(SanyaPlugin._DelayedAddItem(ev.Player, (ItemType)plugin.classd_escaped_additemid), Segment.Update);
             }
         }
 
@@ -936,6 +941,7 @@ namespace SanyaPlugin
 
         public void OnSetRole(PlayerSetRoleEvent ev)
         {
+            if(ev.Player.IpAddress == "localClient") return;
             plugin.Debug($"[OnSetRole] {ev.Player.Name}:{ev.Role}");
 
             //scplist
@@ -1150,6 +1156,7 @@ namespace SanyaPlugin
 
         public void OnPlayerHurt(PlayerHurtEvent ev)
         {
+            if(ev.Player.IpAddress == "localClient") return;
             plugin.Debug($"[OnPlayerHurt] Before {ev.Attacker.Name}<{ev.Attacker.TeamRole.Role}>({ev.DamageType}:{ev.Damage}) -> {ev.Player.Name}<{ev.Player.TeamRole.Role}>");
 
             //さにゃぱっち
@@ -1315,6 +1322,7 @@ namespace SanyaPlugin
 
         public void OnPlayerDie(PlayerDeathEvent ev)
         {
+            if(ev.Player.IpAddress == "localClient") return;
             plugin.Debug($"[OnPlayerDie] {ev.Killer}:{ev.DamageTypeVar} -> {ev.Player.Name}");
 
             //LevelExp
@@ -3620,6 +3628,16 @@ namespace SanyaPlugin
                         //Inventory inv = gameObject.GetComponent<Inventory>();
                         //plugin.Error($"{(ItemType)inv.items[inv.GetItemIndex()].id}:{inv.items[inv.GetItemIndex()].durability}");
 
+                        //Scp079PlayerScript ply079 = gameObject.GetComponent<Scp079PlayerScript>();
+
+                        //Vector3 forward = ply079.currentCamera.targetPosition.transform.forward;
+                        //Vector3 position = ply079.currentCamera.transform.position;
+
+                        //Timing.RunCoroutine(SanyaPlugin._GrenadeLauncher(ev.Player, new Vector(position.x, position.y, position.z), new Vector(forward.x, forward.y, forward.z)), Segment.Update);
+
+                        //var lcz = host.GetComponent<DecontaminationLCZ>();
+                        //lcz.CallRpcPlayAnnouncement(lcz.GetCurAnnouncement(), true);
+                        //plugin.Error($"{lcz.GetCurAnnouncement()}");
 
                         ev.ReturnMessage = "test ok(user command)";
                     }
