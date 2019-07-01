@@ -1,6 +1,8 @@
 # SanyaPlugin
-SCP SL Plugin <JP Plugin>
+SCP SL Plugin [JP Plugin]
+
 (自分のサーバー用のため、他サーバーので動作は保証できません。)
+
 説明が不足していると感じる場合、ソースコードを読んでください。
 理解できる場合のみ使用してください。
 
