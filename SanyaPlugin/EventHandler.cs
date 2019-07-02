@@ -455,7 +455,7 @@ namespace SanyaPlugin
                 plugin.Info($"Round Ended [{ev.Status}] Duration: {ev.Round.Duration / 60}:{ev.Round.Duration % 60}");
                 plugin.Info($"Class-D:{ev.Round.Stats.ClassDAlive} Scientist:{ev.Round.Stats.ScientistsAlive} NTF:{ev.Round.Stats.NTFAlive} SCP:{ev.Round.Stats.SCPAlive} CI:{ev.Round.Stats.CiAlive}");
 
-                SanyaPlugin.forceCancelAirBomb = true;
+                SanyaPlugin.isAirBombGoing = false;
 
                 if(plugin.endround_all_godmode)
                 {
@@ -524,10 +524,7 @@ namespace SanyaPlugin
             SanyaPlugin.scp_override_steamid = "";
             isFirstSpawnFasted = false;
             airbomb_used = false;
-            if(SanyaPlugin.isAirBombGoing)
-            {
-                SanyaPlugin.forceCancelAirBomb = true;
-            }
+            SanyaPlugin.isAirBombGoing = false;
         }
 
         public void OnPlayerJoin(PlayerJoinEvent ev)
@@ -3171,10 +3168,11 @@ namespace SanyaPlugin
                                         {
                                             if(NineTailedFoxAnnouncer.singleton.isFree)
                                             {
-                                                List<Player> plys = plugin.Server.GetPlayers().FindAll(x => x.TeamRole.Team == Smod2.API.Team.SCP && x.TeamRole.Role != Role.SCP_049_2 && x.TeamRole.Role != Role.SCP_079);
-                                                if(plys.Count > 0)
+                                                List<Player> plys = plugin.Server.GetPlayers(Smod2.API.Team.SCP);
+                                                List<Player> without079 = plys.FindAll(x => x.TeamRole.Role != Role.SCP_079);
+                                                if(without079.Count > 0)
                                                 {
-                                                    var target = plys[rnd.Next(0, plys.Count)];
+                                                    var target = without079[rnd.Next(0, without079.Count)];
                                                     if(target.TeamRole.Role == Role.SCP_939_53 || target.TeamRole.Role == Role.SCP_939_89)
                                                     {
 
@@ -3187,21 +3185,20 @@ namespace SanyaPlugin
 
                                                     plugin.Server.Map.ClearBroadcasts();
                                                     plugin.Server.Map.Broadcast(10, plugin.scp_containment_unknown_message.Replace("[role]", ev.Player.TeamRole.Name).Replace("[name]", target.Name), false);
+
+
+                                                    if(!ev.Player.GetBypassMode())
+                                                    {
+                                                        ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
+                                                        scp079_boost_cooltime = 30;
+                                                    }
+
+                                                    ev.ReturnMessage = "Success.(fake announce)";
                                                 }
                                                 else
                                                 {
-                                                    plugin.Server.Map.AnnounceScpKill("079", null);
-                                                    plugin.Server.Map.ClearBroadcasts();
-                                                    plugin.Server.Map.Broadcast(10, plugin.scp_containment_unknown_message.Replace("[role]", ev.Player.TeamRole.Name).Replace("[name]", ev.Player.Name), false);
+                                                    ev.ReturnMessage = plugin.user_command_rejected_miss_condition;
                                                 }
-
-                                                if(!ev.Player.GetBypassMode())
-                                                {
-                                                    ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
-                                                    scp079_boost_cooltime = 30;
-                                                }
-
-                                                ev.ReturnMessage = "Success.(fake announce)";
                                             }
                                             else
                                             {

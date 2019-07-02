@@ -22,7 +22,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.2",
+    version = "13.2.1",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 0
@@ -46,7 +46,6 @@ namespace SanyaPlugin
         static public System.DateTime roundStartTime;
         static public string scp_override_steamid = "";
         static public bool isAirBombGoing = false;
-        static public bool forceCancelAirBomb = false;
 
         //playersdata
         internal List<PlayerData> playersData;
@@ -1040,8 +1039,10 @@ namespace SanyaPlugin
 
         static public IEnumerator<float> _AirSupportBomb(int waitforready = 5, int bombcount = 10, bool isCassie = true, bool isSubtitle = false)
         {
+            plugin.Warn($"[Airbomb] booting...");
             if(isAirBombGoing)
             {
+                plugin.Error($"[Airbomb] already booted, cancel.");
                 yield break;
             }
             else
@@ -1061,17 +1062,19 @@ namespace SanyaPlugin
                 yield return Timing.WaitForSeconds(5f);
             }
 
+            plugin.Warn($"[Airbomb] charging...");
             while(waitforready > 0)
             {
                 SanyaPlugin.CallAmbientSound(7);
                 waitforready--;
                 yield return Timing.WaitForSeconds(1f);
             }
-            
+
+            plugin.Warn($"[Airbomb] throwing...");
             ServerConsole.FriendlyFire = true;
             Player hostplayer = new ServerMod2.API.SmodPlayer(GameObject.Find("Host"));
 
-            while(bombcount > 0 && !forceCancelAirBomb)
+            while(bombcount > 0 && isAirBombGoing)
             {
                 List<Vector> randompos = new List<Vector>();
                 randompos.Add(new Vector(UnityEngine.Random.Range(175, 182), 984, UnityEngine.Random.Range(25, 29)));
@@ -1126,8 +1129,7 @@ namespace SanyaPlugin
                 plugin.Server.Map.AnnounceCustomMessage("outside zone termination sequence complete");
             }
 
-            plugin.Debug($"AirBomb Ended. leftcount:{bombcount} force:{forceCancelAirBomb}");
-            forceCancelAirBomb = false;
+            plugin.Warn($"AirBomb Ended. leftcount:{bombcount} status:{isAirBombGoing}");
             isAirBombGoing = false;
             ServerConsole.FriendlyFire = plugin.ConfigManager.Config.GetBoolValue("friendly_fire", false);
             yield break;

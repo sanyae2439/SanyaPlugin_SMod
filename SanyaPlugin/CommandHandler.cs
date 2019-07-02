@@ -98,7 +98,7 @@ namespace SanyaPlugin
                 {
                     if(SanyaPlugin.isAirBombGoing)
                     {
-                        SanyaPlugin.forceCancelAirBomb = true;
+                        SanyaPlugin.isAirBombGoing = false;
                         return new string[] { "airbomb force stopped." };
                     }
                     else
