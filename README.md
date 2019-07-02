@@ -105,13 +105,16 @@ sanya_infect_limit_time | Int | 4 | SCP-049が治療できなくなるまでの�
 sanya_handcuffed_cantopen | Bool | False | 被拘束時にドアとエレベーターの操作を不能に
 sanya_medkit_stop_dot_damage | Bool | False | 939の出血などを医療キットで止められるように
 sanya_grenade_hitmark | Bool | False | グレネード命中時投げた人にヒットマークが出るように
+sanya_classd_escaped_additemid | ItemType | -1 | クラスDがカオスとして脱出した際に追加するアイテムID
 
 ## 独自要素
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
+sanya_outsidezone_termination_time | Int | -1 | 地上エリアの爆発が起こるまでの経過時間
 sanya_scp_disconnect_at_resetrole | Bool | False | SCPで切断された場合元の状態へ復帰
 sanya_suicide_need_weapon | Bool | False | .killコマンド時に武器を持つ必要があるか
 sanya_original_auto_nuke | Bool | False | 独自判定の自動核を設定
+sanya_original_auto_nuke_force_sector2 | Int | -1 | 独自核オンの場合の強制セクター2開始ラウンド経過時間
 sanya_nuke_button_auto_close | Float | -1f | 核起動ボタンの蓋が自動で閉まる時間 & 核起動室の扉をEXIT_ACC持ちで開けられるように (-1で無効)
 sanya_stop_mtf_after_nuke | Bool | False | 核起爆後の増援停止
 sanya_lock_surface_gate_before_countdown | Bool | False | 核カウントダウン開始までは地上A-Bゲートが開かないように
