@@ -22,6 +22,7 @@ scp_containment_alphawarhead_message: <color=#ff0000><size=25>《[role]はAlphaW
 scp_containment_decont_message: <color=#ff0000><size=25>《[role]は「再収容プロトコル」によって無力化されました。》\n</size><size=20>《[role] lost in decontamination sequence.》\n</size></color>
 scp_containment_unknown_message: <color=#ff0000><size=25>《[role]の収容に成功しました。収容した部隊は[不明/[name]]です。》\n</size><size=20>《[role] contained successfully. Containment unit:[Unknown/[name]].》\n</size></color>
 scp049_recall_failed: <size=25>《治療失敗。対象プレイヤーはリスポーン済みです。》\n </size><size=20>《Recall failed. This player has already respawned.》\n</size>
+outsidezone_termination_message: <color=#ff0000><size=25>《警告。地上エリアの緊急終了シーケンスが開始されます。》\n</size><size=20>《Danger, Outside Zone emergency termination sequence activated.》\n</size></color>
 generator_ez_checkpoint_name: 上層チェックポイント
 generator_hcz_armory_name: 中層弾薬庫
 generator_server_room_name: サーバールーム

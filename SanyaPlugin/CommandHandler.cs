@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using MEC;
 using Smod2.API;
 using Smod2.Commands;
 using UnityEngine;
@@ -81,6 +82,29 @@ namespace SanyaPlugin
                     {
                         lcz.CallRpcPlayAnnouncement(Mathf.Clamp(anm, 0, 5), true);
                         return new string[] { $"lcz announcement:{Mathf.Clamp(anm, 0, 5)}" };
+                    }
+                }
+                else if(args[0] == "amb")
+                {
+                    int amb;
+                    if(args.Length > 1 && int.TryParse(args[1], out amb))
+                    {
+                        SanyaPlugin.CallAmbientSound(Mathf.Clamp(amb, 0, 31));
+
+                        return new string[] { $"ambient:{Mathf.Clamp(amb, 0, 31)}" };
+                    }
+                }
+                else if(args[0] == "airbomb")
+                {
+                    if(SanyaPlugin.isAirBombGoing)
+                    {
+                        SanyaPlugin.forceCancelAirBomb = true;
+                        return new string[] { "airbomb force stopped." };
+                    }
+                    else
+                    {
+                        Timing.RunCoroutine(SanyaPlugin._AirSupportBomb(5, 10, true, true), Segment.Update);
+                        return new string[] { "airbomb started!" };
                     }
                 }
                 else if(args[0] == "gen")

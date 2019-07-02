@@ -193,6 +193,7 @@ namespace SanyaPlugin
         private int updatecounter = 0;
         private Vector traitor_pos = new Vector(170, 984, 28);
         private float decont_time = 0;
+        private bool airbomb_used = false;
 
         //CommandCoolTime
         private Dictionary<int, int> playeridlist = new Dictionary<int, int>();
@@ -454,6 +455,8 @@ namespace SanyaPlugin
                 plugin.Info($"Round Ended [{ev.Status}] Duration: {ev.Round.Duration / 60}:{ev.Round.Duration % 60}");
                 plugin.Info($"Class-D:{ev.Round.Stats.ClassDAlive} Scientist:{ev.Round.Stats.ScientistsAlive} NTF:{ev.Round.Stats.NTFAlive} SCP:{ev.Round.Stats.SCPAlive} CI:{ev.Round.Stats.CiAlive}");
 
+                SanyaPlugin.forceCancelAirBomb = true;
+
                 if(plugin.endround_all_godmode)
                 {
                     foreach(Player item in plugin.Server.GetPlayers())
@@ -520,6 +523,11 @@ namespace SanyaPlugin
             fgamount = 0;
             SanyaPlugin.scp_override_steamid = "";
             isFirstSpawnFasted = false;
+            airbomb_used = false;
+            if(SanyaPlugin.isAirBombGoing)
+            {
+                SanyaPlugin.forceCancelAirBomb = true;
+            }
         }
 
         public void OnPlayerJoin(PlayerJoinEvent ev)
@@ -2144,6 +2152,12 @@ namespace SanyaPlugin
                     }
                 }
 
+                if(plugin.outsidezone_termination_time > 0 && plugin.Round.Duration >= plugin.outsidezone_termination_time && !airbomb_used)
+                {
+                    Timing.RunCoroutine(SanyaPlugin._AirSupportBomb(5, 10, true, true), Segment.Update);
+                    airbomb_used = true;
+                }
+
                 if(plugin.original_auto_nuke)
                 {
                     if(!AlphaWarheadController.host.inProgress)
@@ -3477,6 +3491,7 @@ namespace SanyaPlugin
                         plugin.Warn($"[test_user] {ev.Player.Name}");
                         GameObject host = GameObject.Find("Host");
                         GameObject gameObject = ev.Player.GetGameObject() as GameObject;
+                        Player hostplayer = new ServerMod2.API.SmodPlayer(host);
 
 
                         //CharacterClassManager ccm = gameObject.GetComponent<CharacterClassManager>();

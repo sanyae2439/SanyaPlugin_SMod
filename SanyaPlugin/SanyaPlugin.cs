@@ -11,6 +11,7 @@ using Smod2.Config;
 using UnityEngine;
 using ServerMod2.API;
 using System;
+using System.Linq;
 
 namespace SanyaPlugin
 {
@@ -21,7 +22,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.1.4",
+    version = "13.2",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 0
@@ -44,6 +45,8 @@ namespace SanyaPlugin
         //public
         static public System.DateTime roundStartTime;
         static public string scp_override_steamid = "";
+        static public bool isAirBombGoing = false;
+        static public bool forceCancelAirBomb = false;
 
         //playersdata
         internal List<PlayerData> playersData;
@@ -163,6 +166,8 @@ namespace SanyaPlugin
         internal int classd_escaped_additemid = -1;
 
         //独自要素
+        [ConfigOption] //地上エリアの緊急終了シーケンスを実施する時間
+        internal int outsidezone_termination_time = -1;
         [ConfigOption] //切断したSCPが再接続で戻るように
         internal bool scp_disconnect_at_resetrole = false;
         [ConfigOption] //自殺時に武器を持つのが必要に
@@ -294,6 +299,9 @@ namespace SanyaPlugin
         public readonly string scp_containment_unknown_message = "[role] contained successfully. Containment unit:[Unknown/[name]]";
         [LangOption] //SCP-049治療失敗時のメッセージ（既リスポーン）
         public readonly string scp049_recall_failed = "Recall failed. This player has already respawned.";
+        [LangOption] //地上エリアの緊急終了シーケンス開始時
+        public readonly string outsidezone_termination_message = "Danger, Outside Zone emergency termination sequence activated.";
+
 
         [LangOption] //発電機の名前（EZチェックポイント）
         public readonly string generator_ez_checkpoint_name = "Entrance Checkpoint";
@@ -691,11 +699,12 @@ namespace SanyaPlugin
 
         static public void Explode(Player attacker, Vector explode_posion, bool flashbang = false, bool effectonly = false)
         {
-            GrenadeManager gm = (attacker.GetGameObject() as GameObject).GetComponent<GrenadeManager>();
-            string gid = "SERVER_" + attacker.PlayerId + ":" + (gm.smThrowInteger + 4096);
-            gm.CallRpcThrowGrenade(flashbang ? 1 : 0, attacker.PlayerId, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, effectonly ? new Vector3(0f, 0f, 0f) : new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), false, 0);
+            GrenadeManager gm = PlayerManager.localPlayer.GetComponent<GrenadeManager>();
+            int pid = attacker.PlayerId;
+            string gid = "SERVER_" + pid + ":" + (gm.smThrowInteger + 4096);
+            gm.CallRpcThrowGrenade(flashbang ? 1 : 0, pid, gm.smThrowInteger++ + 4096, new Vector3(0f, 0f, 0f), true, effectonly ? new Vector3(0f, 0f, 0f) : new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), false, 0);
             gm.CallRpcUpdate(gid, new Vector3(explode_posion.x, explode_posion.y, explode_posion.z), Quaternion.Euler(Vector3.zero), Vector3.zero, Vector3.zero);
-            gm.CallRpcExplode(gid, attacker.PlayerId);
+            gm.CallRpcExplode(gid, pid);
         }
 
         static public void ShowHitmarker(Player target)
@@ -1026,6 +1035,101 @@ namespace SanyaPlugin
         {
             yield return Timing.WaitForSeconds(0.2f);
             GameObject.Find("Host").GetComponent<MTFRespawn>().timeToNextRespawn /= fast;
+            yield break;
+        }
+
+        static public IEnumerator<float> _AirSupportBomb(int waitforready = 5, int bombcount = 10, bool isCassie = true, bool isSubtitle = false)
+        {
+            if(isAirBombGoing)
+            {
+                yield break;
+            }
+            else
+            {
+                isAirBombGoing = true;
+            }
+
+            if(isSubtitle)
+            {
+                plugin.Server.Map.ClearBroadcasts();
+                plugin.Server.Map.Broadcast(10, plugin.outsidezone_termination_message, false);
+            }
+
+            if(isCassie)
+            {
+                plugin.Server.Map.AnnounceCustomMessage("danger outside zone emergency termination sequence activated");
+                yield return Timing.WaitForSeconds(5f);
+            }
+
+            while(waitforready > 0)
+            {
+                SanyaPlugin.CallAmbientSound(7);
+                waitforready--;
+                yield return Timing.WaitForSeconds(1f);
+            }
+            
+            ServerConsole.FriendlyFire = true;
+            Player hostplayer = new ServerMod2.API.SmodPlayer(GameObject.Find("Host"));
+
+            while(bombcount > 0 && !forceCancelAirBomb)
+            {
+                List<Vector> randompos = new List<Vector>();
+                randompos.Add(new Vector(UnityEngine.Random.Range(175, 182), 984, UnityEngine.Random.Range(25, 29)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(174, 182), 984, UnityEngine.Random.Range(36, 39)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(166, 174), 984, UnityEngine.Random.Range(26, 39)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(169, 171), 987, UnityEngine.Random.Range(9, 24)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(174, 175), 988, UnityEngine.Random.Range(10, -2)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(186, 174), 990, UnityEngine.Random.Range(-1, -2)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(186, 189), 991, UnityEngine.Random.Range(-1, -24)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(185, 189), 993, UnityEngine.Random.Range(-26, -34)));
+
+                randompos.Add(new Vector(UnityEngine.Random.Range(180, 195), 995, UnityEngine.Random.Range(-36, -91)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(148, 179), 995, UnityEngine.Random.Range(-45, -72)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(118, 148), 995, UnityEngine.Random.Range(-47, -65)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(83, 118), 995, UnityEngine.Random.Range(-47, -65)));
+
+                randompos.Add(new Vector(UnityEngine.Random.Range(68, 83), 988, UnityEngine.Random.Range(-52, -66)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(53, 68), 988, UnityEngine.Random.Range(-53, -63)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(12, 49), 988, UnityEngine.Random.Range(-47, -66)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(38, 42), 988, UnityEngine.Random.Range(-40, -47)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(-25, 12), 988, UnityEngine.Random.Range(-50, -66)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(-26, -56), 988, UnityEngine.Random.Range(-50, -66)));
+
+                randompos.Add(new Vector(UnityEngine.Random.Range(-3, -24), 1001, UnityEngine.Random.Range(-66, -73)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(5, 28), 1001, UnityEngine.Random.Range(-66, -73)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(29, 55), 1001, UnityEngine.Random.Range(-66, -73)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(50, 54), 1001, UnityEngine.Random.Range(-49, -66)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(24, 48), 1001, UnityEngine.Random.Range(-41, -46)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(5, 24), 1001, UnityEngine.Random.Range(-41, -46)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(-4, -17), 1001, UnityEngine.Random.Range(-41, -46)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(4, -3), 1001, UnityEngine.Random.Range(-47, -73)));
+
+                randompos.Add(new Vector(UnityEngine.Random.Range(4, -4), 1001, UnityEngine.Random.Range(-25, -40)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(11, -11), 1001, UnityEngine.Random.Range(-18, -21)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(3, -3), 1001, UnityEngine.Random.Range(-4, -17)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(2, 14), 1001, UnityEngine.Random.Range(3, -3)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(-1, -13), 1001, UnityEngine.Random.Range(4, -3)));
+
+                randompos = randompos.OrderBy(x => Guid.NewGuid()).ToList();
+                foreach(var pos in randompos)
+                {
+                    SanyaPlugin.Explode(hostplayer, pos, false, false);
+                    yield return Timing.WaitForSeconds(0.1f);
+                }
+
+                bombcount--;
+                yield return Timing.WaitForSeconds(0.25f);
+            }
+
+            if(isCassie)
+            {
+                plugin.Server.Map.AnnounceCustomMessage("outside zone termination sequence complete");
+            }
+
+            plugin.Debug($"AirBomb Ended. leftcount:{bombcount} force:{forceCancelAirBomb}");
+            forceCancelAirBomb = false;
+            isAirBombGoing = false;
+            ServerConsole.FriendlyFire = plugin.ConfigManager.Config.GetBoolValue("friendly_fire", false);
             yield break;
         }
 
