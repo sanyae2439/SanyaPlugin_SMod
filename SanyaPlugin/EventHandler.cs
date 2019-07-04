@@ -1259,6 +1259,11 @@ namespace SanyaPlugin
                 }
             }
 
+            if(SanyaPlugin.isAirBombGoing && ev.Player.TeamRole.Team == Smod2.API.Team.SCP && ev.DamageType == DamageType.FRAG && ev.Attacker.PlayerId == ev.Player.PlayerId)
+            {
+                ev.Damage *= plugin.outsidezone_termination_multiplier_scp;
+            }
+
             //SCP-939の出血DOT
             if(plugin.scp939_dot_damage > 0 && ev.DamageType == DamageType.SCP_939 && dot_target.Find(x => x.PlayerId == ev.Player.PlayerId) == null && ev.Player.GetHealth() - ev.Damage >= 0)
             {
@@ -2151,7 +2156,7 @@ namespace SanyaPlugin
 
                 if(plugin.outsidezone_termination_time > 0 && plugin.Round.Duration >= plugin.outsidezone_termination_time && !airbomb_used)
                 {
-                    Timing.RunCoroutine(SanyaPlugin._AirSupportBomb(5, 10, true, true), Segment.Update);
+                    Timing.RunCoroutine(SanyaPlugin._AirSupportBomb(5, 10, true, true, true), Segment.Update);
                     airbomb_used = true;
                 }
 

@@ -22,7 +22,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.2.1",
+    version = "13.2.2",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 0
@@ -167,6 +167,8 @@ namespace SanyaPlugin
         //独自要素
         [ConfigOption] //地上エリアの緊急終了シーケンスを実施する時間
         internal int outsidezone_termination_time = -1;
+        [ConfigOption] //地上エリアの緊急終了シーケンスの対SCP倍率
+        internal float outsidezone_termination_multiplier_scp = 3.0f;
         [ConfigOption] //切断したSCPが再接続で戻るように
         internal bool scp_disconnect_at_resetrole = false;
         [ConfigOption] //自殺時に武器を持つのが必要に
@@ -1037,7 +1039,7 @@ namespace SanyaPlugin
             yield break;
         }
 
-        static public IEnumerator<float> _AirSupportBomb(int waitforready = 5, int bombcount = 10, bool isCassie = true, bool isSubtitle = false)
+        static public IEnumerator<float> _AirSupportBomb(int waitforready = 5, int bombcount = 10, bool isCassie = true, bool isSubtitle = false, bool isManualEndOnly = false)
         {
             plugin.Warn($"[Airbomb] booting...");
             if(isAirBombGoing)
@@ -1074,7 +1076,7 @@ namespace SanyaPlugin
             ServerConsole.FriendlyFire = true;
             Player hostplayer = new ServerMod2.API.SmodPlayer(GameObject.Find("Host"));
 
-            while(bombcount > 0 && isAirBombGoing)
+            while((bombcount > 0 || isManualEndOnly) && isAirBombGoing)
             {
                 List<Vector> randompos = new List<Vector>();
                 randompos.Add(new Vector(UnityEngine.Random.Range(175, 182), 984, UnityEngine.Random.Range(25, 29)));

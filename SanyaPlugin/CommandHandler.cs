@@ -22,7 +22,7 @@ namespace SanyaPlugin
 
         public string GetUsage()
         {
-            return "SANYA < RELOAD | PRUNE | PING | OVERRIDE | LCZA (0-5) | AMMO | BLACKOUT | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | NEXT (CI/MTF) | SPAWN | 106 | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
+            return "SANYA < RELOAD | PRUNE | PING | OVERRIDE | LCZA (0-5) | AMMO | BLACKOUT | AIRBOMB | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | NEXT (CI/MTF) | SPAWN | 106 | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
         }
 
         public string[] OnCall(ICommandSender sender, string[] args)
@@ -103,7 +103,7 @@ namespace SanyaPlugin
                     }
                     else
                     {
-                        Timing.RunCoroutine(SanyaPlugin._AirSupportBomb(5, 10, true, true), Segment.Update);
+                        Timing.RunCoroutine(SanyaPlugin._AirSupportBomb(5, 10, true, true, true), Segment.Update);
                         return new string[] { "airbomb started!" };
                     }
                 }
