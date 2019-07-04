@@ -111,6 +111,7 @@ sanya_classd_escaped_additemid | ItemType | -1 | クラスDがカオスとして
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_outsidezone_termination_time | Int | -1 | 地上エリアの爆発が起こるまでの経過時間
+sanya_outsidezone_termination_multiplier_scp | Float | 3.0 | 地上エリアの爆発の対SCP倍率
 sanya_scp_disconnect_at_resetrole | Bool | False | SCPで切断された場合元の状態へ復帰
 sanya_suicide_need_weapon | Bool | False | .killコマンド時に武器を持つ必要があるか
 sanya_original_auto_nuke | Bool | False | 独自判定の自動核を設定
