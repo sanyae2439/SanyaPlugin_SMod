@@ -12,6 +12,10 @@ https://github.com/Grover-c13/Smod2
 # Contact
 Discord : 初音早猫#0001
 
+# Bug Report
+
+https://github.com/sanyae2439/SanyaPlugin/issues
+
 # Download
 
 https://github.com/sanyae2439/SanyaPlugin/releases
