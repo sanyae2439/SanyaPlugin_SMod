@@ -140,9 +140,9 @@ namespace SanyaPlugin
                         }
                         else if(args[1] == "act")
                         {
+                            float engagecount = 6.0f;
                             foreach(Generator items in plugin.Server.Map.GetGenerators())
                             {
-                                float engagecount = 6.0f;
                                 if(!items.Engaged)
                                 {
                                     items.TimeLeft = engagecount--;
@@ -529,6 +529,37 @@ namespace SanyaPlugin
                     //}
 
                     //plugin.SavePlayersData();
+
+                    //RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
+                    //foreach(var i in rnde.posIds)
+                    //{
+                    //    plugin.Error($"{i.index}:{i.posID}:{i.position.position}");
+                    //}
+                    //plugin.Error($"-----");
+                    //foreach(var i in rnde.pickups)
+                    //{
+                    //    plugin.Error($"{i.itemID}:{i.posID}:{(ItemType)i.itemID}");
+                    //}
+
+                    //var lcz = host.GetComponent<DecontaminationLCZ>();
+                    //foreach(var i in lcz.announcements)
+                    //{
+                    //    plugin.Error($"{i.startTime}:{i.options}");
+                    //}
+
+                    //GameObject[] array = GameObject.FindGameObjectsWithTag("RoomID");
+                    //foreach(GameObject gameObject2 in array)
+                    //{
+                    //    if(gameObject2.GetComponent<Rid>() != null)
+                    //    {
+                    //        plugin.Error($"{gameObject2.GetComponent<Rid>().id}:{gameObject2.transform.position}");
+                    //    }
+                    //}
+
+                    //foreach(var pos in SanyaPlugin.Call106PDRandomExit(false))
+                    //{
+                    //    plugin.Error($"{pos}");
+                    //}
 
                     return new string[] { "test ok" };
                 }

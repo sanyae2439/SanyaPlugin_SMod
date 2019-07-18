@@ -22,7 +22,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.2.2",
+    version = "13.3",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 0
@@ -30,7 +30,7 @@ namespace SanyaPlugin
     public class SanyaPlugin : Plugin
     {
         //instance
-        static public SanyaPlugin plugin;
+        static internal SanyaPlugin plugin;
 
         //LayerMask
         public const int cctvmask = 262144;
@@ -85,6 +85,8 @@ namespace SanyaPlugin
         internal bool ci_and_scp_noend = false;
         [ConfigOption] //最初の増援を早める倍率
         internal float first_respawn_time_fast = 1.0f;
+        [ConfigOption] //CIvsMTFモード
+        internal bool civsmtf_enabled = false;
 
         //Playersデータ&LevelEXP
         [ConfigOption] //playerDataを保存するか
@@ -127,12 +129,42 @@ namespace SanyaPlugin
         //SCP系
         [ConfigOption] //発電機が起動完了した場合開かないように
         internal bool generator_engaged_cantopen = false;
+        [ConfigOption] //SCP-049の周辺でSCP-049-2が回復する範囲
+        internal float scp049_healing_to_049_2_range = -1f;
+        [ConfigOption] //SCP-049の周辺でSCP-049-2が回復する量（毎秒）
+        internal int scp049_healing_to_049_2_amount = -1;
+        [ConfigOption] //SCP-049が治療成功時に周りのSCPが回復する範囲
+        internal float scp049_healing_to_other_scp_range = -1f;
+        [ConfigOption] //SCP-049が治療成功時に周りのSCPが回復する量
+        internal int scp049_healing_to_other_scp_amount = -1;
         [ConfigOption] //SCP-079だけになった際発電機ロックがフリー&Tier5に
         internal bool scp079_lone_boost = false;
         [ConfigOption] //SCP-079がロックダウン時全館停電を起こせるTier
         internal int scp079_all_flick_light_tier = -1;
         [ConfigOption] //SCP-079がスピーカー使用時に電力を使わなくなる
         internal bool scp079_speaker_no_ap_use = false;
+        [ConfigOption] //SCP-096の発狂中に見られている場合の怒り加算への乗算値
+        internal float scp096_enraged_increase_rage = -1f;
+        [ConfigOption] //SCP-096にダメージを与えた際に発狂開始する
+        internal bool scp096_damage_trigger = false;
+        [ConfigOption] //SCP-106のポータルを踏むと人間がポケディメ行きに
+        internal bool scp106_portal_trap_human = false;
+        [ConfigOption] //SCP-106のポータルを踏むとSCPが106の元へワープできるように
+        internal bool scp106_portal_warp_scp = false;
+        [ConfigOption] //ポータル機能の最初のクールタイム
+        internal int scp106_portal_to_human_wait = 180;
+        [ConfigOption] //SCP-106の囮コンテナに入った際の放送できる時間
+        internal int scp106_lure_speaktime = -1;
+        [ConfigOption] //SCP-106のポケディメで人が死んだ際にマーク表示
+        internal bool scp106_hitmark_pocket_death = false;
+        [ConfigOption] //SCP-106のポケディメ内での人間がメディキット使用時回復量
+        internal int scp106_pocket_medkit_recovery_amount = -1;
+        [ConfigOption] //SCP-173が被弾時にまばたきを起こす確率
+        internal int scp173_hurt_blink_percent = -1;
+        [ConfigOption] //SCP-939の死体捕食を発生させるか
+        internal bool scp939_killed_ragdoll_clean = false;
+        [ConfigOption] //SCP-939のキル時加速
+        internal float scp939_killed_speedup_multiplier = -1f;
         [ConfigOption] //SCP-939に出血ダメージを付与
         internal int scp939_dot_damage = -1;
         [ConfigOption] //SCP-939の出血ダメージの総量
@@ -141,14 +173,6 @@ namespace SanyaPlugin
         internal int scp939_dot_damage_interval = 1;
         [ConfigOption] //SCP-914にプレイヤーが入った際の挙動を少し変更
         internal bool scp914_changing = false;
-        [ConfigOption] //ポータル機能の最初のクールタイム
-        internal int scp106_portal_to_human_wait = 180;
-        [ConfigOption] //SCP-106の囮コンテナに入った際の放送できる時間
-        internal int scp106_lure_speaktime = -1;
-        [ConfigOption] //SCP-106のポケディメで人が死んだ際にマーク表示
-        internal bool scp106_hitmark_pocket_death = false;
-        [ConfigOption] //SCP-096にダメージを与えた際に発狂開始する
-        internal bool scp096_damage_trigger = false;
         [ConfigOption] //SCP-049-2がキルした際もSCP-049が治療可能に
         internal bool infect_by_scp049_2 = false;
         [ConfigOption] //SCP-049が治療できなくなるまでの時間
@@ -587,9 +611,53 @@ namespace SanyaPlugin
             }
         }
 
+        static public Vector Call106PDExit()
+        {
+            List<Vector3> list = new List<Vector3>();
+            GameObject[] pdexits = GameObject.FindGameObjectsWithTag("PD_EXIT");
+            foreach(GameObject exits in pdexits)
+            {
+                list.Add(exits.transform.position);
+            }
+            int rand = UnityEngine.Random.Range(0, list.Count);
+            Vector pos = new Vector(list[rand].x, list[rand].y + 2f, list[rand].z);
+            return pos;
+        }
+
+        static public List<Vector> Call106PDRandomExit(bool isAlreadyDecont = false)
+        {
+            List<Vector> list = new List<Vector>();
+            GameObject[] roomids = GameObject.FindGameObjectsWithTag("RoomID");
+            foreach(GameObject room in roomids)
+            {
+                if(room.GetComponent<Rid>() != null
+                    && (!isAlreadyDecont || !(room.transform.position.y < 100 && room.transform.position.y > -100)))
+                {
+                    list.Add(new Vector(room.transform.position.x, room.transform.position.y + 2, room.transform.position.z));
+                }
+            }
+
+            return list;
+        }
+
         static public void Call173SnapSound(Player player)
         {
             (player.GetGameObject() as UnityEngine.GameObject).GetComponent<Scp173PlayerScript>().CallRpcSyncAudio();
+        }
+
+        static public void Call173Blink()
+        {
+            FlashEffect[] array = UnityEngine.Object.FindObjectsOfType<FlashEffect>();
+            foreach(FlashEffect flasheffect in array)
+            {
+                flasheffect.Networksync_blind = true;
+            }
+
+            Scp173PlayerScript[] array2 = UnityEngine.Object.FindObjectsOfType<Scp173PlayerScript>();
+            foreach(Scp173PlayerScript scp173PlayerScript in array2)
+            {
+                scp173PlayerScript.CallRpcBlinkTime();
+            }
         }
 
         static public void Call939SetSpeedMultiplier(Player player, float multiplier)
@@ -929,7 +997,7 @@ namespace SanyaPlugin
             yield break;
         }
 
-        static public IEnumerator<float> _DelayedRecall(Player player,float delay = 10.0f)
+        static public IEnumerator<float> _DelayedRecall(Player player, float delay = 10.0f)
         {
             CharacterClassManager ccm = (player.GetGameObject() as GameObject).GetComponent<CharacterClassManager>();
             yield return Timing.WaitForSeconds(delay);
@@ -1307,6 +1375,74 @@ namespace SanyaPlugin
             yield break;
         }
 
+        static public IEnumerator<float> _106PortalTrap(Player player)
+        {
+            GameObject gameObject = player.GetGameObject() as GameObject;
+            Scp106PlayerScript ply106 = gameObject.GetComponent<Scp106PlayerScript>();
+            PlyMovementSync pms = gameObject.GetComponent<PlyMovementSync>();
+
+            if(ply106.goingViaThePortal) yield break;
+
+            ply106.goingViaThePortal = true;
+            if(AlphaWarheadController.host.doorsClosed)
+            {
+                if(player.TeamRole.Team != Smod2.API.Team.SCP)
+                {
+                    player.Damage(500, DamageType.POCKET);
+                }
+                else
+                {
+                    List<Player> scp106s = plugin.Server.GetPlayers(Role.SCP_106);
+                    if(scp106s.Count > 0)
+                    {
+                        player.Teleport(scp106s[UnityEngine.Random.Range(0, scp106s.Count)].GetPosition());
+                    }
+                }
+            }
+            else
+            {
+                if(player.TeamRole.Team != Smod2.API.Team.SCP)
+                {
+                    pms.SetPosition(Vector3.down * 1997f);
+                    player.Damage(40, DamageType.SCP_106);
+                }
+                else
+                {
+                    List<Player> scp106s = plugin.Server.GetPlayers(Role.SCP_106);
+                    if(scp106s.Count > 0)
+                    {
+                        player.Teleport(scp106s[UnityEngine.Random.Range(0, scp106s.Count)].GetPosition());
+                    }
+                    else
+                    {
+                        player.Teleport(SanyaPlugin.Call106PDExit());
+                    }
+                }
+            }
+            yield return Timing.WaitForSeconds(5f);
+            ply106.goingViaThePortal = false;
+            yield break;
+
+            //pms.SetAllowInput(false);
+            //for(float i = 0f; i < 50; i++)
+            //{
+            //    var pos = gameObject.transform.position;
+            //    pos.y -= i * 0.01f;
+            //    pms.SetPosition(pos);
+            //    yield return 0f;
+            //}
+            //if(AlphaWarheadController.host.doorsClosed)
+            //{
+            //    if(player.TeamRole.Team != Smod2.API.Team.SCP) player.Damage(500, DamageType.POCKET);
+            //}
+            //else
+            //{
+            //    if(player.TeamRole.Team != Smod2.API.Team.SCP) player.Damage(40, DamageType.SCP_106);
+            //    pms.SetPosition(Vector3.down * 1997f);
+            //}
+            //pms.SetAllowInput(true);
+        }
+
         static public IEnumerator<float> _939Boost(Player player)
         {
             int counter = 0;
@@ -1365,8 +1501,52 @@ namespace SanyaPlugin
             yield break;
         }
 
+        static public IEnumerator<float> _096EnragingIncrase()
+        {
+            float range = ConfigFile.ServerConfig.GetFloat("096_trigger_range", 20f);
+            float angle = ConfigFile.ServerConfig.GetFloat("096_trigger_angle", 70f);
+            List<int> ignored = new List<int>(ConfigFile.GetIntList("scp096_ignored_role", false));
+
+            plugin.Debug($"[Coroutine] 096 init (range:{range}/angle:{angle}/ignoreroles:{ignored.Count}/incrasemultiplier:{plugin.scp096_enraged_increase_rage}");
+            yield return Timing.WaitForSeconds(0.1f);
+            while(Scp096PlayerScript.instance != null && Scp096PlayerScript.instance.iAm096)
+            {
+                if(Scp096PlayerScript.instance.enraged != Scp096PlayerScript.RageState.Enraged)
+                {
+                    plugin.Debug($"[Coroutine] 096 break (not enraged)");
+                    yield break;
+                }
+
+                Transform transform096 = Scp096PlayerScript.instance.camera.transform;
+                foreach(var gameObject in PlayerManager.singleton.players)
+                {
+                    if(gameObject == null
+                        || !gameObject.GetComponent<CharacterClassManager>().IsHuman()
+                        || gameObject.GetComponent<FlashEffect>().sync_blind
+                        || ignored.Contains(gameObject.GetComponent<CharacterClassManager>().curClass)
+                        )
+                        continue;
+
+                    RaycastHit raycastHit;
+                    Transform transform = gameObject.GetComponent<Scp096PlayerScript>().camera.transform;
+                    if(Vector3.Angle(transform.forward, (transform096.position - transform.position).normalized) > angle
+                        || !Physics.Raycast(transform.transform.position, (transform096.position - transform.position).normalized, out raycastHit, range, Scp096PlayerScript.instance.layerMask)
+                        || raycastHit.collider.gameObject.layer != 24
+                        || raycastHit.collider.GetComponentInParent<Scp096PlayerScript>() != Scp096PlayerScript.instance
+                    )
+                        continue;
+
+                    Scp096PlayerScript.instance.rageProgress = Mathf.Clamp01(Scp096PlayerScript.instance.rageProgress + 0.0007f * plugin.scp096_enraged_increase_rage);
+                    break;
+                }
+                yield return 0f;
+            }
+            plugin.Debug($"[Coroutine] 096 breaked (not 096)");
+            yield break;
+        }
+
         [Obsolete("unstable. dont use it.")]
-        static public IEnumerator<float> _GrenadeLauncher(Player attacker,Vector positon, Vector forward)
+        static public IEnumerator<float> _GrenadeLauncher(Player attacker, Vector positon, Vector forward)
         {
             Vector3 position3 = positon.ToVector3();
             Vector3 forward3 = forward.ToVector3();
