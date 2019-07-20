@@ -22,7 +22,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.3",
+    version = "13.3.1",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 0
@@ -36,6 +36,7 @@ namespace SanyaPlugin
         public const int cctvmask = 262144;
         public const int doormask = 134234112;
         public const int playermask = 1208246273;
+        public const int playerpluselevatormask = 1208246289;
         public const int teslamask = 4;
         public const int ragdollmask = 131072;
 
@@ -75,8 +76,6 @@ namespace SanyaPlugin
         internal bool friendly_warn = false;
         [ConfigOption] //FFの被害者と加害者両方へ@キーコンソールへ表示（上と併用可能）
         internal bool friendly_warn_console = false;
-        [ConfigOption] //リザルト無しでラウンドを終了させる
-        internal bool summary_less_mode = false;
         [ConfigOption] //ラウンド終了時に全員を無敵にする
         internal bool endround_all_godmode = false;
         [ConfigOption] //核起動開始時に一部を除きすべてのドアをオープンする
@@ -153,8 +152,6 @@ namespace SanyaPlugin
         internal bool scp106_portal_warp_scp = false;
         [ConfigOption] //ポータル機能の最初のクールタイム
         internal int scp106_portal_to_human_wait = 180;
-        [ConfigOption] //SCP-106の囮コンテナに入った際の放送できる時間
-        internal int scp106_lure_speaktime = -1;
         [ConfigOption] //SCP-106のポケディメで人が死んだ際にマーク表示
         internal bool scp106_hitmark_pocket_death = false;
         [ConfigOption] //SCP-106のポケディメ内での人間がメディキット使用時回復量
@@ -197,16 +194,12 @@ namespace SanyaPlugin
         internal bool scp_disconnect_at_resetrole = false;
         [ConfigOption] //自殺時に武器を持つのが必要に
         internal bool suicide_need_weapon = false;
-        [ConfigOption] //独自自動核
-        internal bool original_auto_nuke = false;
-        [ConfigOption] //独自核オンの場合の強制セクター2開始ラウンド経過時間
-        internal int original_auto_nuke_force_sector2 = -1;
         [ConfigOption] //核起動ボタンの蓋を自動で閉まるように & 核起動室の扉をEXIT_ACC持ち（中尉以上）で開けられるように (-1で無効)
         internal float nuke_button_auto_close = -1f;
         [ConfigOption] //核起爆後は増援が出ないように
         internal bool stop_mtf_after_nuke = false;
-        [ConfigOption] //核カウントダウンまでは地上のゲートが開かないように
-        internal bool lock_surface_gate_before_countdown = false;
+        [ConfigOption] //増援の場所を変更する確率
+        internal int mtf_and_ci_change_spawnpoint = -1;
         [ConfigOption] //カードを持たなくても使用可能に
         internal bool inventory_card_act = false;
         [ConfigOption] //NTFになる際の脱出地点を変更
@@ -1143,6 +1136,7 @@ namespace SanyaPlugin
             plugin.Warn($"[Airbomb] throwing...");
             ServerConsole.FriendlyFire = true;
             Player hostplayer = new ServerMod2.API.SmodPlayer(GameObject.Find("Host"));
+            int throwcount = 0;
 
             while((bombcount > 0 || isManualEndOnly) && isAirBombGoing)
             {
@@ -1160,11 +1154,13 @@ namespace SanyaPlugin
                 randompos.Add(new Vector(UnityEngine.Random.Range(148, 179), 995, UnityEngine.Random.Range(-45, -72)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(118, 148), 995, UnityEngine.Random.Range(-47, -65)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(83, 118), 995, UnityEngine.Random.Range(-47, -65)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(13, 15), 995, UnityEngine.Random.Range(-18, -48)));
 
                 randompos.Add(new Vector(UnityEngine.Random.Range(68, 83), 988, UnityEngine.Random.Range(-52, -66)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(53, 68), 988, UnityEngine.Random.Range(-53, -63)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(12, 49), 988, UnityEngine.Random.Range(-47, -66)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(38, 42), 988, UnityEngine.Random.Range(-40, -47)));
+                randompos.Add(new Vector(UnityEngine.Random.Range(38, 43), 988, UnityEngine.Random.Range(-32, -38)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(-25, 12), 988, UnityEngine.Random.Range(-50, -66)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(-26, -56), 988, UnityEngine.Random.Range(-50, -66)));
 
@@ -1191,6 +1187,7 @@ namespace SanyaPlugin
                 }
 
                 bombcount--;
+                throwcount++;
                 yield return Timing.WaitForSeconds(0.25f);
             }
 
@@ -1199,7 +1196,7 @@ namespace SanyaPlugin
                 plugin.Server.Map.AnnounceCustomMessage("outside zone termination sequence complete");
             }
 
-            plugin.Warn($"AirBomb Ended. leftcount:{bombcount} status:{isAirBombGoing}");
+            plugin.Warn($"AirBomb Ended. throwcount:{throwcount} status:{isAirBombGoing}");
             isAirBombGoing = false;
             ServerConsole.FriendlyFire = plugin.ConfigManager.Config.GetBoolValue("friendly_fire", false);
             yield break;
@@ -1456,18 +1453,6 @@ namespace SanyaPlugin
             }
             player.PersonalClearBroadcasts();
             player.PersonalBroadcast(3, $"<size=25>《SCP-939ブーストが終了。》\n </size><size=20>《Ended <SCP-939> boost.》\n</size>", false);
-            yield break;
-        }
-
-        static public IEnumerator<float> _LureIntercom(Player player, SanyaPlugin plugin)
-        {
-            yield return Timing.WaitForSeconds(plugin.scp106_lure_speaktime);
-            plugin.Info($"[106Lure] Contained({player.Name}):Speaking ended");
-            player.SetGodmode(false);
-            if(plugin.Server.Map.GetIntercomSpeaker() == null)
-            {
-                plugin.Server.Map.SetIntercomSpeaker(null);
-            }
             yield break;
         }
 

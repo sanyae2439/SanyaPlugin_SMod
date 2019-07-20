@@ -185,6 +185,12 @@ namespace SanyaPlugin
 
                     return new string[] { "map shaking." };
                 }
+                else if(args[0] == "femur")
+                {
+                    SanyaPlugin.Call106Scream();
+
+                    return new string[] { "Screaming!" };
+                }
                 else if(args[0] == "heli")
                 {
                     SanyaPlugin.CallVehicle(false);
@@ -346,6 +352,21 @@ namespace SanyaPlugin
                 else if(args[0] == "now")
                 {
                     return new string[] { TimeBehaviour.CurrentTimestamp().ToString() };
+                }
+                else if(args[0] == "randomitem")
+                {
+                    List<string> returned = new List<string>();
+                    RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
+                    foreach(var i in rnde.posIds)
+                    {
+                        returned.Add($"{i.index}:{i.posID}:{i.position.position}");
+                    }
+                    returned.Add($"-----");
+                    foreach(var i in rnde.pickups)
+                    {
+                        returned.Add($"{i.itemID}:{i.posID}:{(ItemType)i.itemID}");
+                    }
+                    return returned.ToArray();
                 }
                 else if(args[0] == "test")
                 {
@@ -559,6 +580,74 @@ namespace SanyaPlugin
                     //foreach(var pos in SanyaPlugin.Call106PDRandomExit(false))
                     //{
                     //    plugin.Error($"{pos}");
+                    //}
+
+                    //GameObject tunnel = GameObject.Find("Root_CollapsedTunnel");
+                    //GameObject entrance = GameObject.Find("EntranceRooms");
+
+                    //if(tunnel != null)
+                    //{
+                    //    plugin.Error($"{tunnel.name}/{tunnel.transform.position}");
+                    //}
+
+                    //if(entrance != null)
+                    //{
+                    //    plugin.Error($"{entrance.name}/{entrance.transform.position}");
+                    //    foreach(Transform i in entrance.GetComponentInChildren<Transform>())
+                    //    {
+                    //        plugin.Error($"{i.name}/{i.position}/{i.localPosition}");
+                    //        plugin.Error($"--->{i.}");
+                    //    }
+                    //}
+
+                    //ImageGenerator ig_ent = null;
+                    //ImageGenerator ig_hcz = null;
+                    //ImageGenerator ig_lcz = null;
+
+                    //foreach(ImageGenerator ig in GameObject.FindObjectsOfType<ImageGenerator>())
+                    //{
+                    //    if(ig.height == 0)
+                    //    {
+                    //        plugin.Error("lcz found");
+                    //        ig_lcz = ig;
+                    //    }else if(ig.height == -1000)
+                    //    {
+                    //        plugin.Error("hcz found");
+                    //        ig_hcz = ig;
+                    //    }
+                    //    else
+                    //    {
+                    //        plugin.Error("ent found");
+                    //        ig_ent = ig;
+                    //    }
+                    //}
+
+                    //foreach(var i in ig_ent.roomsOfType)
+                    //{
+                    //    foreach(var x in i.roomsOfType)
+                    //    {
+                    //        foreach(var y in x.room)
+                    //        {
+                    //            plugin.Error($"{y.name}/{x.type}");
+                    //        }
+                    //    }
+                    //}
+
+                    //int testmask = 1208246273;
+                    //testmask |= 1 << 4;
+                    //plugin.Debug($"{testmask}");
+
+                    //for(int i = 0; i < 32; i++)
+                    //{
+                    //    plugin.Debug($"Layer[{i}]{LayerMask.LayerToName(i)}");
+                    //    if(((1 << i) & 1208246273) != 0)
+                    //    {
+                    //        plugin.Warn($"1208246273 in [{i}]");
+                    //    }
+                    //    if(((1 << i) & testmask) != 0)
+                    //    {
+                    //        plugin.Warn($"testmask in [{i}]");
+                    //    }
                     //}
 
                     return new string[] { "test ok" };
