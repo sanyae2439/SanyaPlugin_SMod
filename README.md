@@ -51,7 +51,6 @@ sanya_title_timer | Bool | False | Nキーのプレイヤーリストにラウ�
 sanya_cassie_subtitle | Bool | False | 放送に字幕を表示
 sanya_friendly_warn | Bool | False | FFした人に警告を表示
 sanya_friendly_warn_console | Bool | False | FFの被害者と加害者両方へ@キーコンソールへ表示（字幕と併用可能）
-sanya_summary_less_mode | Bool | False | リザルト画面をなしにラウンドを終了する機能
 sanya_endround_all_godmode | Bool | False | ラウンド終了時全員を無敵にする
 sanya_nuke_start_countdown_door_lock | Bool | False | 核起動開始時に一部(SCP-106、ゲート、チェックポイント)を除きすべてのドアをオープンする
 sanya_ci_and_scp_noend | Bool | False | CIとSCPだけが残ってもラウンドが終了しないようになる
@@ -88,18 +87,27 @@ sanya_user_command_enabled_attack | Bool | True | .attackコマンドの有効�
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_generator_engaged_cantopen | Bool | False | 発電機が起動完了した場合に開かないように
+sanya_scp049_healing_to_049_2_range | Float | -1 | 049の周りにいる049-2が回復する範囲
+sanya_scp049_healing_to_049_2_amount | Int | -1 | 049の周りにいる049-2が回復する量
+sanya_scp049_healing_to_other_scp_range | Float | -1 | 049が治療成功時周りのSCPが回復する範囲
+sanya_scp049_healing_to_other_scp_amount | Int | -1 | 049が治療成功時周りのSCPが回復する量
 sanya_scp079_lone_boost | Bool | False | 079が最後のSCPになった際に発電機自由解放&Tier5に
 sanya_scp079_all_flick_light_tier | Int | -1 | 079がロックダウン時全館停電を起こせるTier
 sanya_scp079_speaker_no_ap_use | Bool | False | 079がスピーカー使用時に電力を使わなくなる
-sanya_scp914_changing | Bool | False | SCP-914に入った人の扱いを少し変更
+sanya_scp096_enraged_increase_rage | Float | -1 | 096が発狂中も見られている場合発狂時間が延長される際に追加される乗算値
+sanya_scp096_damage_trigger | Bool | False | 096がダメージを受けると発狂トリガー
+sanya_scp106_portal_trap_human | Bool | False | 106のポータルを踏むと人がポケディメ行きに
+sanya_scp106_portal_warp_scp | Bool | False | 106のポータルを踏むとSCPが106の元へ
+sanya_scp106_portal_to_human_wait　| Int | 180 | SCP-106ポータルの初回使用可能までの時間
+sanya_scp106_hitmark_pocket_death | Bool | False | ポケットディメンション内で人が死ぬと106にヒットマークが出るように
+sanya_scp106_pocket_medkit_recovery_amount | Int | ポケットディメンション内でのMedkitの回復量
+sanya_scp173_hurt_blink_percent ｜Int | -1 | 173が被弾時まばたきを発生させる確率
+sanya_scp939_killed_ragdoll_clean | Bool | False | 939がキル時に死体を発生させないように
+sanya_scp939_killed_speedup_multiplier | Float | -1 | 939がキル時に加速する乗算値
 sanya_scp939_dot_damage | Int | -1 | SCP-939に出血ダメージを付与
 sanya_scp939_dot_damage_total | Int | 80 | 出血ダメージの総量
 sanya_scp939_dot_damage_interval | Int(Second) | 1 | 出血ダメージの間隔
-sanya_scp106_portal_to_human_wait　| Int | 180 | SCP-106ポータルの初回使用可能までの時間
-sanya_scp106_lure_speaktime | Int | -1 | SCP-106の囮コンテナに入った際一定時間死なずに放送可能に
-sanya_scp106_hitmark_pocket_death | Bool | False | ポケットディメンション内で人が死ぬと106にヒットマークが出るように
-sanya_scp096_damage_trigger | Bool | False | 096がダメージを受けると発狂トリガー
-sanya_scp106_cleanup | Bool | False | Smodのscp106_cleanupが動かないときに使う用
+sanya_scp914_changing | Bool | False | SCP-914に入った人の扱いを少し変更
 sanya_infect_by_scp049_2 | Bool | False | SCP-049-2がキルした死体をSCP-049が治療可能に
 sanya_infect_limit_time | Int | 4 | SCP-049が治療できなくなるまでの時間
 
@@ -118,12 +126,10 @@ sanya_outsidezone_termination_time | Int | -1 | 地上エリアの爆発が起�
 sanya_outsidezone_termination_multiplier_scp | Float | 3.0 | 地上エリアの爆発の対SCP倍率
 sanya_scp_disconnect_at_resetrole | Bool | False | SCPで切断された場合元の状態へ復帰
 sanya_suicide_need_weapon | Bool | False | .killコマンド時に武器を持つ必要があるか
-sanya_original_auto_nuke | Bool | False | 独自判定の自動核を設定
-sanya_original_auto_nuke_force_sector2 | Int | -1 | 独自核オンの場合の強制セクター2開始ラウンド経過時間
 sanya_nuke_button_auto_close | Float | -1f | 核起動ボタンの蓋が自動で閉まる時間 & 核起動室の扉をEXIT_ACC持ちで開けられるように (-1で無効)
-sanya_stop_mtf_after_nuke | Bool | False | 核起爆後の増援停止
-sanya_lock_surface_gate_before_countdown | Bool | False | 核カウントダウン開始までは地上A-Bゲートが開かないように
 sanya_inventory_card_act | Bool | False | カードキーがインベントリ内でも効果発揮
+sanya_stop_mtf_after_nuke | Bool | False | 核起爆後の増援停止
+sanya_mtf_and_ci_change_spawnpoint　| Int | -1 | 増援の場所が変更される確率
 sanya_escape_spawn | Bool | False | NTFに転生する際の場所を変更
 sanya_intercom_information | Bool | False | 放送室のモニターに生存者情報を表示＆放送室のキーカードが不要に
 sanya_traitor_limitter | Int | -1 | 被拘束状態でNTF/カオスが脱出ポイントへ行くと敵対勢力に寝返ることができる。その際の寝返り元生存人数がこの値以下でないとできない
