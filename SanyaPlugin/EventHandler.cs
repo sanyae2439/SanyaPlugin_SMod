@@ -3351,9 +3351,17 @@ namespace SanyaPlugin
                                             else if(gen != null)
                                             {
                                                 plugin.Debug("Generator");
-                                                if(gen.isTabletConnected)
+                                                if(!gen.isDoorOpen)
+                                                {
+                                                    gen.Interact(gameObject, "EPS_DOOR");
+                                                }
+                                                else if(gen.isTabletConnected)
                                                 {
                                                     gen.Interact(gameObject, "EPS_CANCEL");
+                                                }
+                                                else if(!gen.isTabletConnected && gen.isDoorOpen)
+                                                {
+                                                    gen.Interact(gameObject, "EPS_DOOR");
                                                 }
                                             }
                                             else if(bwin != null)
