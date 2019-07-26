@@ -558,7 +558,7 @@ namespace SanyaPlugin
                     {
                         canreset = true;
                     }
-                    else if(target.role == Role.SCP_079 && Generator079.mainGenerator.totalVoltage < 5)
+                    else if(target.role == Role.SCP_079 && Generator079.mainGenerator.totalVoltage < 5 && !isAlreadyLoneDeath)
                     {
                         canreset = true;
                     }
