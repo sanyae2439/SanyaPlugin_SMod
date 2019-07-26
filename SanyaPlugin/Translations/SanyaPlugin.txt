@@ -1,4 +1,5 @@
 steam_limited_message: Your Steam account is Limited User Account.\nThis server is not allowed Limited User.
+level_redacted_message: ???
 motd_message: [name], Welcome to our server!
 motd_role_message: [name], Welcome to our server!\nYou are VIP.
 scp_rejoin_message: Returns to the SCP from which it was disconnected.

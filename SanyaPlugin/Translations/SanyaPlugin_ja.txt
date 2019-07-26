@@ -1,4 +1,5 @@
 steam_limited_message: あなたのSteamIDは「制限付きユーザーアカウント」です。Steamのヘルプを読み、制限を解除してください。
+level_redacted_message: ???
 motd_message: <size=30>[name]さん、ようこそさにゃさばへ！\nこのサーバーのルールが書かれているため、Discordへの参加を推奨します。\n[https://discord.gg/5EVfd4g]</size>
 motd_role_message: <size=30>[name]さん、ようこそさにゃさばへ！\n<color=#ff0000>あなたはルールに違反したことがあり、警告を受けています。\nDiscordに参加し、ルールをよく確認してください。</color>\n[https://discord.gg/5EVfd4g]</size>
 scp_rejoin_message: <size=30>切断前のSCPに復帰します。</size>

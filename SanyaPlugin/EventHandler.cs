@@ -174,6 +174,9 @@ namespace SanyaPlugin
         private Item[] itemtable = { };
         private List<string> genperm;
 
+        //079LoneDeath
+        private bool isAlreadyLoneDeath = false;
+
         //Dot
         static internal List<Player> dot_target = new List<Player>();
 
@@ -484,6 +487,8 @@ namespace SanyaPlugin
             cam049hall = null;
             scp049amount = 0;
             scp079amount_story049 = 0;
+
+            isAlreadyLoneDeath = false;
 
             fgamount = 0;
             SanyaPlugin.scp_override_steamid = "";
@@ -905,7 +910,7 @@ namespace SanyaPlugin
                             List<Role> scpqueue = new List<Role>();
                             foreach(var i in plugin.Server.GetRoles("SCP"))
                             {
-                                if(!i.RoleDisallowed && i.Role != Role.SCP_173 && i.Role != Role.SCP_079)
+                                if(!i.RoleDisallowed && i.Role != Role.SCP_173 && i.Role != Role.SCP_079 && i.Role != Role.SCP_049_2)
                                 {
                                     plugin.Debug($"add queue:{i.Role}");
                                     scpqueue.Add(i.Role);
@@ -972,7 +977,7 @@ namespace SanyaPlugin
                             List<Role> scpqueue = new List<Role>();
                             foreach(var i in plugin.Server.GetRoles("SCP"))
                             {
-                                if(!i.RoleDisallowed && i.Role != Role.SCP_049 && i.Role != Role.SCP_079)
+                                if(!i.RoleDisallowed && i.Role != Role.SCP_049 && i.Role != Role.SCP_079 && i.Role != Role.SCP_049_2)
                                 {
                                     plugin.Debug($"add queue:{i.Role}");
                                     scpqueue.Add(i.Role);
@@ -1335,8 +1340,41 @@ namespace SanyaPlugin
             }
             //----------------------------------------------------ペスト治療------------------------------------------------
 
+            //-------079ラストdeath-----
+            if(plugin.scp079_lone_death)
+            {
+                if(!isAlreadyLoneDeath)
+                {
+                    if(ev.Player.TeamRole.Team == Smod2.API.Team.SCP)
+                    {
+                        bool iswithoutscp079 = false;
+                        foreach(Smod2.API.Player player in plugin.Server.GetPlayers())
+                        {
+                            if(player.TeamRole.Team == Smod2.API.Team.SCP && player.TeamRole.Role != Role.SCP_079 && player.TeamRole.Role != Role.SCP_049_2 && player.PlayerId != ev.Player.PlayerId)
+                            {
+                                iswithoutscp079 = true;
+                            }
+                        }
+
+                        if(!iswithoutscp079)
+                        {
+                            foreach(Smod2.API.Player player in plugin.Server.GetPlayers(Role.SCP_079))
+                            {
+                                plugin.Info($"[079lonedeath] {player.Name}");
+                                Timing.RunCoroutine(SanyaPlugin._Emulate079Recontain(), Segment.FixedUpdate);
+                                isAlreadyLoneDeath = true;
+                                foreach(var i in plugin.Server.Map.GetGenerators())
+                                {
+                                    i.Open = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             //-------079ラストboost-----
-            if(plugin.scp079_lone_boost)
+            if(plugin.scp079_lone_boost && !plugin.scp079_lone_death)
             {
                 if(ev.Player.TeamRole.Team == Smod2.API.Team.SCP)
                 {
@@ -1602,6 +1640,8 @@ namespace SanyaPlugin
 
                 if(confignum > randomnum && !plugin.Server.Map.WarheadDetonated)
                 {
+                    DecontaminationLCZ dlcz = GameObject.Find("Host").GetComponent<DecontaminationLCZ>();
+                    int curAnm = dlcz.GetCurAnnouncement();
                     List<Vector3> list = new List<Vector3>();
                     Vector3 spawnpos;
                     Vector pos939 = plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_939_53);
@@ -1613,7 +1653,7 @@ namespace SanyaPlugin
                     plugin.Debug($"[RandomSpawner] Found 049");
                     list.Add(new Vector3(pos049.x, pos049.y, pos049.z));
 
-                    if(!plugin.Server.Map.LCZDecontaminated)
+                    if(!plugin.Server.Map.LCZDecontaminated && curAnm < 4)
                     {
                         plugin.Debug($"[RandomSpawner] Found LCZArm");
                         list.Add(new Vector3(posLCZArm.x, posLCZArm.y, posLCZArm.z));
@@ -1644,7 +1684,7 @@ namespace SanyaPlugin
                         }
                     }
 
-                    plugin.Info($"[RandomSpawner] SpawnList:{list.Count}/LCZDecont:{plugin.Server.Map.LCZDecontaminated} [{confignum}>{randomnum}]");
+                    plugin.Info($"[RandomSpawner] SpawnList:{list.Count}/LCZDecont:{plugin.Server.Map.LCZDecontaminated}/curAnm:{curAnm} [{confignum}>{randomnum}]");
                     spawnpos = list[UnityEngine.Random.Range(0, list.Count)];
 
                     foreach(var ply in ev.PlayerList)
@@ -1825,6 +1865,12 @@ namespace SanyaPlugin
                     ev.Allow = false;
                 }
             }
+
+            if(isAlreadyLoneDeath)
+            {
+                plugin.Debug($"[079lonedeath_locked] {ev.Generator.Room.RoomType}");
+                ev.Allow = false;
+            }
         }
 
         public void OnGeneratorUnlock(PlayerGeneratorUnlockEvent ev)
@@ -1879,6 +1925,12 @@ namespace SanyaPlugin
                     plugin.Debug($"[079loneUnlock] {ev.Generator.Room.RoomType}");
                     ev.Allow = true;
                 }
+            }
+
+            if(isAlreadyLoneDeath)
+            {
+                plugin.Debug($"[079lonedeath_locked] {ev.Generator.Room.RoomType}");
+                ev.Allow = false;
             }
 
             if(ev.Allow)

@@ -22,7 +22,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.3.2",
+    version = "13.3.3",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 0
@@ -138,6 +138,8 @@ namespace SanyaPlugin
         internal int scp049_healing_to_other_scp_amount = -1;
         [ConfigOption] //SCP-079だけになった際発電機ロックがフリー&Tier5に
         internal bool scp079_lone_boost = false;
+        [ConfigOption] //SCP-079だけになった際死ぬように
+        internal bool scp079_lone_death = false;
         [ConfigOption] //SCP-079がロックダウン時全館停電を起こせるTier
         internal int scp079_all_flick_light_tier = -1;
         [ConfigOption] //SCP-079がスピーカー使用時に電力を使わなくなる
@@ -271,6 +273,8 @@ namespace SanyaPlugin
         //--------------------------LangOption--------------------------
         [LangOption] //SteamがLimitedの場合のメッセージ
         public readonly string steam_limited_message = "Your Steam account is Limited User Account.\\nThis server is not allowed Limited User.";
+        [LangOption] //Levelが-1の場合
+        public readonly string level_redacted_message = "???";
         [LangOption] //MOTDメッセージ（通常時）
         public readonly string motd_message = "[name], Welcome to our server!";
         [LangOption] //MOTDメッセージ（指定role時）
@@ -920,7 +924,7 @@ namespace SanyaPlugin
             return null;
         }
 
-        public IEnumerator<float> _CheckIsLimitedSteam(Player player)
+        public IEnumerator<float> _CheckIsLimitedSteam(Player player, bool announcement = true)
         {
             var targetdata = this.playersData.Find(x => x.steamid == player.SteamId);
 
@@ -981,6 +985,53 @@ namespace SanyaPlugin
             yield break;
         }
 
+        static public IEnumerator<float> _Emulate079Recontain(bool announcement = true)
+        {
+            yield return Timing.WaitForSeconds(1f);
+
+            MTFRespawn mtf = PlayerManager.localPlayer.GetComponent<MTFRespawn>();
+            PlayerStats ps = PlayerManager.localPlayer.GetComponent<PlayerStats>();
+            NineTailedFoxAnnouncer annc = NineTailedFoxAnnouncer.singleton;
+            while(annc.queue.Count > 0 || AlphaWarheadController.host.inProgress)
+            {
+                yield return 0f;
+            }
+            if(announcement)
+            {
+                mtf.CallRpcPlayCustomAnnouncement("SCP079RECON6", true);
+                mtf.CallRpcPlayCustomAnnouncement((Scp079PlayerScript.instances.Count <= 0) ? "FACILITY IS BACK IN OPERATIONAL MODE" : "SCP 0 7 9 CONTAINEDSUCCESSFULLY", false);
+            }
+            for(int i = 0; i < 350; i++)
+            {
+                yield return 0f;
+            }
+
+            Generator079.generators[0].CallRpcOvercharge();
+            Door[] array = UnityEngine.Object.FindObjectsOfType<Door>();
+            foreach(Door door in array)
+            {
+                Scp079Interactable component = door.GetComponent<Scp079Interactable>();
+                Scp079Interactable.ZoneAndRoom zoneAndRoom = component.currentZonesAndRooms[0];
+                if(zoneAndRoom.currentZone == "HeavyRooms" && door.isOpen && !door.locked)
+                {
+                    door.ChangeState(true);
+                }
+            }
+
+            Recontainer079.isLocked = true;
+            foreach(Scp079PlayerScript scp079PlayerScript in Scp079PlayerScript.instances)
+            {
+                ps.HurtPlayer(new PlayerStats.HitInfo(1000001f, "WORLD", DamageTypes.Tesla, 0), scp079PlayerScript.gameObject);
+            }
+            for(int i = 0; i < 500; i++)
+            {
+                yield return 0f;
+            }
+            Recontainer079.isLocked = false;
+
+            yield break;
+        }
+
         static public IEnumerator<float> _SummaryLessRoundrestart(SanyaPlugin plugin, int restarttime)
         {
             yield return Timing.WaitForSeconds(restarttime);
@@ -1034,13 +1085,24 @@ namespace SanyaPlugin
                 hasColor = "pink";
             }
 
-            if(!string.IsNullOrEmpty(hasRank))
+            string level = "";
+
+            if(data.level == -1)
             {
-                player.SetRank(hasColor, $"Level{data.level} : {hasRank}", null);
+                level = plugin.level_redacted_message;
             }
             else
             {
-                player.SetRank(null, $"Level{data.level}", null);
+                level = data.level.ToString();
+            }
+
+            if(!string.IsNullOrEmpty(hasRank))
+            {
+                player.SetRank(hasColor, $"Level{level} : {hasRank}", null);
+            }
+            else
+            {
+                player.SetRank(null, $"Level{level}", null);
             }
 
             yield break;
@@ -1636,6 +1698,12 @@ namespace SanyaPlugin
         {
             if(string.IsNullOrEmpty(amount.ToString()))
             {
+                return;
+            }
+
+            if(exp == -1 || level == -1)
+            {
+                SanyaPlugin.plugin.Debug($"[Redacted] Passed....(Level{level}/Exp{exp})");
                 return;
             }
 
