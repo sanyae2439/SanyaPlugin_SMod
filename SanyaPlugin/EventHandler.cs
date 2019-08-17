@@ -150,11 +150,11 @@ namespace SanyaPlugin
         private int startwait = -1;
         //--CLASSDINS---
         private Vector camLCZarmory = null;
+        private Vector roomUpstairs = null;
         //--STORY_173--
         private int chamber173ClassDcount = 0;
         private int hall173Scientistcount = 0;
         private Vector cam173hall = null;
-        private Vector cam173chamber = null;
         private int scp173amount = 0;
         private int scp079amount_story173 = 0;
 
@@ -300,13 +300,13 @@ namespace SanyaPlugin
                     break;
                 case SANYA_GAME_MODE.STORY_173:
                     cam173hall = SanyaPlugin.GetCameraPosByName("173 HALLWAY") - new Vector(0, 2, 0);
-                    cam173chamber = SanyaPlugin.GetCameraPosByName("173 CHAMBER") - new Vector(0, 1, 0);
                     break;
                 case SANYA_GAME_MODE.STORY_049:
                     cam049hall = SanyaPlugin.GetCameraPosByName("049 HALL 5") - new Vector(0, 1, 0);
                     break;
                 case SANYA_GAME_MODE.CLASSD_INSURGENCY:
                     camLCZarmory = SanyaPlugin.GetCameraPosByName("ARMORY") - new Vector(0, 1, 0);
+                    roomUpstairs = SanyaPlugin.GetRoomPosByRoomid("Offices_upstair") + new Vector(0, 1, 0);
                     break;
                 case SANYA_GAME_MODE.HCZ:
                     foreach(Room item in plugin.Server.Map.Get079InteractionRooms(Scp079InteractionType.CAMERA))
@@ -339,9 +339,16 @@ namespace SanyaPlugin
 
             switch(eventmode)
             {
+                case SANYA_GAME_MODE.NIGHT:
+                    foreach(Generator079 gen in Generator079.generators)
+                    {
+                        gen.startDuration = plugin.night_generator_duration;
+                        gen.NetworkremainingPowerup = gen.startDuration;
+                    }
+                    break;
                 case SANYA_GAME_MODE.STORY_173:
                 case SANYA_GAME_MODE.STORY_049:
-                    foreach(Smod2.API.Player i in plugin.Server.GetPlayers(Smod2.API.Team.SCP))
+                    foreach(Smod2.API.Player i in plugin.Server.GetPlayers(Smod2.API.Team.SCP).FindAll(x => x.TeamRole.Role != Role.SCP_049_2))
                     {
                         foreach(var x in plugin.Server.GetRoles(i.TeamRole.Name))
                         {
@@ -466,8 +473,8 @@ namespace SanyaPlugin
             chamber173ClassDcount = 0;
             hall173Scientistcount = 0;
             camLCZarmory = null;
+            roomUpstairs = null;
             cam173hall = null;
-            cam173chamber = null;
             storyshaker = false;
             scp173amount = 0;
             scp079amount_story173 = 0;
@@ -569,7 +576,7 @@ namespace SanyaPlugin
             }
 
             //lobby
-            if(plugin.waiting_for_match_spawn && !roundduring && running && !RoundSummary.RoundInProgress())
+            if(plugin.waiting_for_match_spawn && !roundduring && running && !RoundSummary.RoundInProgress() && !PlayerManager.localPlayer.GetComponent<CharacterClassManager>().roundStarted)
             {
                 ev.Player.ChangeRole(Role.TUTORIAL, true, false);
                 Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_106), true), Segment.Update);
@@ -860,7 +867,7 @@ namespace SanyaPlugin
             if(plugin.scp_disconnect_at_resetrole)
             {
                 var target = scplist.Find(x => x.name == ev.Player.Name);
-                if(target == null && ev.TeamRole.Team == Smod2.API.Team.SCP)
+                if(target == null && ev.TeamRole.Team == Smod2.API.Team.SCP && ev.Player.TeamRole.Role != Role.SCP_049_2)
                 {
                     plugin.Warn($"[SCPList/Add] {ev.Player.Name}:{ev.Role}");
                     scplist.Add(new SCPPlayerData(ev.Player.PlayerId, ev.Player.Name, ev.Role, ev.Player.GetPosition(), ev.Player.TeamRole.MaxHP));
@@ -873,14 +880,14 @@ namespace SanyaPlugin
             }
 
             //------------------------------------EventMode/SetRole---------------------------
-            if(roundduring)
+            if(RoundSummary.RoundInProgress())
             {
                 switch(eventmode)
                 {
                     case SANYA_GAME_MODE.STORY_173:
-                        if(cam173chamber != null && ev.Role == Role.CLASSD && chamber173ClassDcount < 4)
+                        if(cam173hall != null && ev.Role == Role.CLASSD && chamber173ClassDcount < 4)
                         {
-                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam173chamber, false), Segment.Update);
+                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam173hall, false), Segment.Update);
                             chamber173ClassDcount++;
                         }
 
@@ -902,7 +909,9 @@ namespace SanyaPlugin
                             {
                                 plugin.Info($"[Eventer:STORY_173] SCP-079:{ev.Player.Name}");
                                 ev.Role = Role.SCP_079;
+                                ev.Player.Scp079Data.SetCamera(SanyaPlugin.GetCameraPosByName("173 CHAMBER"));
                                 scp079amount_story173++;
+                                plugin.Info($"[Eventer:STORY_173] OtherSCP({ev.Role}):{ev.Player.Name}");
                             }
                             else
                             {
@@ -919,7 +928,6 @@ namespace SanyaPlugin
                                 {
                                     ev.Role = scpqueue[rnd.Next(0, scpqueue.Count)];
                                     plugin.Server.GetRoles("SCP").Find(x => x.Role == ev.Role).RoleDisallowed = true;
-                                    plugin.Info($"[Eventer:STORY_173] OtherSCP({ev.Role}):{ev.Player.Name}");
                                 }
                                 else
                                 {
@@ -947,6 +955,7 @@ namespace SanyaPlugin
                     case SANYA_GAME_MODE.STORY_049:
                         if(ev.Role == Role.CLASSD && chamber049ClassDcount < 4)
                         {
+                            ev.Role = Role.SCP_049_2;
                             Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_049), false), Segment.Update);
                             chamber049ClassDcount++;
                         }
@@ -969,6 +978,7 @@ namespace SanyaPlugin
                             {
                                 plugin.Info($"[Eventer:STORY_049] SCP-079:{ev.Player.Name}");
                                 ev.Role = Role.SCP_079;
+                                ev.Player.Scp079Data.SetCamera(SanyaPlugin.GetCameraPosByName("049 HALL 5"));
                                 scp079amount_story049++;
                             }
                             else
@@ -1016,6 +1026,10 @@ namespace SanyaPlugin
                         {
                             Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, camLCZarmory, false), Segment.Update);
                         }
+                        if(roomUpstairs != null && ev.Role == Role.SCIENTIST)
+                        {
+                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, roomUpstairs, false), Segment.Update);
+                        }
                         break;
                     case SANYA_GAME_MODE.HCZ:
                         Room room = hcz_hallways[rnd.Next(0, hcz_hallways.Count)];
@@ -1028,6 +1042,7 @@ namespace SanyaPlugin
                         }
                         break;
                 }
+
             }
 
             //---------------------DefaultAmmo---------------------
@@ -1856,7 +1871,7 @@ namespace SanyaPlugin
         public void OnGeneratorAccess(PlayerGeneratorAccessEvent ev)
         {
             plugin.Debug($"[OnGeneratorAccess] {ev.Player.Name}:{ev.Generator.Room.RoomType}:{ev.Allow}");
-            plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}:{ev.Generator.Engaged}");
+            plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}/{ev.Generator.StartTime}:{ev.Generator.Engaged}");
 
             if(plugin.generator_engaged_cantopen)
             {
@@ -1876,7 +1891,7 @@ namespace SanyaPlugin
         public void OnGeneratorUnlock(PlayerGeneratorUnlockEvent ev)
         {
             plugin.Debug($"[OnGeneratorUnlock] {ev.Player.Name}:{ev.Generator.Room.RoomType}:{ev.Allow}");
-            plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}:{ev.Generator.Engaged}");
+            plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}/{ev.Generator.StartTime}:{ev.Generator.Engaged}");
             foreach(string p in genperm)
             {
                 plugin.Debug($"genperm:{p}");
@@ -1942,7 +1957,7 @@ namespace SanyaPlugin
         public void OnGeneratorInsertTablet(PlayerGeneratorInsertTabletEvent ev)
         {
             plugin.Debug($"[OnGeneratorInsertTablet] {ev.Player.Name}:{ev.Generator.Room.RoomType}:{ev.Allow}({ev.RemoveTablet})");
-            plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}:{ev.Generator.Engaged}");
+            plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}/{ev.Generator.StartTime}:{ev.Generator.Engaged}");
 
             if(ev.Player.GetBypassMode())
             {
@@ -1967,7 +1982,7 @@ namespace SanyaPlugin
         public void OnGeneratorEjectTablet(PlayerGeneratorEjectTabletEvent ev)
         {
             plugin.Debug($"[OnGeneratorEjectTablet] {ev.Player.Name}:{ev.Generator.Room.RoomType}:{ev.Allow}({ev.SpawnTablet})");
-            plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}:{ev.Generator.Engaged}");
+            plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}/{ev.Generator.StartTime}:{ev.Generator.Engaged}");
 
             if(ev.Player.GetBypassMode())
             {
@@ -1978,7 +1993,7 @@ namespace SanyaPlugin
         public void OnGeneratorFinish(GeneratorFinishEvent ev)
         {
             plugin.Debug($"[OnGeneratorFinish] {ev.Generator.Room.RoomType}");
-            plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}:{ev.Generator.Engaged}");
+            plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}/{ev.Generator.StartTime}:{ev.Generator.Engaged}");
 
             int engcount = 1;
             foreach(Generator gens in plugin.Server.Map.GetGenerators())
@@ -2778,7 +2793,7 @@ namespace SanyaPlugin
                                 )
                             {
                                 bool isIcom = false;
-                                if(ev.Player.GetCurrentItemIndex() > 0)
+                                if(ev.Player.GetCurrentItemIndex() > 0 && plugin.user_command_enabled_radio_intercom)
                                 {
                                     if(ev.Player.GetCurrentItem().ItemType == ItemType.RADIO)
                                     {
@@ -2841,7 +2856,7 @@ namespace SanyaPlugin
                                     }
                                 }
 
-                                if(ev.Player.GetInventory().FindIndex(x => x.ItemType == ItemType.RADIO) != -1 && !isIcom)
+                                if(ev.Player.GetInventory().FindIndex(x => x.ItemType == ItemType.RADIO) != -1 && (!isIcom || !plugin.user_command_enabled_radio_intercom))
                                 {
                                     if(ev.Player.RadioStatus != RadioStatus.CLOSE)
                                     {

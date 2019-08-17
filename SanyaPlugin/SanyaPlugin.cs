@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.4",
+    version = "13.4.1",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 1
@@ -65,6 +65,8 @@ namespace SanyaPlugin
         internal string motd_target_role = "";
         [ConfigOption] //ゲームモードランダムの率
         internal int[] event_mode_weight = new int[] { 1, -1, -1, -1, -1, -1 };
+        [ConfigOption] //停電時の発電機起動時間
+        internal float night_generator_duration = 30;
         [ConfigOption] //反乱時のドロップ追加数
         internal int classd_ins_items = 10;
         [ConfigOption] //中層スタート時のガードの数
@@ -119,6 +121,8 @@ namespace SanyaPlugin
         internal bool user_command_enabled_079sp = true;
         [ConfigOption] //コマンドの個別有効化（.radio）
         internal bool user_command_enabled_radio = true;
+        [ConfigOption] //コマンドの個別有効化（.radioのintercom機能）
+        internal bool user_command_enabled_radio_intercom = true;
         [ConfigOption] //コマンドの個別有効化（.attack）
         internal bool user_command_enabled_attack = true;
         [ConfigOption] //コマンドの個別有効化（.boost）
@@ -520,6 +524,19 @@ namespace SanyaPlugin
                 if(camera.cameraName == name)
                 {
                     return new Vector(camera.transform.position.x, camera.transform.position.y, camera.transform.position.z);
+                }
+            }
+            return null;
+        }
+
+        static public Vector GetRoomPosByRoomid(string roomid)
+        {
+            foreach(GameObject item in GameObject.FindGameObjectsWithTag("RoomID"))
+            {
+                Rid rid = item.GetComponent<Rid>();
+                if(rid != null && (rid.id == roomid))
+                {
+                    return new Vector(item.transform.position.x, item.transform.position.y, item.transform.position.z);
                 }
             }
             return null;
