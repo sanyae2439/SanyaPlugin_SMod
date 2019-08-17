@@ -1,4 +1,7 @@
 ﻿using Newtonsoft.Json;
+using System;
+using System.Linq;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Xml;
 using System.IO;
@@ -10,8 +13,6 @@ using Smod2.Lang;
 using Smod2.Config;
 using UnityEngine;
 using ServerMod2.API;
-using System;
-using System.Linq;
 
 namespace SanyaPlugin
 {
@@ -22,10 +23,10 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.3.3",
+    version = "13.4",
     SmodMajor = 3,
     SmodMinor = 5,
-    SmodRevision = 0
+    SmodRevision = 1
     )]
     public class SanyaPlugin : Plugin
     {
@@ -84,14 +85,12 @@ namespace SanyaPlugin
         internal bool ci_and_scp_noend = false;
         [ConfigOption] //最初の増援を早める倍率
         internal float first_respawn_time_fast = 1.0f;
-        [ConfigOption] //CIvsMTFモード
-        internal bool civsmtf_enabled = false;
+        [ConfigOption] //ラウンド待ちのときにTutorialでスポーンさせる
+        internal bool waiting_for_match_spawn = false;
 
         //Playersデータ&LevelEXP
         [ConfigOption] //playerDataを保存するか
         internal bool data_enabled = false;
-        [ConfigOption] //dataはglobalか
-        internal bool data_global = false;
         [ConfigOption] //Level機能の有効
         internal bool level_enabled = false;
         [ConfigOption] //Kill時のExp
@@ -375,7 +374,26 @@ namespace SanyaPlugin
         {
             SanyaPlugin.plugin = this;
             Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
-            Info("さにゃぱい");
+            Info("ずり");
+
+            Assembly aslib = Assembly.GetAssembly(typeof(ServerConsole));
+            var Smodinternal = aslib.GetType("ServerMod");
+            string smodver = Smodinternal.GetField("SM_VERSION", BindingFlags.Public | BindingFlags.Static).GetValue(null) as string;
+            List<int> smodvers = new List<int>();
+            foreach(var i in smodver.Split('.'))
+            {
+                smodvers.Add(int.Parse(i));
+            }
+
+            Info($"CurrentSmod:{smodvers[0]}.{smodvers[1]}.{smodvers[2]} / SanyaPluginTarget:{this.Details.SmodMajor}.{this.Details.SmodMinor}.{this.Details.SmodRevision}");
+            if(smodvers[0] != this.Details.SmodMajor 
+                || smodvers[1] != this.Details.SmodMinor 
+                || smodvers[2] != this.Details.SmodRevision
+                )
+            {
+                Error("SModとSanyaPluginのターゲットVerが相違しています。正しく動作しない場合があります。");
+                Error("En:[SMod and SanyaPlugin target versions are different. may not work correctly.]");
+            }
         }
 
         public override void Register()
@@ -388,15 +406,15 @@ namespace SanyaPlugin
         {
             try
             {
-                if(!Directory.Exists(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin"))
+                if(!Directory.Exists(FileManager.GetAppFolder(false) + "SanyaPlugin"))
                 {
-                    Directory.CreateDirectory(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin");
+                    Directory.CreateDirectory(FileManager.GetAppFolder(false) + "SanyaPlugin");
                 }
-                if(!File.Exists(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json"))
+                if(!File.Exists(FileManager.GetAppFolder(false) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json"))
                 {
-                    File.WriteAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", "[\n]");
+                    File.WriteAllText(FileManager.GetAppFolder(false) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", "[\n]");
                 }
-                playersData = JsonConvert.DeserializeObject<List<PlayerData>>(File.ReadAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json"));
+                playersData = JsonConvert.DeserializeObject<List<PlayerData>>(File.ReadAllText(FileManager.GetAppFolder(false) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json"));
                 Info($"playersData Loaded.[Count:{playersData.Count}]");
             }
             catch(System.Exception e)
@@ -409,15 +427,15 @@ namespace SanyaPlugin
         {
             try
             {
-                if(!Directory.Exists(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin"))
+                if(!Directory.Exists(FileManager.GetAppFolder(false) + "SanyaPlugin"))
                 {
-                    Directory.CreateDirectory(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin");
+                    Directory.CreateDirectory(FileManager.GetAppFolder(false) + "SanyaPlugin");
                 }
-                if(!File.Exists(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json"))
+                if(!File.Exists(FileManager.GetAppFolder(false) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json"))
                 {
-                    File.WriteAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", "[\n]");
+                    File.WriteAllText(FileManager.GetAppFolder(false) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", "[\n]");
                 }
-                File.WriteAllText(FileManager.GetAppFolder(GetConfigBool("sanya_data_global")) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", JsonConvert.SerializeObject(playersData, Newtonsoft.Json.Formatting.Indented));
+                File.WriteAllText(FileManager.GetAppFolder(false) + "SanyaPlugin" + Path.DirectorySeparatorChar.ToString() + "players.json", JsonConvert.SerializeObject(playersData, Newtonsoft.Json.Formatting.Indented));
                 Info($"playersData Saved.[Count:{playersData.Count}]");
             }
             catch(System.Exception e)

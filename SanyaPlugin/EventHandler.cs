@@ -337,16 +337,6 @@ namespace SanyaPlugin
                 isFirstSpawnFasted = true;
             }
 
-            if(plugin.civsmtf_enabled)
-            {
-                Vector cam = SanyaPlugin.GetCameraPosByName("ARMORY") - new Vector(0, 1, 0);
-
-                foreach(var p in plugin.Server.GetPlayers(Smod2.API.Team.CHAOS_INSURGENCY))
-                {
-                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(p, cam, false), Segment.Update);
-                }
-            }
-
             switch(eventmode)
             {
                 case SANYA_GAME_MODE.STORY_173:
@@ -576,6 +566,13 @@ namespace SanyaPlugin
                         Timing.RunCoroutine(SanyaPlugin._DelayedSetReSetRole(target, ev.Player), Segment.Update);
                     }
                 }
+            }
+
+            //lobby
+            if(plugin.waiting_for_match_spawn && !roundduring && running && !RoundSummary.RoundInProgress())
+            {
+                ev.Player.ChangeRole(Role.TUTORIAL, true, false);
+                Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_106), true), Segment.Update);
             }
         }
 
@@ -876,158 +873,161 @@ namespace SanyaPlugin
             }
 
             //------------------------------------EventMode/SetRole---------------------------
-            switch(eventmode)
+            if(roundduring)
             {
-                case SANYA_GAME_MODE.STORY_173:
-                    if(cam173chamber != null && ev.Role == Role.CLASSD && chamber173ClassDcount < 4)
-                    {
-                        Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam173chamber, false), Segment.Update);
-                        chamber173ClassDcount++;
-                    }
-
-                    if(cam173hall != null && ev.Role == Role.SCIENTIST && hall173Scientistcount < 4)
-                    {
-                        Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam173hall, false), Segment.Update);
-                        hall173Scientistcount++;
-                    }
-
-                    if(ev.Role == Role.TUTORIAL)
-                    {
-                        if(scp173amount == 0)
+                switch(eventmode)
+                {
+                    case SANYA_GAME_MODE.STORY_173:
+                        if(cam173chamber != null && ev.Role == Role.CLASSD && chamber173ClassDcount < 4)
                         {
-                            plugin.Info($"[Eventer:STORY_173] SCP-173:{ev.Player.Name}");
-                            ev.Role = Role.SCP_173;
-                            scp173amount++;
+                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam173chamber, false), Segment.Update);
+                            chamber173ClassDcount++;
                         }
-                        else if(scp079amount_story173 == 0)
+
+                        if(cam173hall != null && ev.Role == Role.SCIENTIST && hall173Scientistcount < 4)
                         {
-                            plugin.Info($"[Eventer:STORY_173] SCP-079:{ev.Player.Name}");
-                            ev.Role = Role.SCP_079;
-                            scp079amount_story173++;
+                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam173hall, false), Segment.Update);
+                            hall173Scientistcount++;
                         }
-                        else
+
+                        if(ev.Role == Role.TUTORIAL)
                         {
-                            List<Role> scpqueue = new List<Role>();
-                            foreach(var i in plugin.Server.GetRoles("SCP"))
+                            if(scp173amount == 0)
                             {
-                                if(!i.RoleDisallowed && i.Role != Role.SCP_173 && i.Role != Role.SCP_079 && i.Role != Role.SCP_049_2)
-                                {
-                                    plugin.Debug($"add queue:{i.Role}");
-                                    scpqueue.Add(i.Role);
-                                }
+                                plugin.Info($"[Eventer:STORY_173] SCP-173:{ev.Player.Name}");
+                                ev.Role = Role.SCP_173;
+                                scp173amount++;
                             }
-                            if(scpqueue.Count != 0)
+                            else if(scp079amount_story173 == 0)
                             {
-                                ev.Role = scpqueue[rnd.Next(0, scpqueue.Count)];
-                                plugin.Server.GetRoles("SCP").Find(x => x.Role == ev.Role).RoleDisallowed = true;
-                                plugin.Info($"[Eventer:STORY_173] OtherSCP({ev.Role}):{ev.Player.Name}");
+                                plugin.Info($"[Eventer:STORY_173] SCP-079:{ev.Player.Name}");
+                                ev.Role = Role.SCP_079;
+                                scp079amount_story173++;
                             }
                             else
                             {
-                                plugin.Error($"[Eventer:STORY_173] No SCP Queues,Skipped...({ev.Role}):{ev.Player.Name}");
-                            }
-
-
-                            //Other SCP = 372CONTAIN
-                            Vector containpos = null;
-                            RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
-                            foreach(var itempos in rnde.posIds)
-                            {
-                                if(itempos.posID == "RandomPistol" && itempos.position.position.y > 0.5f && itempos.position.position.y < 0.7f)
+                                List<Role> scpqueue = new List<Role>();
+                                foreach(var i in plugin.Server.GetRoles("SCP"))
                                 {
-                                    containpos = new Vector(itempos.position.position.x, itempos.position.position.y + 1, itempos.position.position.z);
+                                    if(!i.RoleDisallowed && i.Role != Role.SCP_173 && i.Role != Role.SCP_079 && i.Role != Role.SCP_049_2)
+                                    {
+                                        plugin.Debug($"add queue:{i.Role}");
+                                        scpqueue.Add(i.Role);
+                                    }
+                                }
+                                if(scpqueue.Count != 0)
+                                {
+                                    ev.Role = scpqueue[rnd.Next(0, scpqueue.Count)];
+                                    plugin.Server.GetRoles("SCP").Find(x => x.Role == ev.Role).RoleDisallowed = true;
+                                    plugin.Info($"[Eventer:STORY_173] OtherSCP({ev.Role}):{ev.Player.Name}");
+                                }
+                                else
+                                {
+                                    plugin.Error($"[Eventer:STORY_173] No SCP Queues,Skipped...({ev.Role}):{ev.Player.Name}");
+                                }
+
+
+                                //Other SCP = 372CONTAIN
+                                Vector containpos = null;
+                                RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
+                                foreach(var itempos in rnde.posIds)
+                                {
+                                    if(itempos.posID == "RandomPistol" && itempos.position.position.y > 0.5f && itempos.position.position.y < 0.7f)
+                                    {
+                                        containpos = new Vector(itempos.position.position.x, itempos.position.position.y + 1, itempos.position.position.z);
+                                    }
+                                }
+                                if(containpos != null)
+                                {
+                                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, containpos, false), Segment.Update);
                                 }
                             }
-                            if(containpos != null)
-                            {
-                                Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, containpos, false), Segment.Update);
-                            }
                         }
-                    }
-                    break;
-                case SANYA_GAME_MODE.STORY_049:
-                    if(ev.Role == Role.CLASSD && chamber049ClassDcount < 4)
-                    {
-                        Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_049), false), Segment.Update);
-                        chamber049ClassDcount++;
-                    }
+                        break;
+                    case SANYA_GAME_MODE.STORY_049:
+                        if(ev.Role == Role.CLASSD && chamber049ClassDcount < 4)
+                        {
+                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_049), false), Segment.Update);
+                            chamber049ClassDcount++;
+                        }
 
-                    if(cam049hall != null && ev.Role == Role.SCIENTIST && hall049Scientistcount < 4)
-                    {
-                        Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam049hall, false), Segment.Update);
-                        hall049Scientistcount++;
-                    }
+                        if(cam049hall != null && ev.Role == Role.SCIENTIST && hall049Scientistcount < 4)
+                        {
+                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam049hall, false), Segment.Update);
+                            hall049Scientistcount++;
+                        }
 
-                    if(ev.Role == Role.TUTORIAL)
-                    {
-                        if(scp049amount == 0)
+                        if(ev.Role == Role.TUTORIAL)
                         {
-                            plugin.Info($"[Eventer:STORY_049] SCP-049:{ev.Player.Name}");
-                            ev.Role = Role.SCP_049;
-                            scp049amount++;
-                        }
-                        else if(scp079amount_story049 == 0)
-                        {
-                            plugin.Info($"[Eventer:STORY_049] SCP-079:{ev.Player.Name}");
-                            ev.Role = Role.SCP_079;
-                            scp079amount_story049++;
-                        }
-                        else
-                        {
-                            List<Role> scpqueue = new List<Role>();
-                            foreach(var i in plugin.Server.GetRoles("SCP"))
+                            if(scp049amount == 0)
                             {
-                                if(!i.RoleDisallowed && i.Role != Role.SCP_049 && i.Role != Role.SCP_079 && i.Role != Role.SCP_049_2)
-                                {
-                                    plugin.Debug($"add queue:{i.Role}");
-                                    scpqueue.Add(i.Role);
-                                }
+                                plugin.Info($"[Eventer:STORY_049] SCP-049:{ev.Player.Name}");
+                                ev.Role = Role.SCP_049;
+                                scp049amount++;
                             }
-                            if(scpqueue.Count != 0)
+                            else if(scp079amount_story049 == 0)
                             {
-                                ev.Role = scpqueue[rnd.Next(0, scpqueue.Count)];
-                                plugin.Server.GetRoles("SCP").Find(x => x.Role == ev.Role).RoleDisallowed = true;
-                                plugin.Info($"[Eventer:STORY_049] OtherSCP({ev.Role}):{ev.Player.Name}");
+                                plugin.Info($"[Eventer:STORY_049] SCP-079:{ev.Player.Name}");
+                                ev.Role = Role.SCP_079;
+                                scp079amount_story049++;
                             }
                             else
                             {
-                                plugin.Error($"[Eventer:STORY_049] No SCP Queues,Skipped...({ev.Role}):{ev.Player.Name}");
-                            }
-
-
-                            //Other SCP = 372CONTAIN
-                            Vector containpos = null;
-                            RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
-                            foreach(var itempos in rnde.posIds)
-                            {
-                                if(itempos.posID == "RandomPistol" && itempos.position.position.y > 0.5f && itempos.position.position.y < 0.7f)
+                                List<Role> scpqueue = new List<Role>();
+                                foreach(var i in plugin.Server.GetRoles("SCP"))
                                 {
-                                    containpos = new Vector(itempos.position.position.x, itempos.position.position.y + 1, itempos.position.position.z);
+                                    if(!i.RoleDisallowed && i.Role != Role.SCP_049 && i.Role != Role.SCP_079 && i.Role != Role.SCP_049_2)
+                                    {
+                                        plugin.Debug($"add queue:{i.Role}");
+                                        scpqueue.Add(i.Role);
+                                    }
+                                }
+                                if(scpqueue.Count != 0)
+                                {
+                                    ev.Role = scpqueue[rnd.Next(0, scpqueue.Count)];
+                                    plugin.Server.GetRoles("SCP").Find(x => x.Role == ev.Role).RoleDisallowed = true;
+                                    plugin.Info($"[Eventer:STORY_049] OtherSCP({ev.Role}):{ev.Player.Name}");
+                                }
+                                else
+                                {
+                                    plugin.Error($"[Eventer:STORY_049] No SCP Queues,Skipped...({ev.Role}):{ev.Player.Name}");
+                                }
+
+
+                                //Other SCP = 372CONTAIN
+                                Vector containpos = null;
+                                RandomItemSpawner rnde = UnityEngine.GameObject.FindObjectOfType<RandomItemSpawner>();
+                                foreach(var itempos in rnde.posIds)
+                                {
+                                    if(itempos.posID == "RandomPistol" && itempos.position.position.y > 0.5f && itempos.position.position.y < 0.7f)
+                                    {
+                                        containpos = new Vector(itempos.position.position.x, itempos.position.position.y + 1, itempos.position.position.z);
+                                    }
+                                }
+                                if(containpos != null)
+                                {
+                                    Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, containpos, false), Segment.Update);
                                 }
                             }
-                            if(containpos != null)
-                            {
-                                Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, containpos, false), Segment.Update);
-                            }
                         }
-                    }
-                    break;
-                case SANYA_GAME_MODE.CLASSD_INSURGENCY:
-                    if(camLCZarmory != null && ev.Role == Role.CLASSD)
-                    {
-                        Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, camLCZarmory, false), Segment.Update);
-                    }
-                    break;
-                case SANYA_GAME_MODE.HCZ:
-                    Room room = hcz_hallways[rnd.Next(0, hcz_hallways.Count)];
-                    Vector pos = new Vector(room.Position.x, room.Position.y + 3, room.Position.z);
+                        break;
+                    case SANYA_GAME_MODE.CLASSD_INSURGENCY:
+                        if(camLCZarmory != null && ev.Role == Role.CLASSD)
+                        {
+                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, camLCZarmory, false), Segment.Update);
+                        }
+                        break;
+                    case SANYA_GAME_MODE.HCZ:
+                        Room room = hcz_hallways[rnd.Next(0, hcz_hallways.Count)];
+                        Vector pos = new Vector(room.Position.x, room.Position.y + 3, room.Position.z);
 
-                    if(hcz_hallways != null && (ev.Role == Role.CLASSD || ev.Role == Role.SCIENTIST))
-                    {
-                        plugin.Debug($"HCZ Teleport:{room.RoomType} : {pos}");
-                        Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, pos, false), Segment.Update);
-                    }
-                    break;
+                        if(hcz_hallways != null && (ev.Role == Role.CLASSD || ev.Role == Role.SCIENTIST))
+                        {
+                            plugin.Debug($"HCZ Teleport:{room.RoomType} : {pos}");
+                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, pos, false), Segment.Update);
+                        }
+                        break;
+                }
             }
 
             //---------------------DefaultAmmo---------------------
@@ -3802,6 +3802,8 @@ namespace SanyaPlugin
 
                         //plugin.Error($"{p079.GetOtherRoom().currentRoom}/{p079.GetOtherRoom().currentZone}");
                         //plugin.Error($"{player.GetCurrentRoom().name}");
+
+                        //ev.Player.ChangeRole(Role.TUTORIAL, true, false);
 
                         ev.ReturnMessage = "test ok(user command)";
                     }
