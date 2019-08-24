@@ -3759,6 +3759,7 @@ namespace SanyaPlugin
                             scorelist += $"{String.Format("{0,-30}",sc.player.Name)}\nDamage:{String.Format("{0,-8}", sc.damageamount)} Kill:{String.Format("{0,-4}", sc.killamount)} Death:{String.Format("{0,-4}", sc.deathamount)}\n";
                         }
                         ev.Player.SendConsoleMessage(scorelist);
+                        ev.ReturnMessage = "show scoreboard.";
                     }
                     else if(ev.Command.StartsWith("test"))
                     {
