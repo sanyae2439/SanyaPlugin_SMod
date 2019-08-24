@@ -483,15 +483,14 @@ namespace SanyaPlugin
                     int scoreBc = 0;
                     scoredb.Sort((a, b) => b.damageamount - a.damageamount);
                     string bcstr = "ラウンド終了！\n";
-                    string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList--")}\n";
-                    scorelist += $"{String.Format("{0,15}", "Name")}                {String.Format("{0,-4}", "Damage")}    {String.Format("{0,-2}", "Kill")} {String.Format("{0,-2}", "Death")}\n";
+                    string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList[Damage Rank] --")}\n";
                     foreach(PlayerScoreInfo sc in scoredb)
                     {
                         if(scoreBc < 3)
                         {
                             bcstr += $"{++scoreBc}位:{sc.player.Name} 総ダメージ:{sc.damageamount} キル:{sc.killamount} デス:{sc.deathamount}\n";
                         }
-                        scorelist += $"{String.Format("{0,-30}", sc.player.Name)} {String.Format("{0,-8}", sc.damageamount)} {String.Format("{0,-4}", sc.killamount)} {String.Format("{0,-4}", sc.deathamount)}\n";
+                        scorelist += $"{String.Format("{0,-30}", sc.player.Name)}\nDamage:{String.Format("{0,-8}", sc.damageamount)} Kill:{String.Format("{0,-4}", sc.killamount)} Death:{String.Format("{0,-4}", sc.deathamount)}\n";
                     }
                     bcstr += $"その他順位は＠キーコンソールへ";
                     foreach(Player player in plugin.Server.GetPlayers())
@@ -1326,7 +1325,7 @@ namespace SanyaPlugin
             }
 
             //ScoreDB
-            if(plugin.score_summary_inround && ev.Attacker.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.PlayerId != ev.Attacker.PlayerId)
+            if(plugin.score_summary_inround && ev.Attacker.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.PlayerId != ev.Attacker.PlayerId && ev.Player.TeamRole.Role != Role.TUTORIAL)
             {
                 PlayerScoreInfo attacker = scoredb.Find(x => x.player.PlayerId == ev.Attacker.PlayerId);
                 if(attacker != null)
@@ -1393,11 +1392,11 @@ namespace SanyaPlugin
             {
                 PlayerScoreInfo attacker = scoredb.Find(x => x.player.PlayerId == ev.Killer.PlayerId);
                 PlayerScoreInfo damaged = scoredb.Find(x => x.player.PlayerId == ev.Player.PlayerId);
-                if(attacker != null && ev.Killer.PlayerId != ev.Player.PlayerId)
+                if(attacker != null && ev.Killer.PlayerId != ev.Player.PlayerId && ev.Player.TeamRole.Role != Role.TUTORIAL)
                 {
                     attacker.killamount++;
                 }
-                if(damaged != null)
+                if(damaged != null && ev.Player.TeamRole.Role != Role.TUTORIAL)
                 {
                     damaged.deathamount++;
                 }
@@ -3755,10 +3754,9 @@ namespace SanyaPlugin
                         List<PlayerScoreInfo> tempdb = new List<PlayerScoreInfo>(scoredb.ToArray());
                         tempdb.Sort((a, b) => b.damageamount - a.damageamount);
                         string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList--")}\n";
-                        scorelist += $"{String.Format("{0,15}", "Name")}                {String.Format("{0,-4}","Damage")}    {String.Format("{0,-2}", "Kill")} {String.Format("{0,-2}", "Death")}\n";
                         foreach(PlayerScoreInfo sc in tempdb)
                         {
-                            scorelist += $"{String.Format("{0,-30}",sc.player.Name)} {String.Format("{0,-8}", sc.damageamount)} {String.Format("{0,-4}", sc.killamount)} {String.Format("{0,-4}", sc.deathamount)}\n";
+                            scorelist += $"{String.Format("{0,-30}",sc.player.Name)}\nDamage:{String.Format("{0,-8}", sc.damageamount)} Kill:{String.Format("{0,-4}", sc.killamount)} Death:{String.Format("{0,-4}", sc.deathamount)}\n";
                         }
                         ev.Player.SendConsoleMessage(scorelist);
                     }
