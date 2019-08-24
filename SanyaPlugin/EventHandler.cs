@@ -29,6 +29,19 @@ namespace SanyaPlugin
         public string rank { get; set; }
     }
 
+    public class PlayerScoreInfo
+    {
+        public PlayerScoreInfo(Player ply) { player = ply; killamount = 0; deathamount = 0; damageamount = 0; }
+
+        public Player player { get; }
+
+        public int killamount { get; set; }
+
+        public int deathamount { get; set; }
+
+        public int damageamount { get; set; }
+    }
+
     public class Serverinfo
     {
         public Serverinfo() { players = new List<Playerinfo>(); }
@@ -86,7 +99,7 @@ namespace SanyaPlugin
         IEventHandlerCheckRoundEnd,
         IEventHandlerRoundRestart,
         IEventHandlerPlayerJoin,
-        IEventHandlerDisconnect,
+        IEventHandlerPlayerLeave,
         IEventHandlerLCZDecontaminate,
         IEventHandlerWarheadStartCountdown,
         IEventHandlerWarheadStopCountdown,
@@ -120,6 +133,7 @@ namespace SanyaPlugin
         IEventHandlerSummonVehicle,
         IEventHandlerShoot,
         IEventHandlerTeamRespawn,
+        IEventHandlerLure,
         IEventHandlerInitialAssignTeam,
         IEventHandlerWarheadChangeLever,
         IEventHandlerWarheadKeycardAccess,
@@ -195,6 +209,9 @@ namespace SanyaPlugin
         private int scp079_nuke_cooltime = 0;
         private int scp079_fake_announce_cooltime = 0;
         private int scp079_nukepanel_cooltime = 0;
+
+        //ScoreDB
+        private List<PlayerScoreInfo> scoredb = new List<PlayerScoreInfo>();
 
         //-----------------------Event---------------------
         public EventHandler(SanyaPlugin plugin)
@@ -458,6 +475,32 @@ namespace SanyaPlugin
                     }
                     plugin.SavePlayersData();
                 }
+
+                if(plugin.score_summary_inround)
+                {
+                    plugin.Debug($"[ScoreDB] Show");
+
+                    int scoreBc = 0;
+                    scoredb.Sort((a, b) => b.damageamount - a.damageamount);
+                    string bcstr = "ラウンド終了！\n";
+                    string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList--")}\n";
+                    scorelist += $"{String.Format("{0,15}", "Name")}                {String.Format("{0,-4}", "Damage")}    {String.Format("{0,-2}", "Kill")} {String.Format("{0,-2}", "Death")}\n";
+                    foreach(PlayerScoreInfo sc in scoredb)
+                    {
+                        if(scoreBc < 3)
+                        {
+                            bcstr += $"{++scoreBc}位:{sc.player.Name} 総ダメージ:{sc.damageamount} キル:{sc.killamount} デス:{sc.deathamount}\n";
+                        }
+                        scorelist += $"{String.Format("{0,-30}", sc.player.Name)} {String.Format("{0,-8}", sc.damageamount)} {String.Format("{0,-4}", sc.killamount)} {String.Format("{0,-4}", sc.deathamount)}\n";
+                    }
+                    bcstr += $"その他順位は＠キーコンソールへ";
+                    foreach(Player player in plugin.Server.GetPlayers())
+                    {
+                        player.SendConsoleMessage(scorelist);
+                    }
+                    plugin.Server.Map.ClearBroadcasts();
+                    plugin.Server.Map.Broadcast(15, $"<size=30>{bcstr}</size>", false);
+                }
             }
             roundduring = false;
         }
@@ -468,6 +511,7 @@ namespace SanyaPlugin
             roundduring = false;
             hcz_hallways.Clear();
             playeridlist.Clear();
+            scoredb.Clear();
             scplist.Clear();
             gencomplete = false;
             chamber173ClassDcount = 0;
@@ -581,14 +625,24 @@ namespace SanyaPlugin
                 ev.Player.ChangeRole(Role.TUTORIAL, true, false);
                 Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_106), true), Segment.Update);
             }
+
+            //scoredb
+            if(plugin.score_summary_inround)
+            {
+                if(scoredb.Find(x => x.player.PlayerId == ev.Player.PlayerId) == null)
+                {
+                    plugin.Debug($"[ScoreDB/Add] {ev.Player.Name}");
+                    scoredb.Add(new PlayerScoreInfo(ev.Player));
+                }
+            }
         }
 
-        public void OnDisconnect(DisconnectEvent ev)
+        public void OnPlayerLeave(PlayerLeaveEvent ev)
         {
-            plugin.Debug($"[OnDisconnect] {ev.Connection.IpAddress}/{ev.Connection.IsBanned}");
+            plugin.Debug($"[OnPlayerLeave] {ev.Name}/{ev.PlayerID}/{ev.SteamID}/{ev.IP}");
 
             //SCPList_Save
-            if(plugin.scp_disconnect_at_resetrole && !ev.Connection.IsBanned)
+            if(plugin.scp_disconnect_at_resetrole)
             {
                 if(scplist.Count > 0)
                 {
@@ -612,6 +666,17 @@ namespace SanyaPlugin
                             }
                         }
                     }
+                }
+            }
+
+            //ScoreDB
+            if(plugin.score_summary_inround)
+            {
+                PlayerScoreInfo target = scoredb.Find(x => x.player.PlayerId == ev.PlayerID);
+                if(target != null)
+                {
+                    plugin.Debug($"[ScoreDB/Remove] {ev.Name}");
+                    scoredb.Remove(target);
                 }
             }
         }
@@ -708,7 +773,15 @@ namespace SanyaPlugin
                     {
                         if(ev.Activator != null)
                         {
-                            plugin.Server.Map.Broadcast(15, plugin.alphawarhead_countdown_start_message.Replace("[name]", ev.Activator.Name).Replace("[team]", ev.Activator.TeamRole.Team.ToString()).Replace("[second]", count.ToString()), false);
+                            if(plugin.nuke_subtitle_name_hide && ev.Activator.TeamRole.Team != Smod2.API.Team.NINETAILFOX && ev.Activator.TeamRole.Team != Smod2.API.Team.SCIENTIST && ev.Activator.TeamRole.Role != Role.CLASSD)
+                            {
+                                plugin.Server.Map.Broadcast(15, plugin.alphawarhead_countdown_start_message.Replace("[name]", "Unknown").Replace("[team]", "Unknown").Replace("[second]", count.ToString()), false);
+
+                            }
+                            else
+                            {
+                                plugin.Server.Map.Broadcast(15, plugin.alphawarhead_countdown_start_message.Replace("[name]", ev.Activator.Name).Replace("[team]", ev.Activator.TeamRole.Team.ToString()).Replace("[second]", count.ToString()), false);
+                            }
                         }
                         else
                         {
@@ -720,7 +793,15 @@ namespace SanyaPlugin
                         plugin.Server.Map.ClearBroadcasts();
                         if(ev.Activator != null)
                         {
-                            plugin.Server.Map.Broadcast(10, plugin.alphawarhead_countdown_resume_message.Replace("[name]", ev.Activator.Name).Replace("[team]", ev.Activator.TeamRole.Team.ToString()).Replace("[second]", count.ToString()), false);
+                            if(plugin.nuke_subtitle_name_hide && ev.Activator.TeamRole.Team != Smod2.API.Team.NINETAILFOX && ev.Activator.TeamRole.Team != Smod2.API.Team.SCIENTIST && ev.Activator.TeamRole.Role != Role.CLASSD)
+                            {
+                                plugin.Server.Map.Broadcast(10, plugin.alphawarhead_countdown_resume_message.Replace("[name]", "Unknown").Replace("[team]", "Unknown").Replace("[second]", count.ToString()), false);
+
+                            }
+                            else
+                            {
+                                plugin.Server.Map.Broadcast(10, plugin.alphawarhead_countdown_resume_message.Replace("[name]", ev.Activator.Name).Replace("[team]", ev.Activator.TeamRole.Team.ToString()).Replace("[second]", count.ToString()), false);
+                            }
                         }
                         else
                         {
@@ -755,7 +836,14 @@ namespace SanyaPlugin
                     plugin.Server.Map.ClearBroadcasts();
                     if(ev.Activator != null)
                     {
-                        plugin.Server.Map.Broadcast(7, plugin.alphawarhead_countdown_stop_message.Replace("[name]", ev.Activator.Name).Replace("[team]", ev.Activator.TeamRole.Team.ToString()), false);
+                        if(plugin.nuke_subtitle_name_hide && ev.Activator.TeamRole.Team != Smod2.API.Team.NINETAILFOX && ev.Activator.TeamRole.Team != Smod2.API.Team.SCIENTIST && ev.Activator.TeamRole.Role != Role.CLASSD)
+                        {
+                            plugin.Server.Map.Broadcast(7, plugin.alphawarhead_countdown_stop_message.Replace("[name]", "Unknown").Replace("[team]", "Unknown"), false);
+                        }
+                        else
+                        {
+                            plugin.Server.Map.Broadcast(7, plugin.alphawarhead_countdown_stop_message.Replace("[name]", ev.Activator.Name).Replace("[team]", ev.Activator.TeamRole.Team.ToString()), false);
+                        }
                     }
                     else
                     {
@@ -955,7 +1043,7 @@ namespace SanyaPlugin
                     case SANYA_GAME_MODE.STORY_049:
                         if(ev.Role == Role.CLASSD && chamber049ClassDcount < 4)
                         {
-                            ev.Role = Role.SCP_049_2;
+                            ev.Role = Role.CLASSD;
                             Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_049), false), Segment.Update);
                             chamber049ClassDcount++;
                         }
@@ -1076,6 +1164,9 @@ namespace SanyaPlugin
                     break;
                 case Role.NTF_CADET:
                     targetammo = plugin.default_ammo_cadet;
+                    break;
+                case Role.TUTORIAL:
+                    targetammo = plugin.default_ammo_tutorial;
                     break;
             }
             ev.Player.SetAmmo(AmmoType.DROPPED_5, targetammo[(int)AmmoType.DROPPED_5]);
@@ -1234,6 +1325,16 @@ namespace SanyaPlugin
                 }
             }
 
+            //ScoreDB
+            if(plugin.score_summary_inround && ev.Attacker.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.PlayerId != ev.Attacker.PlayerId)
+            {
+                PlayerScoreInfo attacker = scoredb.Find(x => x.player.PlayerId == ev.Attacker.PlayerId);
+                if(attacker != null)
+                {
+                    attacker.damageamount += (int)ev.Damage;
+                }
+            }
+
             plugin.Debug($"[OnPlayerHurt] After {ev.Attacker.Name}<{ev.Attacker.TeamRole.Role}>({ev.DamageType}:{ev.Damage}) -> {ev.Player.Name}<{ev.Player.TeamRole.Role}>");
         }
 
@@ -1284,6 +1385,21 @@ namespace SanyaPlugin
                 {
                     plugin.Warn($"[SCPList/Remove] {target.name}:{target.role}");
                     scplist.Remove(target);
+                }
+            }
+
+            //ScoreDB
+            if(plugin.score_summary_inround)
+            {
+                PlayerScoreInfo attacker = scoredb.Find(x => x.player.PlayerId == ev.Killer.PlayerId);
+                PlayerScoreInfo damaged = scoredb.Find(x => x.player.PlayerId == ev.Player.PlayerId);
+                if(attacker != null && ev.Killer.PlayerId != ev.Player.PlayerId)
+                {
+                    attacker.killamount++;
+                }
+                if(damaged != null)
+                {
+                    damaged.deathamount++;
                 }
             }
 
@@ -1512,6 +1628,17 @@ namespace SanyaPlugin
             plugin.Debug($"[OnPocketDimensionExit] {ev.Player.Name}:{ev.ExitPosition}");
         }
 
+        public void OnLure(PlayerLureEvent ev)
+        {
+            plugin.Debug($"[OnLure] {ev.Player.Name}:{ev.AllowContain}");
+
+            if(plugin.scp106_lure_open_time > 0f)
+            {
+                plugin.Debug($"[_DelayedOpen] time:{plugin.scp106_lure_open_time}");
+                Timing.RunCoroutine(SanyaPlugin._DelayedOpenLureContainer(plugin.scp106_lure_open_time));
+            }
+        }
+
         public void OnRecallZombie(PlayerRecallZombieEvent ev)
         {
             plugin.Debug($"[OnRecallZombie] {ev.Player.Name} -> {ev.Target.Name} ({ev.AllowRecall})");
@@ -1595,7 +1722,23 @@ namespace SanyaPlugin
                     {
                         break;
                     }
-                    else if(ev.Player.TeamRole.Team != Smod2.API.Team.SCP)
+                    else if(ev.Player.TeamRole.Team == Smod2.API.Team.SCP)
+                    {
+                        if(startwait > plugin.Round.Duration)
+                        {
+                            plugin.Debug($"[Eventer]Too fast SCP : {startwait} > {plugin.Round.Duration}");
+                            ev.Allow = false;
+                        }
+                    }
+                    else if(eventmode != SANYA_GAME_MODE.HCZ && ev.Player.TeamRole.Role == Role.CLASSD)
+                    {
+                        if(startwait > plugin.Round.Duration)
+                        {
+                            plugin.Debug($"[Eventer]Too fast ClassD at {eventmode} : {startwait} > {plugin.Round.Duration}");
+                            ev.Allow = false;
+                        }
+                    }
+                    else if(eventmode == SANYA_GAME_MODE.HCZ && ev.Player.TeamRole.Team != Smod2.API.Team.SCP)
                     {
                         foreach(Smod2.API.Item i in ev.Player.GetInventory())
                         {
@@ -1604,14 +1747,6 @@ namespace SanyaPlugin
                                 plugin.Debug("[Eventer]HCZ-ScientistCard-Allow");
                                 ev.Allow = true;
                             }
-                        }
-                    }
-                    else if(ev.Player.TeamRole.Team == Smod2.API.Team.SCP)
-                    {
-                        if(startwait > plugin.Round.Duration)
-                        {
-                            plugin.Debug($"[Eventer]Too fast SCP : {startwait} > {plugin.Round.Duration}");
-                            ev.Allow = false;
                         }
                     }
                     break;
@@ -2181,13 +2316,13 @@ namespace SanyaPlugin
                             foreach(Player scp0492 in plugin.Server.GetPlayers(Role.SCP_049_2))
                             {
                                 int curHealth = (scp0492.GetGameObject() as GameObject).GetComponent<PlayerStats>().health;
-                                if(curHealth >= scp0492.TeamRole.MaxHP) continue;
+                                if(curHealth >= scp0492.TeamRole.MaxHP / 2) continue;
 
                                 float distance = Vector.Distance(scp049.GetPosition(), scp0492.GetPosition());
                                 if(plugin.scp049_healing_to_049_2_range > distance)
                                 {
                                     plugin.Debug($"[049-2nearheal] {scp049.Name} -({distance})-> {scp0492.Name}");
-                                    scp0492.SetHealth(Mathf.Clamp(curHealth + plugin.scp049_healing_to_049_2_amount, 0, scp0492.TeamRole.MaxHP), DamageType.NONE);
+                                    scp0492.SetHealth(Mathf.Clamp(curHealth + plugin.scp049_healing_to_049_2_amount, 0, scp0492.TeamRole.MaxHP / 2), DamageType.NONE);
                                 }
                             }
                         }
@@ -3615,6 +3750,18 @@ namespace SanyaPlugin
                             ev.ReturnMessage = plugin.user_command_rejected_not_round;
                         }
                     }
+                    else if(ev.Command.StartsWith("score") && (plugin.user_command_enabled_score || isBypass)) 
+                    {
+                        List<PlayerScoreInfo> tempdb = new List<PlayerScoreInfo>(scoredb.ToArray());
+                        tempdb.Sort((a, b) => b.damageamount - a.damageamount);
+                        string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList--")}\n";
+                        scorelist += $"{String.Format("{0,15}", "Name")}                {String.Format("{0,-4}","Damage")}    {String.Format("{0,-2}", "Kill")} {String.Format("{0,-2}", "Death")}\n";
+                        foreach(PlayerScoreInfo sc in tempdb)
+                        {
+                            scorelist += $"{String.Format("{0,-30}",sc.player.Name)} {String.Format("{0,-8}", sc.damageamount)} {String.Format("{0,-4}", sc.killamount)} {String.Format("{0,-4}", sc.deathamount)}\n";
+                        }
+                        ev.Player.SendConsoleMessage(scorelist);
+                    }
                     else if(ev.Command.StartsWith("test"))
                     {
                         plugin.Warn($"[test_user] {ev.Player.Name}");
@@ -3819,6 +3966,16 @@ namespace SanyaPlugin
                         //plugin.Error($"{player.GetCurrentRoom().name}");
 
                         //ev.Player.ChangeRole(Role.TUTORIAL, true, false);
+
+                        //var lure = UnityEngine.Object.FindObjectOfType<LureSubjectContainer>();
+                        //lure.NetworkallowContain = !lure.allowContain;
+
+                        //plugin.Warn($"[ScoreDB] Show Start");
+                        //foreach(PlayerScoreInfo ply in scoredb)
+                        //{
+                        //    plugin.Debug($"{ply.player.Name}[Kill:{ply.killamount}/Death:{ply.deathamount}/Damage:{ply.damageamount}");
+                        //}
+                        //plugin.Warn($"[ScoreDB] Show End");
 
                         ev.ReturnMessage = "test ok(user command)";
                     }

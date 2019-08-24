@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.4.1",
+    version = "13.5",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 1
@@ -89,6 +89,8 @@ namespace SanyaPlugin
         internal float first_respawn_time_fast = 1.0f;
         [ConfigOption] //ラウンド待ちのときにTutorialでスポーンさせる
         internal bool waiting_for_match_spawn = false;
+        [ConfigOption] //ラウンド中のキルデスダメージを集計して終了時に発表する
+        internal bool score_summary_inround = false;
 
         //Playersデータ&LevelEXP
         [ConfigOption] //playerDataを保存するか
@@ -127,6 +129,8 @@ namespace SanyaPlugin
         internal bool user_command_enabled_attack = true;
         [ConfigOption] //コマンドの個別有効化（.boost）
         internal bool user_command_enabled_boost = true;
+        [ConfigOption] //コマンドの個別有効化（.score）
+        internal bool user_command_enabled_score = true;
 
         //SCP系
         [ConfigOption] //発電機が起動完了した場合開かないように
@@ -161,6 +165,8 @@ namespace SanyaPlugin
         internal bool scp106_hitmark_pocket_death = false;
         [ConfigOption] //SCP-106のポケディメ内での人間がメディキット使用時回復量
         internal int scp106_pocket_medkit_recovery_amount = -1;
+        [ConfigOption] //SCP-106の囮コンテナが自動で再度開くまでの時間
+        internal float scp106_lure_open_time = -1f;
         [ConfigOption] //SCP-173が被弾時にまばたきを起こす確率
         internal int scp173_hurt_blink_percent = -1;
         [ConfigOption] //SCP-939の死体捕食を発生させるか
@@ -203,6 +209,8 @@ namespace SanyaPlugin
         internal float nuke_button_auto_close = -1f;
         [ConfigOption] //核起爆後は増援が出ないように
         internal bool stop_mtf_after_nuke = false;
+        [ConfigOption] //核起爆時の名前を一部不明に
+        internal bool nuke_subtitle_name_hide = false;
         [ConfigOption] //増援の場所を変更する確率
         internal int mtf_and_ci_change_spawnpoint = -1;
         [ConfigOption] //カードを持たなくても使用可能に
@@ -271,6 +279,8 @@ namespace SanyaPlugin
         internal int[] default_ammo_lieutenant = new int[] { 80, 40, 40 };
         [ConfigOption] //NTF Commanderの初期所持弾数
         internal int[] default_ammo_commander = new int[] { 130, 50, 50 };
+        [ConfigOption] //Tutorialの初期所持弾数
+        internal int[] default_ammo_tutorial = new int[] { 0, 0, 0 };
 
 
         //--------------------------LangOption--------------------------
@@ -389,14 +399,18 @@ namespace SanyaPlugin
                 smodvers.Add(int.Parse(i));
             }
 
-            Info($"CurrentSmod:{smodvers[0]}.{smodvers[1]}.{smodvers[2]} / SanyaPluginTarget:{this.Details.SmodMajor}.{this.Details.SmodMinor}.{this.Details.SmodRevision}");
             if(smodvers[0] != this.Details.SmodMajor 
                 || smodvers[1] != this.Details.SmodMinor 
                 || smodvers[2] != this.Details.SmodRevision
                 )
             {
+                Error($"CurrentSmod:{smodvers[0]}.{smodvers[1]}.{smodvers[2]} / SanyaPluginTarget:{this.Details.SmodMajor}.{this.Details.SmodMinor}.{this.Details.SmodRevision} -> NG");
                 Error("SModとSanyaPluginのターゲットVerが相違しています。正しく動作しない場合があります。");
                 Error("En:[SMod and SanyaPlugin target versions are different. may not work correctly.]");
+            }
+            else
+            {
+                Info($"CurrentSmod:{smodvers[0]}.{smodvers[1]}.{smodvers[2]} / SanyaPluginTarget:{this.Details.SmodMajor}.{this.Details.SmodMinor}.{this.Details.SmodRevision} -> OK");
             }
         }
 
@@ -959,7 +973,7 @@ namespace SanyaPlugin
             return null;
         }
 
-        public IEnumerator<float> _CheckIsLimitedSteam(Player player, bool announcement = true)
+        public IEnumerator<float> _CheckIsLimitedSteam(Player player)
         {
             var targetdata = this.playersData.Find(x => x.steamid == player.SteamId);
 
@@ -1194,6 +1208,19 @@ namespace SanyaPlugin
         {
             yield return Timing.WaitForSeconds(0.2f);
             GameObject.Find("Host").GetComponent<MTFRespawn>().timeToNextRespawn /= fast;
+            yield break;
+        }
+
+        static public IEnumerator<float> _DelayedOpenLureContainer(float time = 30f)
+        {
+            yield return Timing.WaitForSeconds(time);
+            LureSubjectContainer lure = UnityEngine.Object.FindObjectOfType<LureSubjectContainer>();
+            OneOhSixContainer oos = UnityEngine.Object.FindObjectOfType<OneOhSixContainer>();
+            if(lure != null && oos != null && RoundSummary.RoundInProgress() && !oos.used)
+            {
+                plugin.Debug("[_DelayedLure] Opened");
+                lure.NetworkallowContain = false;
+            }
             yield break;
         }
 
