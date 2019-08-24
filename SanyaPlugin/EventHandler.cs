@@ -481,16 +481,16 @@ namespace SanyaPlugin
                     plugin.Debug($"[ScoreDB] Show");
 
                     int scoreBc = 0;
-                    scoredb.Sort((a, b) => b.damageamount - a.damageamount);
+                    scoredb.Sort((a, b) => b.killamount - a.killamount);
                     string bcstr = "ラウンド終了！\n";
-                    string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList[Damage Rank] --")}\n";
+                    string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList[Kill Rank] --")}\n";
                     foreach(PlayerScoreInfo sc in scoredb)
                     {
                         if(scoreBc < 3)
                         {
-                            bcstr += $"{++scoreBc}位:{sc.player.Name} 総ダメージ:{sc.damageamount} キル:{sc.killamount} デス:{sc.deathamount}\n";
+                            bcstr += $"{++scoreBc}位:{sc.player.Name} キル:{sc.killamount} デス:{sc.deathamount} 総ダメージ:{sc.damageamount}\n";
                         }
-                        scorelist += $"{String.Format("{0,-30}", sc.player.Name)}\nDamage:{String.Format("{0,-8}", sc.damageamount)} Kill:{String.Format("{0,-4}", sc.killamount)} Death:{String.Format("{0,-4}", sc.deathamount)}\n";
+                        scorelist += $"{String.Format("{0,-30}", sc.player.Name)}\nKill:{String.Format("{0,-4}", sc.killamount)} Death:{String.Format("{0,-4}", sc.deathamount)} Damage:{String.Format("{0,-8}", sc.damageamount)}\n";
                     }
                     bcstr += $"その他順位は＠キーコンソールへ";
                     foreach(Player player in plugin.Server.GetPlayers())
@@ -3752,14 +3752,13 @@ namespace SanyaPlugin
                     else if(ev.Command.StartsWith("score") && (plugin.user_command_enabled_score || isBypass)) 
                     {
                         List<PlayerScoreInfo> tempdb = new List<PlayerScoreInfo>(scoredb.ToArray());
-                        tempdb.Sort((a, b) => b.damageamount - a.damageamount);
-                        string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList--")}\n";
+                        tempdb.Sort((a, b) => b.killamount - a.killamount);
+                        string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList[Kill Rank] --")}\n";
                         foreach(PlayerScoreInfo sc in tempdb)
                         {
-                            scorelist += $"{String.Format("{0,-30}",sc.player.Name)}\nDamage:{String.Format("{0,-8}", sc.damageamount)} Kill:{String.Format("{0,-4}", sc.killamount)} Death:{String.Format("{0,-4}", sc.deathamount)}\n";
+                            scorelist += $"{String.Format("{0,-30}", sc.player.Name)}\nKill:{String.Format("{0,-4}", sc.killamount)} Death:{String.Format("{0,-4}", sc.deathamount)} Damage:{String.Format("{0,-8}", sc.damageamount)}\n";
                         }
-                        ev.Player.SendConsoleMessage(scorelist);
-                        ev.ReturnMessage = "show scoreboard.";
+                        ev.ReturnMessage = scorelist;
                     }
                     else if(ev.Command.StartsWith("test"))
                     {
