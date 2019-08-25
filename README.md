@@ -36,6 +36,8 @@ SanyaPlugin.txtは自動生成され、それを編集することでゲーム�
 追加で上記のTranslationを「sm_translation」へ入れましょう
 
 # Config
+Ver : 13.3.3
+
 ## システム系
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
@@ -44,7 +46,7 @@ sanya_info_sender_to_port | String | 37813 | サーバー情報送信先ポー�
 sanya_steam_kick_limited | Bool | False | Steamの制限付きアカウントをキックします
 sanya_motd_enabled | Bool | False | MOTDの有効化（メッセージはTranslationに）
 sanya_motd_target_role | String | Empty | 特定ロールは別のメッセージを表示
-sanya_event_mode_weight | List<Int> | 1,-1,-1,-1,-1 | モードのランダム比率（通常/Night/実験中/D反乱/中層）-1で無効 すべて-1の場合は通常になります
+sanya_event_mode_weight | List<Int> | 1,-1,-1,-1,-1,-1 | モードのランダム比率（通常/Night/実験173/D反乱/中層/実験049）-1で無効 すべて-1の場合は通常になります
 sanya_classd_ins_items | Int | 10 | 反乱時のドロップ数 増やしすぎると重い
 sanya_hczstart_mtf_and_ci | Int | 3 | 中層モード時のガードの数
 sanya_title_timer | Bool | False | Nキーのプレイヤーリストにラウンド経過時間表示
@@ -60,7 +62,6 @@ sanya_first_respawn_time_fast | Float | 1.0 | 最初の増援時間に対する�
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_data_enabled | Bool | False | プレイヤーデータのDBを作成する
-sanya_data_global | Bool | False | 複数サーバー共通のDBを使うか
 sanya_level_enabled | Bool | False | Badge欄にLevelを表示
 sanya_level_exp_kill | Int | 3 | キル時の経験値
 sanya_level_exp_death | Int | 1 | デス時の経験値
@@ -80,8 +81,8 @@ sanya_user_command_enabled_079nuke | Bool | True | .079nukeコマンドの有効
 sanya_user_command_enabled_939sp | Bool | True | .939spコマンドの有効化
 sanya_user_command_enabled_079sp | Bool | True | .079spコマンドの有効化
 sanya_user_command_enabled_radio | Bool | True | .radioコマンドの有効化
-sanya_user_command_enabled_boost | Bool | True | .boostコマンドの有効化
 sanya_user_command_enabled_attack | Bool | True | .attackコマンドの有効化
+sanya_user_command_enabled_boost | Bool | True | .boostコマンドの有効化
 
 ## SCP系
 設定名 | 値の型 | 初期値 | 説明
@@ -92,6 +93,7 @@ sanya_scp049_healing_to_049_2_amount | Int | -1 | 049の周りにいる049-2が�
 sanya_scp049_healing_to_other_scp_range | Float | -1 | 049が治療成功時周りのSCPが回復する範囲
 sanya_scp049_healing_to_other_scp_amount | Int | -1 | 049が治療成功時周りのSCPが回復する量
 sanya_scp079_lone_boost | Bool | False | 079が最後のSCPになった際に発電機自由解放&Tier5に
+sanya_scp079_lone_death | Bool | False | 079が最後のSCPになった際に死ぬように
 sanya_scp079_all_flick_light_tier | Int | -1 | 079がロックダウン時全館停電を起こせるTier
 sanya_scp079_speaker_no_ap_use | Bool | False | 079がスピーカー使用時に電力を使わなくなる
 sanya_scp096_enraged_increase_rage | Float | -1 | 096が発狂中も見られている場合発狂時間が延長される際に追加される乗算値
