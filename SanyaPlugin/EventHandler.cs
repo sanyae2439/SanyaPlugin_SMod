@@ -494,7 +494,7 @@ namespace SanyaPlugin
                     {
                         if(scoreBc < 3)
                         {
-                            bcstr += $"{++scoreBc}位:{sc.player.Name} キル:{sc.killamount} デス:{sc.deathamount} 総ダメージ:{sc.damageamount}\n";
+                            bcstr += $"{++scoreBc}位:{sc.player.Name} SCPキル:{sc.scpkillamount} キル:{sc.killamount} デス:{sc.deathamount} 総ダメージ:{sc.damageamount}\n";
                         }
                         else
                         {
