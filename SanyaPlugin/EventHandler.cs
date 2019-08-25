@@ -198,6 +198,7 @@ namespace SanyaPlugin
         private int updatecounter = 0;
         private Vector traitor_pos = new Vector(170, 984, 28);
         private bool airbomb_used = false;
+        private int nukeduration = -1;
         private GameObject portal = null;
 
         //CommandCoolTime
@@ -534,6 +535,7 @@ namespace SanyaPlugin
             SanyaPlugin.scp_override_steamid = "";
             isFirstSpawnFasted = false;
             airbomb_used = false;
+            nukeduration = -1;
             SanyaPlugin.isAirBombGoing = false;
         }
 
@@ -695,7 +697,7 @@ namespace SanyaPlugin
         public void OnDetonate()
         {
             plugin.Info($"AlphaWarhead Denotated");
-
+           
 
             List<Vector> explode_at = new List<Vector>();
 
@@ -724,6 +726,11 @@ namespace SanyaPlugin
                 {
                     chop.SetState(false);
                 }
+            }
+
+            if(plugin.outsidezone_termination_time_after_nuke > 0)
+            {
+                nukeduration = plugin.Round.Duration;
             }
         }
 
@@ -2398,6 +2405,12 @@ namespace SanyaPlugin
                             flickcount_lcz++;
                         }
                     }
+                }
+
+                if(plugin.outsidezone_termination_time_after_nuke > 0 && nukeduration != -1 && (plugin.Round.Duration >= nukeduration + plugin.outsidezone_termination_time_after_nuke) && !airbomb_used)
+                {
+                    Timing.RunCoroutine(SanyaPlugin._AirSupportBomb(5, 10, true, true, true), Segment.Update);
+                    airbomb_used = true;
                 }
 
                 if(plugin.outsidezone_termination_time > 0 && plugin.Round.Duration >= plugin.outsidezone_termination_time && !airbomb_used)

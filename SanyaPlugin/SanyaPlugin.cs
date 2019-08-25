@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.5",
+    version = "13.5.1",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 1
@@ -199,6 +199,8 @@ namespace SanyaPlugin
         //独自要素
         [ConfigOption] //地上エリアの緊急終了シーケンスを実施する時間
         internal int outsidezone_termination_time = -1;
+        [ConfigOption] //地上エリアの緊急終了シーケンスを実施する時間（核爆発後からの経過時間）
+        internal int outsidezone_termination_time_after_nuke = -1;
         [ConfigOption] //地上エリアの緊急終了シーケンスの対SCP倍率
         internal float outsidezone_termination_multiplier_scp = 3.0f;
         [ConfigOption] //切断したSCPが再接続で戻るように
