@@ -31,7 +31,7 @@ namespace SanyaPlugin
 
     public class PlayerScoreInfo
     {
-        public PlayerScoreInfo(Player ply) { player = ply; killamount = 0; deathamount = 0; damageamount = 0; }
+        public PlayerScoreInfo(Player ply) { player = ply; killamount = 0; deathamount = 0; damageamount = 0; scpkillamount = 0; }
 
         public Player player { get; }
 
@@ -40,6 +40,8 @@ namespace SanyaPlugin
         public int deathamount { get; set; }
 
         public int damageamount { get; set; }
+
+        public int scpkillamount { get; set; }
     }
 
     public class Serverinfo
@@ -482,21 +484,35 @@ namespace SanyaPlugin
                     plugin.Debug($"[ScoreDB] Show");
 
                     int scoreBc = 0;
-                    scoredb.Sort((a, b) => b.killamount - a.killamount);
+                    scoredb.Sort((a, b) =>
+                    {
+                        int scp = b.scpkillamount - a.scpkillamount;
+                        return scp != 0 ? scp : b.killamount - a.killamount;
+                    });
                     string bcstr = "ラウンド終了！\n";
-                    string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList[Kill Rank] --")}\n";
                     foreach(PlayerScoreInfo sc in scoredb)
                     {
                         if(scoreBc < 3)
                         {
                             bcstr += $"{++scoreBc}位:{sc.player.Name} キル:{sc.killamount} デス:{sc.deathamount} 総ダメージ:{sc.damageamount}\n";
                         }
-                        scorelist += $"{String.Format("{0,-30}", sc.player.Name)}\nKill:{String.Format("{0,-4}", sc.killamount)} Death:{String.Format("{0,-4}", sc.deathamount)} Damage:{String.Format("{0,-8}", sc.damageamount)}\n";
+                        else
+                        {
+                            break;
+                        }
                     }
-                    bcstr += $"その他順位は＠キーコンソールへ";
+                    bcstr += $"あなたのスコアは＠キーコンソールへ表示されます";
                     foreach(Player player in plugin.Server.GetPlayers())
                     {
-                        player.SendConsoleMessage(scorelist);
+                        PlayerScoreInfo info = scoredb.Find(x => x.player.PlayerId == player.PlayerId);
+                        if(info != null)
+                        {
+                            player.SendConsoleMessage($"-- Your Score --\n{String.Format("{0,-30}", info.player.Name)}\nSCPKill:{String.Format("{0,-4}", info.scpkillamount)} Kill:{String.Format("{0,-4}", info.killamount)} Death:{String.Format("{0,-4}", info.deathamount)} Damage:{String.Format("{0,-8}", info.damageamount)}\n");
+                        }
+                        else
+                        {
+                            player.SendConsoleMessage($"Score not found.\n{player.Name}");
+                        }
                     }
                     plugin.Server.Map.ClearBroadcasts();
                     plugin.Server.Map.Broadcast(15, $"<size=30>{bcstr}</size>", false);
@@ -730,6 +746,7 @@ namespace SanyaPlugin
 
             if(plugin.outsidezone_termination_time_after_nuke > 0)
             {
+                plugin.Warn($"[Airbomb] Timer set(Duration:{plugin.Round.Duration} => {plugin.Round.Duration + plugin.outsidezone_termination_time_after_nuke})");
                 nukeduration = plugin.Round.Duration;
             }
         }
@@ -1406,6 +1423,11 @@ namespace SanyaPlugin
                 if(damaged != null && ev.Player.TeamRole.Role != Role.TUTORIAL)
                 {
                     damaged.deathamount++;
+                }
+
+                if(attacker != null && ev.Killer.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.TeamRole.Team == Smod2.API.Team.SCP && ev.Killer.PlayerId != ev.Player.PlayerId)
+                {
+                    attacker.scpkillamount++;
                 }
             }
 
@@ -3764,14 +3786,15 @@ namespace SanyaPlugin
                     }
                     else if(ev.Command.StartsWith("score") && (plugin.user_command_enabled_score || isBypass)) 
                     {
-                        List<PlayerScoreInfo> tempdb = new List<PlayerScoreInfo>(scoredb.ToArray());
-                        tempdb.Sort((a, b) => b.killamount - a.killamount);
-                        string scorelist = $"\n{String.Format("{0,-30}", "-- ScoreList[Kill Rank] --")}\n";
-                        foreach(PlayerScoreInfo sc in tempdb)
+                        PlayerScoreInfo info = scoredb.Find(x => x.player.PlayerId == ev.Player.PlayerId);
+                        if(info != null)
                         {
-                            scorelist += $"{String.Format("{0,-30}", sc.player.Name)}\nKill:{String.Format("{0,-4}", sc.killamount)} Death:{String.Format("{0,-4}", sc.deathamount)} Damage:{String.Format("{0,-8}", sc.damageamount)}\n";
+                            ev.ReturnMessage = $"-- Your Score --\n{String.Format("{0,-30}", info.player.Name)}\nSCPKill:{String.Format("{0,-4}", info.scpkillamount)} Kill:{String.Format("{0,-4}", info.killamount)} Death:{String.Format("{0,-4}", info.deathamount)} Damage:{String.Format("{0,-8}", info.damageamount)}\n";
                         }
-                        ev.ReturnMessage = scorelist;
+                        else
+                        {
+                            ev.ReturnMessage = $"Score not found.\n{ev.Player.Name}";
+                        }
                     }
                     else if(ev.Command.StartsWith("test"))
                     {
