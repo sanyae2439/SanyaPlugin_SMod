@@ -1349,7 +1349,7 @@ namespace SanyaPlugin
             }
 
             //ScoreDB
-            if(plugin.score_summary_inround && ev.Attacker.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.PlayerId != ev.Attacker.PlayerId && ev.Player.TeamRole.Role != Role.TUTORIAL)
+            if(plugin.score_summary_inround && ev.Attacker.TeamRole.Team != Smod2.API.Team.SCP && ev.Player.PlayerId != ev.Attacker.PlayerId && ev.Player.TeamRole.Role != Role.TUTORIAL && ev.DamageType != DamageType.RAGDOLLLESS)
             {
                 PlayerScoreInfo attacker = scoredb.Find(x => x.player.PlayerId == ev.Attacker.PlayerId);
                 if(attacker != null)
