@@ -157,6 +157,7 @@ namespace SanyaPlugin
         private bool roundduring = false;
         public List<SCPPlayerData> scplist = new List<SCPPlayerData>();
         private bool isFirstSpawnFasted = false;
+        private int scpkilled = 0;
 
         //Eventer
         private SANYA_GAME_MODE eventmode = SANYA_GAME_MODE.NULL;
@@ -182,6 +183,7 @@ namespace SanyaPlugin
         private int scp079amount_story049 = 0;
         //--BREED_939--
         private List<Room> scp939_floorlist = new List<Room>();
+        private List<Room> scp939_floorlist_withoutlcz = new List<Room>();
         private int scp939_killcount = 0;
         private int scp939_mode = 0;
 
@@ -349,6 +351,10 @@ namespace SanyaPlugin
                         if(item.RoomType == RoomType.X_INTERSECTION || item.RoomType == RoomType.T_INTERSECTION || item.RoomType == RoomType.STRAIGHT)
                         {
                             scp939_floorlist.Add(item);
+                            if(item.ZoneType != ZoneType.LCZ)
+                            {
+                                scp939_floorlist_withoutlcz.Add(item);
+                            }
                         }
                     }
                     break;
@@ -538,7 +544,7 @@ namespace SanyaPlugin
                     FieldInfo info = summary.GetField("roundEnded", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.SetField);
                     bool isEnded = (bool)info.GetValue(RoundSummary.singleton);
                     info.SetValue(RoundSummary.singleton, false);
-                    PlayerManager.localPlayer.GetComponent<CharacterClassManager>().NetworkroundStarted = false;
+                    PlayerManager.localPlayer.GetComponent<CharacterClassManager>().roundStarted = false;
                     RoundSummary.singleton.smForceEnd = false;
 
                     Timing.RunCoroutine(SanyaPlugin._DelayedSelfRoundRestart(restarttime), Segment.Update);
@@ -577,6 +583,8 @@ namespace SanyaPlugin
             scp939_mode = 0;
 
             isAlreadyLoneDeath = false;
+
+            scpkilled = 0;
 
             fgamount = 0;
             SanyaPlugin.scp_override_steamid = "";
@@ -1192,12 +1200,23 @@ namespace SanyaPlugin
                     case SANYA_GAME_MODE.BREED_939:
                         if(ev.TeamRole.Team == Smod2.API.Team.SCP)
                         {
-                            Room room939 = scp939_floorlist[UnityEngine.Random.Range(0, scp939_floorlist.Count)];
-                            Vector pos939 = new Vector(room939.Position.x, room939.Position.y + 3, room939.Position.z);
+                            DecontaminationLCZ dlcz = GameObject.Find("Host").GetComponent<DecontaminationLCZ>();
+                            int curAnm = dlcz.GetCurAnnouncement();
+                            Room room939;
+                            Vector pos939;
+                            if(!plugin.Server.Map.LCZDecontaminated && curAnm < 4)
+                            {
+                                room939 = scp939_floorlist[UnityEngine.Random.Range(0, scp939_floorlist.Count)];
+                                pos939 = new Vector(room939.Position.x, room939.Position.y + 3, room939.Position.z);
+                            }
+                            else
+                            {
+                                room939 = scp939_floorlist_withoutlcz[UnityEngine.Random.Range(0, scp939_floorlist_withoutlcz.Count)];
+                                pos939 = new Vector(room939.Position.x, room939.Position.y + 3, room939.Position.z);
+                            }
 
                             int target939 = SanyaPlugin.GetRandomIndexFromWeight(new int[] { 1, 1 });
                             ev.Role = target939 != 0 ? Role.SCP_939_53 : Role.SCP_939_89;
-                            plugin.Error($"{room939.RoomType}");
                             Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, pos939, false));
                         }
                         break;
@@ -1427,6 +1446,12 @@ namespace SanyaPlugin
         {
             if(ev.Player.IpAddress == "localClient" || ev.Player.TeamRole.Role == Role.UNASSIGNED) return;
             plugin.Debug($"[OnPlayerDie] {ev.Killer.Name}<{ev.Killer?.TeamRole.Role}>:{ev.DamageTypeVar} -> {ev.Player.Name}<{ev.Player?.TeamRole.Role}>");
+            
+            //scpkillcounter
+            if(ev.Killer.TeamRole.Team == Smod2.API.Team.SCP && ev.Player.TeamRole.Team != Smod2.API.Team.SCP)
+            {
+                scpkilled++;
+            }
 
             //LevelExp
             if(plugin.level_enabled && plugin.data_enabled)
@@ -1545,7 +1570,7 @@ namespace SanyaPlugin
                             plugin.Server.Map.AnnounceCustomMessage("Danger SCP 9 3 9 AQUIRED ANOMALY. ALL PERSONNEL KEEP ATTENTION.");
 
                             int target939 = SanyaPlugin.GetRandomIndexFromWeight(new int[] { 1, 1 });
-                            List<Player> spectators = plugin.Server.GetPlayers(Smod2.API.Team.SPECTATOR);
+                            List<Player> spectators = plugin.Server.GetPlayers(Smod2.API.Team.SPECTATOR).FindAll(x => !x.OverwatchMode);
                             if(spectators.Count > 0)
                             {
                                 Player targetspec = spectators[UnityEngine.Random.Range(0, spectators.Count)];
@@ -2871,7 +2896,7 @@ namespace SanyaPlugin
                                 List<Player> scps = plugin.Server.GetPlayers().FindAll(fl => { return fl.TeamRole.Team == Smod2.API.Team.SCP; });
                                 int scp049_2_count = scps.FindAll(x => x.TeamRole.Role == Role.SCP_049_2).Count;
                                 string scplist = $"- <color=#00ff00>S A N Y A P L U G I N</color> <color=#0000ff>#</color> <color=#ff0000>S C P I N F O</color> <color=#0000ff>#</color> <color=#00ff00>I N T E R F A C E</color> -\n";
-                                scplist += $"{{ <color=#ff0000>SCP陣営(049-2):</color>{scps.Count}({scp049_2_count}) / <color=#00ffff>MTF</color><color=#ffff00>陣営:</color>{plugin.Round.Stats.ScientistsAlive + plugin.Round.Stats.NTFAlive} / <color=#00ff00>CI</color><color=#ff7f00>陣営:</color>{plugin.Round.Stats.ClassDAlive + plugin.Round.Stats.CiAlive} }}\n";
+                                scplist += $"{{ <color=#ff0000>SCP陣営(049-2):</color>{scps.Count}({scp049_2_count}) / <color=#00ffff>MTF</color><color=#ffff00>陣営:</color>{plugin.Round.Stats.ScientistsAlive + plugin.Round.Stats.NTFAlive} / <color=#00ff00>CI</color><color=#ff7f00>陣営:</color>{plugin.Round.Stats.ClassDAlive + plugin.Round.Stats.CiAlive} / <color=#ff0000>BySCPキル:</color>{scpkilled} }}\n";
                                 foreach(Player items in scps)
                                 {
                                     if(items.TeamRole.Role == Role.SCP_049_2)
@@ -3074,7 +3099,7 @@ namespace SanyaPlugin
                     {
                         if(roundduring)
                         {
-                            if(ev.Player.TeamRole.Role == Role.SCP_079)
+                            if(ev.Player.TeamRole.Role == Role.SCP_079 || isBypass)
                             {
                                 plugin.Info($"[079sp] {ev.Player.Name} [Tier:{ev.Player.Scp079Data.Level + 1} AP:{ev.Player.Scp079Data.AP}]");
                                 if(plugin.Server.Map.GetIntercomSpeaker() != null)

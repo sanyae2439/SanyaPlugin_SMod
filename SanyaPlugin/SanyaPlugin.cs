@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.6",
+    version = "13.6.1",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 1
