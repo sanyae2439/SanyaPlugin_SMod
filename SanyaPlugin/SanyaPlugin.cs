@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.5.2",
+    version = "13.6",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 1
@@ -32,6 +32,8 @@ namespace SanyaPlugin
     {
         //instance
         static internal SanyaPlugin plugin;
+        static internal EventHandler eventhandler;
+        static internal CommandHandler commandhandler;
 
         //LayerMask
         public const int cctvmask = 262144;
@@ -64,11 +66,13 @@ namespace SanyaPlugin
         [ConfigOption] //ログイン時メッセージ（特定role指定）
         internal string motd_target_role = "";
         [ConfigOption] //ゲームモードランダムの率
-        internal int[] event_mode_weight = new int[] { 1, -1, -1, -1, -1, -1 };
-        [ConfigOption] //停電時の発電機起動時間
-        internal float night_generator_duration = 30;
+        internal int[] event_mode_weight = new int[] { 1, -1, -1, -1, -1, -1, -1 };
+        [ConfigOption] //停電時の復旧までに必要な発電機の数
+        internal float night_generators_recov_amount = 2;
         [ConfigOption] //反乱時のドロップ追加数
         internal int classd_ins_items = 10;
+        [ConfigOption] //反乱時のScientistの上層でのスポーン
+        internal bool classd_ins_scientist_ez_spawn = false;
         [ConfigOption] //中層スタート時のガードの数
         internal int hczstart_mtf_and_ci = 3;
         [ConfigOption] //プレイヤーリストタイトルにタイマー追加
@@ -91,6 +95,8 @@ namespace SanyaPlugin
         internal bool waiting_for_match_spawn = false;
         [ConfigOption] //ラウンド中のキルデスダメージを集計して終了時に発表する
         internal bool score_summary_inround = false;
+        [ConfigOption] //リザルト無しでラウンドを終了させる
+        internal bool summary_less_mode = false;
 
         //Playersデータ&LevelEXP
         [ConfigOption] //playerDataを保存するか
@@ -167,6 +173,8 @@ namespace SanyaPlugin
         internal int scp106_pocket_medkit_recovery_amount = -1;
         [ConfigOption] //SCP-106の囮コンテナが自動で再度開くまでの時間
         internal float scp106_lure_open_time = -1f;
+        [ConfigOption] //SCP-106の囮コンテナに入った際に放送できる時間
+        internal float scp106_lure_intercom_time = -1f;
         [ConfigOption] //SCP-173が被弾時にまばたきを起こす確率
         internal int scp173_hurt_blink_percent = -1;
         [ConfigOption] //SCP-939の死体捕食を発生させるか
@@ -201,6 +209,8 @@ namespace SanyaPlugin
         internal int outsidezone_termination_time = -1;
         [ConfigOption] //地上エリアの緊急終了シーケンスを実施する時間（核爆発後からの経過時間）
         internal int outsidezone_termination_time_after_nuke = -1;
+        [ConfigOption] //地上エリアの緊急終了シーケンスでSCPが残っているときのみ実行するか
+        internal bool outsidezone_termination_check_scp = false;
         [ConfigOption] //地上エリアの緊急終了シーケンスの対SCP倍率
         internal float outsidezone_termination_multiplier_scp = 3.0f;
         [ConfigOption] //切断したSCPが再接続で戻るように
@@ -389,6 +399,7 @@ namespace SanyaPlugin
         public override void OnEnable()
         {
             SanyaPlugin.plugin = this;
+
             Info("さにゃぷらぐいん Loaded [Ver" + this.Details.version + "]");
             Info("ずり");
 
@@ -401,8 +412,8 @@ namespace SanyaPlugin
                 smodvers.Add(int.Parse(i));
             }
 
-            if(smodvers[0] != this.Details.SmodMajor 
-                || smodvers[1] != this.Details.SmodMinor 
+            if(smodvers[0] != this.Details.SmodMajor
+                || smodvers[1] != this.Details.SmodMinor
                 || smodvers[2] != this.Details.SmodRevision
                 )
             {
@@ -504,7 +515,7 @@ namespace SanyaPlugin
                 sum += i;
             }
 
-            int random = rnd.Next(0, sum);
+            int random = UnityEngine.Random.Range(0, sum);
             for(int i = 0; i < list.Length; i++)
             {
                 if(list[i] <= 0) continue;
@@ -600,6 +611,7 @@ namespace SanyaPlugin
             return false;
         }
 
+        [Obsolete("this method included to smod. use Player.Muted", true)]
         static public void SetMute(Player player, bool b)
         {
             (player.GetGameObject() as UnityEngine.GameObject).GetComponent<CharacterClassManager>().SetMuted(b);
@@ -1083,12 +1095,13 @@ namespace SanyaPlugin
             yield break;
         }
 
-        static public IEnumerator<float> _SummaryLessRoundrestart(SanyaPlugin plugin, int restarttime)
+        static public IEnumerator<float> _SummaryLessRoundrestart(int restarttime)
         {
             yield return Timing.WaitForSeconds(restarttime);
             RoundSummary.singleton.CallRpcDimScreen();
+            yield return Timing.WaitForSeconds(1f);
             ServerConsole.AddLog("Round restarting");
-            plugin.Round.RestartRound();
+            PlayerManager.localPlayer.GetComponent<PlayerStats>().Roundrestart();
             yield break;
         }
 
@@ -1166,6 +1179,13 @@ namespace SanyaPlugin
             yield break;
         }
 
+        static public IEnumerator<float> _DelayedSetHealth(Player player, int amount)
+        {
+            yield return Timing.WaitForSeconds(0.1f);
+            player.SetHealth(amount);
+            yield break;
+        }
+
         static public IEnumerator<float> _DelayedSuicideWithWeaponSound(Player player, DamageType cause, float delay = 0.25f)
         {
             WeaponManager wpm = (player.GetGameObject() as GameObject).GetComponent<WeaponManager>();
@@ -1223,6 +1243,24 @@ namespace SanyaPlugin
                 plugin.Debug("[_DelayedLure] Opened");
                 lure.NetworkallowContain = false;
             }
+            yield break;
+        }
+
+        static public IEnumerator<float> _DelayedSelfRoundRestart(float time = 30f)
+        {
+            yield return Timing.WaitForSeconds(time - 1f);
+            RoundSummary.singleton.CallRpcDimScreen();
+            yield return Timing.WaitForSeconds(1f);
+            ServerConsole.AddLog("Round restarting");
+            PlayerManager.localPlayer.GetComponent<PlayerStats>().Roundrestart();
+            yield break;
+        }
+
+        static public IEnumerator<float> _DelayedRefreshTag(Player player)
+        {
+            player.SetRank("default", "null", null);
+            yield return Timing.WaitForSeconds(0.1f);
+            player.SetRank(null, "", null);
             yield break;
         }
 
@@ -1450,6 +1488,38 @@ namespace SanyaPlugin
             }
         }
 
+        static public IEnumerator<float> _LureIntercom(Player player, float time = 30f)
+        {
+            plugin.Debug($"[_LureIntercom] Start Player:{player?.Name}");
+            while(Intercom.host.remainingCooldown > 0f || Intercom.host.speaking)
+            {
+                plugin.Debug($"[_LureIntercom] Check Intercom:{Intercom.host.remainingCooldown}:{Intercom.host.speaking}");
+                yield return Timing.WaitForSeconds(1f);
+            }
+            plugin.Debug($"[_LureIntercom] Intercom for ready:{Intercom.host.remainingCooldown}:{Intercom.host.speaking}");
+            player.PersonalClearBroadcasts();
+            player.PersonalBroadcast((uint)time, plugin.lure_intercom_message.Replace("[second]",time.ToString()), false);
+            plugin.Server.Map.SetIntercomSpeaker(player);
+            yield return Timing.WaitForSeconds(time);
+
+            player.SetGodmode(false);
+            yield return 0f;
+
+            OneOhSixContainer oos = UnityEngine.Object.FindObjectOfType<OneOhSixContainer>();
+            if(oos != null && !oos.used)
+            {
+                LureSubjectContainer lur = UnityEngine.Object.FindObjectOfType<LureSubjectContainer>();
+                lur.NetworkallowContain = false;
+                plugin.Debug($"[_LureIntercom] Not used. Open Lure...");
+            }
+            else
+            {
+                plugin.Debug($"[_LureIntercom] Used. still closed.");
+            }
+            plugin.Debug($"[_LureIntercom] End Player:{player?.Name}");
+            yield break;
+        }
+
         static public IEnumerator<float> _106CreatePortalEX(Player scp, Player human)
         {
             GameObject gameObject_scp = scp.GetGameObject() as GameObject;
@@ -1579,6 +1649,16 @@ namespace SanyaPlugin
             }
             player.PersonalClearBroadcasts();
             player.PersonalBroadcast(3, $"<size=25>《SCP-939ブーストが終了。》\n </size><size=20>《Ended <SCP-939> boost.》\n</size>", false);
+            yield break;
+        }
+
+        static public IEnumerator<float> _939AlwaysSee()
+        {
+            while(RoundSummary.RoundInProgress())
+            {
+                SanyaPlugin.Call939CanSee();
+                yield return Timing.WaitForSeconds(3f);
+            }
             yield break;
         }
 
@@ -1753,6 +1833,7 @@ namespace SanyaPlugin
         CLASSD_INSURGENCY,
         HCZ,
         STORY_049,
+        BREED_939,
     }
 
     public class PlayerData

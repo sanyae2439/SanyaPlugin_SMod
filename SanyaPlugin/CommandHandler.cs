@@ -13,6 +13,7 @@ namespace SanyaPlugin
         public CommandHandler(SanyaPlugin plugin)
         {
             this.plugin = plugin;
+            SanyaPlugin.commandhandler = this;
         }
 
         public string GetCommandDescription()
@@ -22,7 +23,7 @@ namespace SanyaPlugin
 
         public string GetUsage()
         {
-            return "SANYA < RELOAD | PRUNE | PING | OVERRIDE | LCZA (0-5) | AMMO | BLACKOUT | AIRBOMB | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | NEXT (CI/MTF) | SPAWN | 106 | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE >";
+            return "SANYA < RELOAD | PRUNE | PING | NAMECHANGE (NAME) | OVERRIDE | LCZA (0-5) | AMMO | BLACKOUT | AIRBOMB | GEN (UNLOCK/OPEN/CLOSE/ACT) | EV | TESLA (I) | HELI | VAN | NEXT (CI/MTF) | SPAWN | 106 | 914 (USE/CHANGE) | 096 | 939 | 079 (LEVEL (1-5)/AP) | SHAKE | RANDOMITEM | NOW>";
         }
 
         public string[] OnCall(ICommandSender sender, string[] args)
@@ -367,6 +368,54 @@ namespace SanyaPlugin
                         returned.Add($"{i.itemID}:{i.posID}:{(ItemType)i.itemID}");
                     }
                     return returned.ToArray();
+                }
+                else if(args[0] == "namechange")
+                {
+                    Player ply = sender as Player;
+                    if(ply != null)
+                    {
+                        if(args.Length > 1)
+                        {
+                            GameObject gameObject = ply.GetGameObject() as GameObject;
+                            if(gameObject != null)
+                            {
+                                plugin.Warn($"[NameChanger] {ply.Name} -> {args[1]}");
+
+                                gameObject.GetComponent<NicknameSync>().NetworkmyNick = args[1];
+                                if(plugin.level_enabled)
+                                {
+                                    ply.SetRank("default", $"Level{UnityEngine.Random.Range(1, 50)}", null);
+                                }
+                                else
+                                {
+                                    Timing.RunCoroutine(SanyaPlugin._DelayedRefreshTag(ply), Segment.Update);
+                                }
+                                if(plugin.score_summary_inround)
+                                {
+                                    PlayerScoreInfo target = SanyaPlugin.eventhandler.scoredb.Find(x => x.player.PlayerId == ply.PlayerId);
+                                    if(target != null)
+                                    {
+                                        SanyaPlugin.eventhandler.scoredb.Remove(target);
+                                        SanyaPlugin.eventhandler.scoredb.Add(new PlayerScoreInfo(plugin.Server.GetPlayer(ply.PlayerId)));
+                                    }
+                                }
+                                
+                                return new string[] { $"Change to : {ply.Name} -> {args[1]}" };
+                            }
+                            else
+                            {
+                                return new string[] { "Error. (GameObject cast error)" };
+                            }
+                        }
+                        else
+                        {
+                            return new string[] { "param \"Name\" not found." };
+                        }
+                    }
+                    else
+                    {
+                        return new string[] { "only can use player." };
+                    }
                 }
                 else if(args[0] == "test")
                 {
