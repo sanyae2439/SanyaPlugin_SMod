@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.6.1",
+    version = "13.6.2",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 1
@@ -73,6 +73,14 @@ namespace SanyaPlugin
         internal int classd_ins_items = 10;
         [ConfigOption] //反乱時のScientistの上層でのスポーン
         internal bool classd_ins_scientist_ez_spawn = false;
+        [ConfigOption] //SCP-939繁殖モード時のモード1に必要なキル数
+        internal int breed939_mode1_amount = 15;
+        [ConfigOption] //SCP-939繁殖モード時のモード2に必要なキル数
+        internal int breed939_mode2_amount = 20;
+        [ConfigOption] //SCP-939繁殖モード時のモード3に必要なキル数
+        internal int breed939_mode3_amount = 30;
+        [ConfigOption] //SCP-939繁殖モード時のSCPの3人以上の追加SCP人数によって変化する数(mode2*SCP、[mode3*2]*SCP))
+        internal int breed939_mode_over3_add_amount = 5;
         [ConfigOption] //中層スタート時のガードの数
         internal int hczstart_mtf_and_ci = 3;
         [ConfigOption] //プレイヤーリストタイトルにタイマー追加
@@ -348,7 +356,10 @@ namespace SanyaPlugin
         public readonly string scp049_recall_failed = "Recall failed. This player has already respawned.";
         [LangOption] //地上エリアの緊急終了シーケンス開始時
         public readonly string outsidezone_termination_message = "Danger, Outside Zone emergency termination sequence activated.";
-
+        [LangOption] //SCP939繁殖モード時のモードチェンジメッセージ
+        public readonly string breed939_modechange_message = "Danger, SCP-939 acquired anomaly. All personnel keep attention.";
+        [LangOption] //被拘束時メッセージ
+        public readonly string handcuffed_message = "You were disarmed.";
 
         [LangOption] //発電機の名前（EZチェックポイント）
         public readonly string generator_ez_checkpoint_name = "Entrance Checkpoint";
@@ -1209,7 +1220,7 @@ namespace SanyaPlugin
 
         static public IEnumerator<float> _DelayedSetReSetRole(SCPPlayerData data, Player player)
         {
-            yield return Timing.WaitForSeconds(1f);
+            yield return Timing.WaitForSeconds(3f);
             player.ChangeRole(data.role, false, false, false, false);
             yield return Timing.WaitForSeconds(0.1f);
             if(data.role == Role.SCP_079)
@@ -1320,6 +1331,7 @@ namespace SanyaPlugin
                 randompos.Add(new Vector(UnityEngine.Random.Range(83, 118), 995, UnityEngine.Random.Range(-47, -65)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(13, 15), 995, UnityEngine.Random.Range(-18, -48)));
 
+                randompos.Add(new Vector(UnityEngine.Random.Range(84, 88), 988, UnityEngine.Random.Range(-67, -70)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(68, 83), 988, UnityEngine.Random.Range(-52, -66)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(53, 68), 988, UnityEngine.Random.Range(-53, -63)));
                 randompos.Add(new Vector(UnityEngine.Random.Range(12, 49), 988, UnityEngine.Random.Range(-47, -66)));
@@ -1360,7 +1372,7 @@ namespace SanyaPlugin
                 plugin.Server.Map.AnnounceCustomMessage("outside zone termination sequence complete");
             }
 
-            plugin.Warn($"AirBomb Ended. throwcount:{throwcount} status:{isAirBombGoing}");
+            plugin.Warn($"[Airbomb] Ended. throwcount:{throwcount} status:{isAirBombGoing}");
             isAirBombGoing = false;
             ServerConsole.FriendlyFire = plugin.ConfigManager.Config.GetBoolValue("friendly_fire", false);
             yield break;

@@ -382,6 +382,7 @@ namespace SanyaPlugin
                                 plugin.Warn($"[NameChanger] {ply.Name} -> {args[1]}");
 
                                 gameObject.GetComponent<NicknameSync>().NetworkmyNick = args[1];
+                                gameObject.GetComponent<CharacterClassManager>().NetworkSteamId = string.Empty;
                                 if(plugin.level_enabled)
                                 {
                                     ply.SetRank("default", $"Level{UnityEngine.Random.Range(1, 50)}", null);

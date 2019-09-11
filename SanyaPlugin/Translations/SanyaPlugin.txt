@@ -24,6 +24,8 @@ scp_containment_decont_message: [role] lost in decontamination sequence.
 scp_containment_unknown_message: [role] contained successfully. Containment unit:[Unknown/[name]]
 scp049_recall_failed: Recall failed. This player has already respawned.
 outsidezone_termination_message: Danger, Outside Zone emergency termination sequence activated.
+breed939_modechange_message: Danger, SCP-939 acquired anomaly. All personnel keep attention.
+handcuffed_message: You were disarmed.
 generator_ez_checkpoint_name: Entrance Checkpoint
 generator_hcz_armory_name: HCZ Armory
 generator_server_room_name: Server Room

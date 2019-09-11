@@ -144,6 +144,7 @@ namespace SanyaPlugin
         IEventHandlerIntercom,
         IEventHandlerGrenadeHitPlayer,
         IEventHandlerMedkitUse,
+        IEventHandlerHandcuffed,
         IEventHandlerUpdate
     {
         internal readonly SanyaPlugin plugin;
@@ -186,6 +187,7 @@ namespace SanyaPlugin
         private List<Room> scp939_floorlist_withoutlcz = new List<Room>();
         private int scp939_killcount = 0;
         private int scp939_mode = 0;
+        private int scp939_startscpamount = 0;
 
         //NightMode
         private int flickcount = 0;
@@ -434,6 +436,9 @@ namespace SanyaPlugin
                         }
                     }
                     break;
+                case SANYA_GAME_MODE.BREED_939:
+                    scp939_startscpamount = RoundSummary.singleton.GetStartClassList().scps_except_zombies;
+                    break;
             }
         }
 
@@ -581,6 +586,7 @@ namespace SanyaPlugin
             scp939_floorlist.Clear();
             scp939_killcount = 0;
             scp939_mode = 0;
+            scp939_startscpamount = 0;
 
             isAlreadyLoneDeath = false;
 
@@ -1066,8 +1072,7 @@ namespace SanyaPlugin
                                 plugin.Info($"[Eventer:STORY_173] SCP-079:{ev.Player.Name}");
                                 ev.Role = Role.SCP_079;
                                 ev.Player.Scp079Data.SetCamera(SanyaPlugin.GetCameraPosByName("173 CHAMBER"));
-                                scp079amount_story173++;
-                                plugin.Info($"[Eventer:STORY_173] OtherSCP({ev.Role}):{ev.Player.Name}");
+                                scp079amount_story173++;                            
                             }
                             else
                             {
@@ -1084,6 +1089,7 @@ namespace SanyaPlugin
                                 {
                                     ev.Role = scpqueue[UnityEngine.Random.Range(0, scpqueue.Count)];
                                     plugin.Server.GetRoles("SCP").Find(x => x.Role == ev.Role).RoleDisallowed = true;
+                                    plugin.Info($"[Eventer:STORY_173] OtherSCP({ev.Role}):{ev.Player.Name}");
                                 }
                                 else
                                 {
@@ -1560,13 +1566,25 @@ namespace SanyaPlugin
                         && ev.Player.TeamRole.Team != Smod2.API.Team.TUTORIAL)
                     {
                         scp939_killcount++;
-                        if(scp939_killcount >= 15 && scp939_mode == 0)
+
+                        int addamount = 0;
+                        int addamount3 = 0;
+                        if(scp939_startscpamount > 2)
+                        {
+                            addamount = plugin.breed939_mode_over3_add_amount * (scp939_startscpamount - 2);
+                            addamount3 = addamount * 2;
+                        }
+
+                        if(scp939_killcount >= plugin.breed939_mode1_amount + addamount && scp939_mode == 0)
                         {
                             scp939_mode++;
                             plugin.Info($"[Eventer:BREED_939] ModeChange 0 -> 1");
 
-                            plugin.Server.Map.ClearBroadcasts();
-                            plugin.Server.Map.Broadcast((uint)10, "<color=#ff0000><size=25>《SCP-939に異常が発生しました。職員は警戒してください。》\n</size><size=20>《Danger, SCP-939 acquired anomaly. All personnel keep attention.》\n</size></color>", false);
+                            if(plugin.cassie_subtitle)
+                            {
+                                plugin.Server.Map.ClearBroadcasts();
+                                plugin.Server.Map.Broadcast((uint)10, plugin.breed939_modechange_message, false);
+                            }
                             plugin.Server.Map.AnnounceCustomMessage("Danger SCP 9 3 9 AQUIRED ANOMALY. ALL PERSONNEL KEEP ATTENTION.");
 
                             int target939 = SanyaPlugin.GetRandomIndexFromWeight(new int[] { 1, 1 });
@@ -1578,22 +1596,28 @@ namespace SanyaPlugin
                                 Timing.RunCoroutine(SanyaPlugin._DelayedSetHealth(targetspec, ev.Killer.TeamRole.MaxHP / 2), Segment.Update);
                             }
                         }
-                        else if(scp939_killcount >= 20 && scp939_mode == 1)
+                        else if(scp939_killcount >= plugin.breed939_mode2_amount + addamount && scp939_mode == 1)
                         {
                             scp939_mode++;
                             plugin.Info($"[Eventer:BREED_939] ModeChange 1 -> 2");
 
-                            plugin.Server.Map.ClearBroadcasts();
-                            plugin.Server.Map.Broadcast((uint)10, "<color=#ff0000><size=25>《SCP-939に異常が発生しました。職員は警戒してください。》\n</size><size=20>《Danger, SCP-939 acquired anomaly. All personnel keep attention.》\n</size></color>", false);
+                            if(plugin.cassie_subtitle)
+                            {
+                                plugin.Server.Map.ClearBroadcasts();
+                                plugin.Server.Map.Broadcast((uint)10, plugin.breed939_modechange_message, false);
+                            }
                             plugin.Server.Map.AnnounceCustomMessage("Danger SCP 9 3 9 AQUIRED ANOMALY. ALL PERSONNEL KEEP ATTENTION.");
                         }
-                        else if(scp939_killcount >= 30 && scp939_mode == 2)
+                        else if(scp939_killcount >= plugin.breed939_mode3_amount + addamount3 && scp939_mode == 2)
                         {
                             scp939_mode++;
                             plugin.Info($"[Eventer:BREED_939] ModeChange 2 -> 3");
 
-                            plugin.Server.Map.ClearBroadcasts();
-                            plugin.Server.Map.Broadcast((uint)10, "<color=#ff0000><size=25>《SCP-939に異常が発生しました。職員は警戒してください。》\n</size><size=20>《Danger, SCP-939 acquired anomaly. All personnel keep attention.》\n</size></color>", false);
+                            if(plugin.cassie_subtitle)
+                            {
+                                plugin.Server.Map.ClearBroadcasts();
+                                plugin.Server.Map.Broadcast((uint)10, plugin.breed939_modechange_message, false);
+                            }
                             plugin.Server.Map.AnnounceCustomMessage("Danger SCP 9 3 9 AQUIRED ANOMALY. ALL PERSONNEL KEEP ATTENTION.");
 
                             Timing.RunCoroutine(SanyaPlugin._939AlwaysSee(), Segment.Update);
@@ -1650,7 +1674,7 @@ namespace SanyaPlugin
             {
                 if(!isAlreadyLoneDeath)
                 {
-                    if(ev.Player.TeamRole.Team == Smod2.API.Team.SCP)
+                    if(ev.Player.TeamRole.Team == Smod2.API.Team.SCP && ev.Player.TeamRole.Role != Role.SCP_079)
                     {
                         bool iswithoutscp079 = false;
                         foreach(Smod2.API.Player player in plugin.Server.GetPlayers())
@@ -1778,6 +1802,12 @@ namespace SanyaPlugin
         public void OnPocketDimensionDie(PlayerPocketDimensionDieEvent ev)
         {
             plugin.Debug($"[OnPocketDie] {ev.Player.Name}:{ev.Die}");
+
+            //scpkilled
+            if(ev.Die)
+            {
+                scpkilled++;
+            }
 
             //------------------------------ディメンション死亡回復(SCP-106)-----------------------------------------
             if(plugin.recovery_amount_scp106 > 0)
@@ -2448,6 +2478,17 @@ namespace SanyaPlugin
             if(plugin.scp096_enraged_increase_rage > 0)
             {
                 Timing.RunCoroutine(SanyaPlugin._096EnragingIncrase(), Segment.FixedUpdate);
+            }
+        }
+
+        public void OnHandcuffed(PlayerHandcuffedEvent ev)
+        {
+            plugin.Debug($"[OnHandcuffed] {ev.Player.Name}<{ev.Player.TeamRole.Role}>:{ev.Owner.Name}<{ev.Owner.TeamRole.Role}>:{ev.Allow}");
+
+            if(plugin.cassie_subtitle)
+            {
+                ev.Player.PersonalClearBroadcasts();
+                ev.Player.PersonalBroadcast(5, plugin.handcuffed_message, false);
             }
         }
 
@@ -4187,6 +4228,8 @@ namespace SanyaPlugin
                         //var oos = UnityEngine.Object.FindObjectOfType<OneOhSixContainer>();
                         //if(!oos.used) SanyaPlugin.Call106Scream();
                         //oos.Networkused = !oos.used;
+
+                        //plugin.Error($"{gameObject.GetComponent<AnimationController>().curAnim} / {gameObject.GetComponent<AnimationController>().speed}");
 
                         ev.ReturnMessage = "test ok(user command)";
                     }
