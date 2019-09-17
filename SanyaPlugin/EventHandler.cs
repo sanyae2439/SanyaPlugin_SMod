@@ -309,6 +309,7 @@ namespace SanyaPlugin
             roundduring = false;
             updatecounter = 0;
             portal = null;
+            nukeduration = -1;
 
             if(plugin.data_enabled)
             {
@@ -1483,7 +1484,7 @@ namespace SanyaPlugin
                     if(curDataDeath != null)
                     {
                         plugin.Debug($"[ExpAdd/Death] {curDataDeath.exp}+={plugin.level_exp_death} / {curDataDeath.steamid}:{ev.Player.Name}");
-                        ev.Killer.SendConsoleMessage($"[AddExp] +{plugin.level_exp_death}(Next:{Mathf.Clamp(curDataDeath.level * 3 - curDataDeath.exp + plugin.level_exp_death, 0, curDataDeath.level * 3 - curDataDeath.exp + plugin.level_exp_death)})");
+                        ev.Player.SendConsoleMessage($"[AddExp] +{plugin.level_exp_death}(Next:{Mathf.Clamp(curDataDeath.level * 3 - curDataDeath.exp + plugin.level_exp_death, 0, curDataDeath.level * 3 - curDataDeath.exp + plugin.level_exp_death)})");
                         curDataDeath.AddExp(plugin.level_exp_death, ev.Player);
                     }
                     else
