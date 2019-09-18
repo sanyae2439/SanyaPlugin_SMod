@@ -1118,8 +1118,14 @@ namespace SanyaPlugin
                     case SANYA_GAME_MODE.STORY_049:
                         if(ev.Role == Role.CLASSD && chamber049ClassDcount < 4)
                         {
-                            ev.Role = Role.CLASSD;
-                            Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_049), false), Segment.Update);
+                            if(plugin.story049_classd_outside_spawn)
+                            {
+                                Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_049), false), Segment.Update);
+                            }
+                            else if(cam049hall != null)
+                            {
+                                Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam049hall, false), Segment.Update);
+                            }
                             chamber049ClassDcount++;
                         }
 
@@ -1740,7 +1746,11 @@ namespace SanyaPlugin
                 }
                 else
                 {
-                    if(ev.DamageTypeVar == DamageType.TESLA && ev.Killer.TeamRole.Team == Smod2.API.Team.SCP)
+                    if(ev.DamageTypeVar == DamageType.TESLA && ev.Killer.IpAddress == "localClient")
+                    {
+                        plugin.Server.Map.Broadcast(10, plugin.scp_containment_tesla_message.Replace("[role]", ev.Player.TeamRole.Name), false);
+                    }
+                    else if(ev.DamageTypeVar == DamageType.TESLA && ev.Killer.TeamRole.Team == Smod2.API.Team.SCP)
                     {
                         plugin.Server.Map.Broadcast(10, plugin.scp_containment_tesla_message.Replace("[role]", ev.Player.TeamRole.Name), false);
                     }

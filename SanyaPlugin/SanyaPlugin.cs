@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.6.3",
+    version = "13.6.4",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 1
@@ -34,6 +34,9 @@ namespace SanyaPlugin
         static internal SanyaPlugin plugin;
         static internal EventHandler eventhandler;
         static internal CommandHandler commandhandler;
+
+        //targetbuild
+        public static readonly string SmodTargetBuild = "F";
 
         //LayerMask
         public const int cctvmask = 262144;
@@ -73,6 +76,8 @@ namespace SanyaPlugin
         internal int classd_ins_items = 10;
         [ConfigOption] //反乱時のScientistの上層でのスポーン
         internal bool classd_ins_scientist_ez_spawn = false;
+        [ConfigOption] //SCP-049実験時のDクラスが外でスポーンするか
+        internal bool story049_classd_outside_spawn = false;
         [ConfigOption] //SCP-939繁殖モード時のモード1に必要なキル数
         internal int breed939_mode1_amount = 15;
         [ConfigOption] //SCP-939繁殖モード時のモード2に必要なキル数
@@ -417,6 +422,7 @@ namespace SanyaPlugin
             Assembly aslib = Assembly.GetAssembly(typeof(ServerConsole));
             var Smodinternal = aslib.GetType("ServerMod");
             string smodver = Smodinternal.GetField("SM_VERSION", BindingFlags.Public | BindingFlags.Static).GetValue(null) as string;
+            string smodbuild = Smodinternal.GetField("SM_BUILD", BindingFlags.Public | BindingFlags.Static).GetValue(null) as string;
             List<int> smodvers = new List<int>();
             foreach(var i in smodver.Split('.'))
             {
@@ -426,15 +432,16 @@ namespace SanyaPlugin
             if(smodvers[0] != this.Details.SmodMajor
                 || smodvers[1] != this.Details.SmodMinor
                 || smodvers[2] != this.Details.SmodRevision
+                || smodbuild != SmodTargetBuild
                 )
             {
-                Error($"CurrentSmod:{smodvers[0]}.{smodvers[1]}.{smodvers[2]} / SanyaPluginTarget:{this.Details.SmodMajor}.{this.Details.SmodMinor}.{this.Details.SmodRevision} -> NG");
+                Error($"CurrentSmod:{smodvers[0]}.{smodvers[1]}.{smodvers[2]}-{smodbuild} / SanyaPluginTarget:{this.Details.SmodMajor}.{this.Details.SmodMinor}.{this.Details.SmodRevision}-{SmodTargetBuild} -> NG");
                 Error("SModとSanyaPluginのターゲットVerが相違しています。正しく動作しない場合があります。");
                 Error("En:[SMod and SanyaPlugin target versions are different. may not work correctly.]");
             }
             else
             {
-                Info($"CurrentSmod:{smodvers[0]}.{smodvers[1]}.{smodvers[2]} / SanyaPluginTarget:{this.Details.SmodMajor}.{this.Details.SmodMinor}.{this.Details.SmodRevision} -> OK");
+                Info($"CurrentSmod:{smodvers[0]}.{smodvers[1]}.{smodvers[2]}-{smodbuild} / SanyaPluginTarget:{this.Details.SmodMajor}.{this.Details.SmodMinor}.{this.Details.SmodRevision}-{SmodTargetBuild} -> OK");
             }
         }
 
