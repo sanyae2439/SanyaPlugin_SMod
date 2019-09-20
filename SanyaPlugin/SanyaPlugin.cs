@@ -36,7 +36,7 @@ namespace SanyaPlugin
         static internal CommandHandler commandhandler;
 
         //targetbuild
-        public static readonly string SmodTargetBuild = "F";
+        public static readonly string SmodTargetBuild = "G";
 
         //LayerMask
         public const int cctvmask = 262144;

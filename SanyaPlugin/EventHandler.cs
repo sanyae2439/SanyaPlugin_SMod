@@ -2907,7 +2907,7 @@ namespace SanyaPlugin
                                                 Timing.RunCoroutine(SanyaPlugin._DelayedSuicideWithWeaponSound(ev.Player, DamageType.E11_STANDARD_RIFLE), Segment.Update);
                                                 break;
                                             case ItemType.LOGICER:
-                                            case ItemType.MP4:
+                                            case ItemType.MP7:
                                                 ev.ReturnMessage = "Success.";
                                                 ev.Player.PersonalClearBroadcasts();
                                                 ev.Player.PersonalBroadcast(3, plugin.user_command_kill_success, false);
