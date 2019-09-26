@@ -211,6 +211,7 @@ namespace SanyaPlugin
         private bool airbomb_used = false;
         private int nukeduration = -1;
         private GameObject portal = null;
+        private string listtitle = "";
 
         //CommandCoolTime
         private Dictionary<int, int> playeridlist = new Dictionary<int, int>();
@@ -320,8 +321,9 @@ namespace SanyaPlugin
                 SanyaPlugin.SetExtraPermission("NUKE_SURFACE", "EXIT_ACC");
             }
 
-            genperm = new List<string>(plugin.ConfigManager.Config.GetListValue("generator_keycard_perm", new string[] { "ARMORY_LVL_3" }, false));
-            startwait = plugin.ConfigManager.Config.GetIntValue("173_door_starting_cooldown", 25) * 3;
+            genperm = new List<string>(ConfigFile.GetList("generator_keycard_perm", new string[] { "ARMORY_LVL_3" }, false, false, true));
+            startwait = ConfigFile.ServerConfig.GetInt("173_door_starting_cooldown", 25) * 3;
+            listtitle = ConfigFile.ServerConfig.GetString("player_list_title", "Unnamed Server");
 
             eventmode = (SANYA_GAME_MODE)SanyaPlugin.GetRandomIndexFromWeight(plugin.event_mode_weight);
             switch(eventmode)
@@ -363,6 +365,23 @@ namespace SanyaPlugin
                     break;
             }
             plugin.Info($"[RandomEventer] Selected:{eventmode.ToString()}");
+            if(eventmode != SANYA_GAME_MODE.NORMAL)
+            {
+                bool issmartpicker = ConfigFile.ServerConfig.GetBool("smart_class_picker",true);
+                if(issmartpicker)
+                {
+                    plugin.Error("\"smart_class_picker\"がtrueになっています。イベントモードが正しく動作しない場合があります。falseに設定してください。");
+                    plugin.Error("En:[\"smart_class_picker\" is true. eventmode was may not work correctly. please set to false.]");
+                }
+            }
+
+            //さにゃぱっち
+            //割れるガラスの耐久が反映されないのを反映する
+            float windowhealth = ConfigFile.ServerConfig.GetFloat("window_health", 30f);
+            foreach(var bkwin in UnityEngine.Object.FindObjectsOfType<BreakableWindow>())
+            {
+                bkwin.health = windowhealth;
+            }
         }
 
         public void OnRoundStart(RoundStartEvent ev)
@@ -1026,6 +1045,10 @@ namespace SanyaPlugin
             if(ev.Player.IpAddress == "localClient" || ev.Player.TeamRole.Role == Role.UNASSIGNED) return;
             plugin.Debug($"[OnSetRole] {ev.Player.Name}:{ev.Role}");
 
+            //さにゃぱっち
+            //Radioを手に持たない限り減らないバッテリーを減るようにする
+            Timing.RunCoroutine(SanyaPlugin._DelayedResetRadio(ev.Player), Segment.Update);
+
             //------------------------------------EventMode/SetRole---------------------------
             if(RoundSummary.RoundInProgress())
             {
@@ -1057,7 +1080,7 @@ namespace SanyaPlugin
                                 plugin.Info($"[Eventer:STORY_173] SCP-079:{ev.Player.Name}");
                                 ev.Role = Role.SCP_079;
                                 ev.Player.Scp079Data.SetCamera(SanyaPlugin.GetCameraPosByName("173 CHAMBER"));
-                                scp079amount_story173++;                            
+                                scp079amount_story173++;
                             }
                             else
                             {
@@ -1195,7 +1218,7 @@ namespace SanyaPlugin
                         }
                         break;
                     case SANYA_GAME_MODE.BREED_939:
-                        if(ev.TeamRole.Team == Smod2.API.Team.SCP)
+                        if(ev.TeamRole.Team == Smod2.API.Team.SCP && ev.Role != Role.SCP_049_2)
                         {
                             DecontaminationLCZ dlcz = GameObject.Find("Host").GetComponent<DecontaminationLCZ>();
                             int curAnm = dlcz.GetCurAnnouncement();
@@ -1458,7 +1481,7 @@ namespace SanyaPlugin
         {
             if(ev.Player.IpAddress == "localClient" || ev.Player.TeamRole.Role == Role.UNASSIGNED) return;
             plugin.Debug($"[OnPlayerDie] {ev.Killer.Name}<{ev.Killer?.TeamRole.Role}>:{ev.DamageTypeVar} -> {ev.Player.Name}<{ev.Player?.TeamRole.Role}>");
-            
+
             //scpkillcounter
             if(ev.Killer.TeamRole.Team == Smod2.API.Team.SCP && ev.Player.TeamRole.Team != Smod2.API.Team.SCP)
             {
@@ -2733,7 +2756,7 @@ namespace SanyaPlugin
 
                 if(plugin.title_timer)
                 {
-                    string title = ConfigManager.Manager.Config.GetStringValue("player_list_title", "Unnamed Server") + " RoundTime: " + plugin.Server.Round.Duration / 60 + ":" + plugin.Server.Round.Duration % 60;
+                    string title = listtitle + " RoundTime: " + plugin.Server.Round.Duration / 60 + ":" + plugin.Server.Round.Duration % 60;
                     plugin.Server.PlayerListTitle = title;
                 }
 
@@ -4240,6 +4263,8 @@ namespace SanyaPlugin
                         //oos.Networkused = !oos.used;
 
                         //plugin.Error($"{gameObject.GetComponent<AnimationController>().curAnim} / {gameObject.GetComponent<AnimationController>().speed}");
+
+                        //gameObject.GetComponent<Radio>().ResetPreset();
 
                         ev.ReturnMessage = "test ok(user command)";
                     }

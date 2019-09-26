@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.6.5",
+    version = "13.6.6",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 1
@@ -1282,6 +1282,13 @@ namespace SanyaPlugin
             yield break;
         }
 
+        static public IEnumerator<float> _DelayedResetRadio(Player player)
+        {
+            yield return Timing.WaitForSeconds(0.1f);
+            (player.GetGameObject() as GameObject)?.GetComponent<Radio>()?.ResetPreset();
+            yield break;
+        }
+
         static public IEnumerator<float> _AirSupportBomb(int waitforready = 5, int bombcount = 10, bool isCassie = true, bool isSubtitle = false, bool isManualEndOnly = false)
         {
             plugin.Warn($"[Airbomb] booting...");
@@ -1381,7 +1388,7 @@ namespace SanyaPlugin
 
             plugin.Warn($"[Airbomb] Ended. throwcount:{throwcount} status:{isAirBombGoing}");
             isAirBombGoing = false;
-            ServerConsole.FriendlyFire = plugin.ConfigManager.Config.GetBoolValue("friendly_fire", false);
+            ServerConsole.FriendlyFire = ConfigFile.ServerConfig.GetBool("friendly_fire", false);
             yield break;
         }
 

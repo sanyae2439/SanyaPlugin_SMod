@@ -700,7 +700,20 @@ namespace SanyaPlugin
                     //    }
                     //}
 
-                    return new string[] { "test ok" };
+                    //foreach(var i in UnityEngine.Object.FindObjectsOfType<BreakableWindow>())
+                    //{
+                    //    plugin.Error($"{i.health}");
+                    //}
+
+                    //foreach(var i in UnityEngine.Object.FindObjectsOfType<Radio>())
+                    //{
+                    //    System.Type radiotype = i.GetType();
+                    //    var myRadio = radiotype.GetField("myRadio", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    //    var radioUniq = radiotype.GetField("radioUniq", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    //    plugin.Error($"name:{i.name}/isLocalPlayer:{i.isLocalPlayer}/myRadio:{(int)myRadio.GetValue(i)}/radioUniq:{(int)radioUniq.GetValue(i)}");
+                    //}
+
+                        return new string[] { "test ok" };
                 }
             }
 
