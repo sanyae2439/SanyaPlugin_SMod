@@ -1125,13 +1125,13 @@ namespace SanyaPlugin
                     case SANYA_GAME_MODE.STORY_049:
                         if(ev.Role == Role.CLASSD && chamber049ClassDcount < 4)
                         {
-                            if(plugin.story049_classd_outside_spawn)
-                            {
-                                Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_049), false), Segment.Update);
-                            }
-                            else if(cam049hall != null)
+                            if(plugin.story049_classd_outside_spawn && cam049hall != null)
                             {
                                 Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, cam049hall, false), Segment.Update);
+                            }
+                            else
+                            {
+                                Timing.RunCoroutine(SanyaPlugin._DelayedTeleport(ev.Player, plugin.Server.Map.GetRandomSpawnPoint(Role.SCP_049), false), Segment.Update);
                             }
                             chamber049ClassDcount++;
                         }
