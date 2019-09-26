@@ -1026,22 +1026,6 @@ namespace SanyaPlugin
             if(ev.Player.IpAddress == "localClient" || ev.Player.TeamRole.Role == Role.UNASSIGNED) return;
             plugin.Debug($"[OnSetRole] {ev.Player.Name}:{ev.Role}");
 
-            //scplist
-            if(plugin.scp_disconnect_at_resetrole)
-            {
-                var target = scplist.Find(x => x.name == ev.Player.Name);
-                if(target == null && ev.TeamRole.Team == Smod2.API.Team.SCP && ev.Player.TeamRole.Role != Role.SCP_049_2)
-                {
-                    plugin.Warn($"[SCPList/Add] {ev.Player.Name}:{ev.Role}");
-                    scplist.Add(new SCPPlayerData(ev.Player.PlayerId, ev.Player.Name, ev.Role, ev.Player.GetPosition(), ev.Player.TeamRole.MaxHP));
-                }
-                else if(target != null && ev.TeamRole.Team != Smod2.API.Team.SCP && ev.TeamRole.Team != Smod2.API.Team.TUTORIAL && target.id == ev.Player.PlayerId)
-                {
-                    plugin.Warn($"[SCPList/Remove] {target.name}:{target.role}");
-                    scplist.Remove(target);
-                }
-            }
-
             //------------------------------------EventMode/SetRole---------------------------
             if(RoundSummary.RoundInProgress())
             {
@@ -1237,6 +1221,22 @@ namespace SanyaPlugin
 
             }
 
+            //scplist
+            if(plugin.scp_disconnect_at_resetrole)
+            {
+                var target = scplist.Find(x => x.name == ev.Player.Name);
+                if(target == null && ev.TeamRole.Team == Smod2.API.Team.SCP && ev.Player.TeamRole.Role != Role.SCP_049_2)
+                {
+                    plugin.Warn($"[SCPList/Add] {ev.Player.Name}:{ev.Role}");
+                    scplist.Add(new SCPPlayerData(ev.Player.PlayerId, ev.Player.Name, ev.Role, ev.Player.GetPosition(), ev.Player.TeamRole.MaxHP));
+                }
+                else if(target != null && ev.TeamRole.Team != Smod2.API.Team.SCP && ev.TeamRole.Team != Smod2.API.Team.TUTORIAL && target.id == ev.Player.PlayerId)
+                {
+                    plugin.Warn($"[SCPList/Remove] {target.name}:{target.role}");
+                    scplist.Remove(target);
+                }
+            }
+
             //---------------------DefaultAmmo---------------------
             int[] targetammo = new int[] { 0, 0, 0 };
             switch(ev.Role)
@@ -1289,7 +1289,6 @@ namespace SanyaPlugin
             if(ev.DamageType == DamageType.SCP_106)
             {
                 Scp079Interactable.ZoneAndRoom room = (ev.Player.GetGameObject() as GameObject).GetComponent<Scp079PlayerScript>().GetOtherRoom();
-                plugin.Debug($"{room.currentZone}:{room.currentRoom}");
                 foreach(Scp079PlayerScript scp079 in Scp079PlayerScript.instances)
                 {
                     Scp079Interactable.InteractableType[] filter = new Scp079Interactable.InteractableType[]
