@@ -374,14 +374,6 @@ namespace SanyaPlugin
                     plugin.Error("En:[\"smart_class_picker\" is true. eventmode was may not work correctly. please set to false.]");
                 }
             }
-
-            //さにゃぱっち
-            //割れるガラスの耐久が反映されないのを反映する
-            float windowhealth = ConfigFile.ServerConfig.GetFloat("window_health", 30f);
-            foreach(var bkwin in UnityEngine.Object.FindObjectsOfType<BreakableWindow>())
-            {
-                bkwin.health = windowhealth;
-            }
         }
 
         public void OnRoundStart(RoundStartEvent ev)
