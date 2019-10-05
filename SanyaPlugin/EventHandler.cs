@@ -367,7 +367,7 @@ namespace SanyaPlugin
             plugin.Info($"[RandomEventer] Selected:{eventmode.ToString()}");
             if(eventmode != SANYA_GAME_MODE.NORMAL)
             {
-                bool issmartpicker = ConfigFile.ServerConfig.GetBool("smart_class_picker",true);
+                bool issmartpicker = ConfigFile.ServerConfig.GetBool("smart_class_picker", true);
                 if(issmartpicker)
                 {
                     plugin.Error("\"smart_class_picker\"がtrueになっています。イベントモードが正しく動作しない場合があります。falseに設定してください。");
@@ -1214,17 +1214,29 @@ namespace SanyaPlugin
                         {
                             DecontaminationLCZ dlcz = GameObject.Find("Host").GetComponent<DecontaminationLCZ>();
                             int curAnm = dlcz.GetCurAnnouncement();
-                            Room room939;
-                            Vector pos939;
-                            if(!plugin.Server.Map.LCZDecontaminated && curAnm < 4)
+                            Room room939 = null;
+                            Vector pos939 = null;
+                            if(scp939_killcount > 0)
                             {
-                                room939 = scp939_floorlist[UnityEngine.Random.Range(0, scp939_floorlist.Count)];
-                                pos939 = new Vector(room939.Position.x, room939.Position.y + 3, room939.Position.z);
+                                Player target = plugin.Server.GetPlayers().Find(x => x.TeamRole.Team == Smod2.API.Team.SCP);
+                                if(target != null)
+                                {
+                                    pos939 = target.GetPosition();
+                                }
                             }
-                            else
+
+                            if(pos939 == null)
                             {
-                                room939 = scp939_floorlist_withoutlcz[UnityEngine.Random.Range(0, scp939_floorlist_withoutlcz.Count)];
-                                pos939 = new Vector(room939.Position.x, room939.Position.y + 3, room939.Position.z);
+                                if(!plugin.Server.Map.LCZDecontaminated && curAnm < 4)
+                                {
+                                    room939 = scp939_floorlist[UnityEngine.Random.Range(0, scp939_floorlist.Count)];
+                                    pos939 = new Vector(room939.Position.x, room939.Position.y + 3, room939.Position.z);
+                                }
+                                else
+                                {
+                                    room939 = scp939_floorlist_withoutlcz[UnityEngine.Random.Range(0, scp939_floorlist_withoutlcz.Count)];
+                                    pos939 = new Vector(room939.Position.x, room939.Position.y + 3, room939.Position.z);
+                                }
                             }
 
                             int target939 = SanyaPlugin.GetRandomIndexFromWeight(new int[] { 1, 1 });
