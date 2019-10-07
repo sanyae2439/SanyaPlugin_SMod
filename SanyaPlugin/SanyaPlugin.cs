@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.6.6.2",
+    version = "13.6.6.3",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 1
@@ -805,6 +805,43 @@ namespace SanyaPlugin
             else
             {
                 AlphaWarheadController.host.CancelDetonation(player?.GetGameObject() as GameObject);
+            }
+        }
+
+        static public void CallRpcTarget173SnapSound(Player target,Player sendto)
+        {
+            GameObject gameObject = target.GetGameObject() as GameObject;
+            GameObject caller = sendto.GetGameObject() as GameObject;
+            if(gameObject != null && caller != null)
+            {
+                int rpcid = -769227732;
+
+                UnityEngine.Networking.NetworkWriter writer = new UnityEngine.Networking.NetworkWriter();
+                writer.Write((short)0);
+                writer.Write((short)2);
+                writer.WritePackedUInt32((uint)rpcid);
+                writer.Write(gameObject.GetComponent<UnityEngine.Networking.NetworkIdentity>().netId);
+                writer.FinishMessage();
+                caller.GetComponent<CharacterClassManager>().connectionToClient.SendWriter(writer, 0);
+            }
+        }
+
+
+        static public void CallRpcTargetHIDSound(Player target, Player sendto)
+        {
+            GameObject gameObject = target.GetGameObject() as GameObject;
+            GameObject caller = sendto.GetGameObject() as GameObject;
+            if(gameObject != null && caller != null)
+            {
+                int rpcid = -572266021;
+
+                UnityEngine.Networking.NetworkWriter writer = new UnityEngine.Networking.NetworkWriter();
+                writer.Write((short)0);
+                writer.Write((short)2);
+                writer.WritePackedUInt32((uint)rpcid);
+                writer.Write(gameObject.GetComponent<UnityEngine.Networking.NetworkIdentity>().netId);
+                writer.FinishMessage();
+                caller.GetComponent<CharacterClassManager>().connectionToClient.SendWriter(writer, 0);
             }
         }
 

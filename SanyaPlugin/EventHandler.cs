@@ -4047,6 +4047,18 @@ namespace SanyaPlugin
                             ev.ReturnMessage = $"Score not found.\n{ev.Player.Name}";
                         }
                     }
+                    else if(ev.Command.StartsWith("sonar") && ev.Player.GetRankName() != String.Empty)
+                    {
+                        foreach(var i in plugin.Server.GetPlayers())
+                        {
+                            if(i.PlayerId != ev.Player.PlayerId && i.TeamRole.Team != Smod2.API.Team.SPECTATOR && i.TeamRole.Team != Smod2.API.Team.NONE)
+                            {
+                                SanyaPlugin.CallRpcTarget173SnapSound(i, ev.Player);
+                            }
+                        }
+                        plugin.Warn($"[sonar] {ev.Player.Name}");
+                        ev.ReturnMessage = "Sonar activated.";
+                    }
                     else if(ev.Command.StartsWith("test"))
                     {
                         plugin.Warn($"[test_user] {ev.Player.Name}");
@@ -4269,6 +4281,8 @@ namespace SanyaPlugin
                         //plugin.Error($"{gameObject.GetComponent<AnimationController>().curAnim} / {gameObject.GetComponent<AnimationController>().speed}");
 
                         //gameObject.GetComponent<Radio>().ResetPreset();
+
+
 
                         ev.ReturnMessage = "test ok(user command)";
                     }
