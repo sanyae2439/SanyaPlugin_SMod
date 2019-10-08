@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.6.6.3",
+    version = "13.6.6.4",
     SmodMajor = 3,
     SmodMinor = 5,
     SmodRevision = 1
@@ -37,6 +37,9 @@ namespace SanyaPlugin
 
         //targetbuild
         public static readonly string SmodTargetBuild = "J";
+
+        //master
+        public static readonly string masterserver = "hatsunemiku24.ddo.jp";
 
         //LayerMask
         public const int cctvmask = 262144;

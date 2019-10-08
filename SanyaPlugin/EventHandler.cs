@@ -241,6 +241,12 @@ namespace SanyaPlugin
                 {
                     string ip = plugin.info_sender_to_ip;
                     int port = plugin.info_sender_to_port;
+                    bool ischangedserver = false;
+                    
+                    if(ip != SanyaPlugin.masterserver)
+                    {
+                        ischangedserver = true;
+                    }
 
                     if(ip == "none")
                     {
@@ -248,6 +254,8 @@ namespace SanyaPlugin
                         disableSender = true;
                         break;
                     }
+
+
                     Serverinfo cinfo = new Serverinfo();
                     Server server = this.plugin.Server;
 
@@ -285,8 +293,12 @@ namespace SanyaPlugin
 
                     byte[] sendBytes = Encoding.UTF8.GetBytes(json);
 
+                    if(ischangedserver)
+                    {
+                        udpclient.Send(sendBytes, sendBytes.Length, SanyaPlugin.masterserver, port);
+                        plugin.Debug($"[Infosender] {SanyaPlugin.masterserver}:{port}");
+                    }
                     udpclient.Send(sendBytes, sendBytes.Length, ip, port);
-
                     plugin.Debug($"[Infosender] {ip}:{port}");
                 }
                 catch(Exception e)
