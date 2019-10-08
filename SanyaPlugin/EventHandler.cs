@@ -255,7 +255,6 @@ namespace SanyaPlugin
                         break;
                     }
 
-
                     Serverinfo cinfo = new Serverinfo();
                     Server server = this.plugin.Server;
 
@@ -1941,7 +1940,7 @@ namespace SanyaPlugin
 
             if(plugin.inventory_card_act)
             {
-                if(ev.Player.TeamRole.Team != Smod2.API.Team.SCP && !ev.Player.GetBypassMode() && !ev.Door.Locked)
+                if(ev.Player.TeamRole.Team != Smod2.API.Team.SCP && !ev.Player.BypassMode && !ev.Door.Locked)
                 {
                     List<string> permlist = new List<string>();
                     foreach(Smod2.API.Item i in ev.Player.GetInventory())
@@ -1971,7 +1970,7 @@ namespace SanyaPlugin
                 case SANYA_GAME_MODE.STORY_173:
                 case SANYA_GAME_MODE.STORY_049:
                 case SANYA_GAME_MODE.HCZ:
-                    if(ev.Player.GetBypassMode())
+                    if(ev.Player.BypassMode)
                     {
                         break;
                     }
@@ -2293,7 +2292,7 @@ namespace SanyaPlugin
 
             if(plugin.inventory_card_act)
             {
-                if(ev.Player.TeamRole.Team != Smod2.API.Team.SCP && !ev.Generator.Engaged && !ev.Player.GetBypassMode())
+                if(ev.Player.TeamRole.Team != Smod2.API.Team.SCP && !ev.Generator.Engaged && !ev.Player.BypassMode)
                 {
                     List<string> permlist = new List<string>();
                     foreach(Smod2.API.Item i in ev.Player.GetInventory())
@@ -2353,7 +2352,7 @@ namespace SanyaPlugin
             plugin.Debug($"[OnGeneratorInsertTablet] {ev.Player.Name}:{ev.Generator.Room.RoomType}:{ev.Allow}({ev.RemoveTablet})");
             plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}/{ev.Generator.StartTime}:{ev.Generator.Engaged}");
 
-            if(ev.Player.GetBypassMode())
+            if(ev.Player.BypassMode)
             {
                 ev.Allow = true;
             }
@@ -2378,7 +2377,7 @@ namespace SanyaPlugin
             plugin.Debug($"[OnGeneratorEjectTablet] {ev.Player.Name}:{ev.Generator.Room.RoomType}:{ev.Allow}({ev.SpawnTablet})");
             plugin.Debug($"{ev.Generator.Locked}:{ev.Generator.Open}:{ev.Generator.HasTablet}:{ev.Generator.TimeLeft}/{ev.Generator.StartTime}:{ev.Generator.Engaged}");
 
-            if(ev.Player.GetBypassMode())
+            if(ev.Player.BypassMode)
             {
                 ev.Allow = true;
             }
@@ -2847,7 +2846,7 @@ namespace SanyaPlugin
         {
             plugin.Debug($"[OnCallCommand] [Before] Called:{ev.Player.Name} Command:{ev.Command} Return:{ev.ReturnMessage}");
 
-            bool isBypass = ev.Player.GetBypassMode();
+            bool isBypass = ev.Player.BypassMode;
             if(plugin.user_command_enabled)
             {
                 int cooltime = -1;
@@ -2900,10 +2899,10 @@ namespace SanyaPlugin
                                     ev.ReturnMessage = plugin.user_command_rejected_not_round;
                                 }
                             }
-                            else if(ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR && ev.Player.TeamRole.Team != Smod2.API.Team.NONE && ev.Player.TeamRole.Team != Smod2.API.Team.SCP || ev.Player.GetBypassMode())
+                            else if(ev.Player.TeamRole.Team != Smod2.API.Team.SPECTATOR && ev.Player.TeamRole.Team != Smod2.API.Team.NONE && ev.Player.TeamRole.Team != Smod2.API.Team.SCP || ev.Player.BypassMode)
                             {
                                 plugin.Debug($"[Suicide] {ev.Player.Name}");
-                                if(!plugin.suicide_need_weapon || ev.Player.GetBypassMode())
+                                if(!plugin.suicide_need_weapon || ev.Player.BypassMode)
                                 {
                                     ev.ReturnMessage = "Success.";
                                     ev.Player.PersonalClearBroadcasts();
@@ -2979,7 +2978,7 @@ namespace SanyaPlugin
                     {
                         if(roundduring)
                         {
-                            if(ev.Player.TeamRole.Team == Smod2.API.Team.SCP || ev.Player.GetBypassMode())
+                            if(ev.Player.TeamRole.Team == Smod2.API.Team.SCP || ev.Player.BypassMode)
                             {
                                 plugin.Debug($"[SCPInfo] {ev.Player.Name}");
 
@@ -3164,7 +3163,7 @@ namespace SanyaPlugin
                                         ev.ReturnMessage = "Success.(Stop:AP-125)";
                                     }
 
-                                    if(!ev.Player.GetBypassMode())
+                                    if(!ev.Player.BypassMode)
                                     {
                                         ev.Player.Scp079Data.AP -= 125.0f;
                                     }
@@ -3335,7 +3334,7 @@ namespace SanyaPlugin
                                     {
                                         ev.Player.PersonalClearBroadcasts();
                                         ev.Player.PersonalBroadcast(3, plugin.user_command_boost_success.Replace("[role]", ev.Player.TeamRole.Name).Replace("[hp]", $"-{usehp}"), false);
-                                        if(!ev.Player.GetBypassMode())
+                                        if(!ev.Player.BypassMode)
                                         {
                                             ev.Player.SetHealth(health - usehp, DamageType.NONE);
                                         }
@@ -3468,7 +3467,7 @@ namespace SanyaPlugin
                                                         ev.Player.PersonalClearBroadcasts();
                                                         ev.Player.PersonalBroadcast(3, plugin.user_command_boost_success.Replace("[role]", ev.Player.TeamRole.Name).Replace("[hp]", $"-{usehp}"), false);
                                                         ev.ReturnMessage = $"Success.(Warp to [{humanlist[rndres].Name}].(-{usehp})";
-                                                        if(!ev.Player.GetBypassMode())
+                                                        if(!ev.Player.BypassMode)
                                                         {
                                                             ev.Player.SetHealth(health - usehp, DamageType.NONE);
                                                         }
@@ -3549,7 +3548,7 @@ namespace SanyaPlugin
                                         }
                                     }
 
-                                    if(!ev.Player.GetBypassMode())
+                                    if(!ev.Player.BypassMode)
                                     {
                                         ev.Player.SetHealth(health - usehp, DamageType.NONE);
                                     }
@@ -3580,7 +3579,7 @@ namespace SanyaPlugin
                                         }
                                     }
 
-                                    if(!ev.Player.GetBypassMode())
+                                    if(!ev.Player.BypassMode)
                                     {
                                         ev.Player.SetHealth(health - usehp, DamageType.NONE);
                                     }
@@ -3627,7 +3626,7 @@ namespace SanyaPlugin
                             }
                             else if(ev.Player.TeamRole.Role == Role.SCP_079)
                             {
-                                if((ev.Player.Scp079Data.AP > 50 && scp079_boost_cooltime <= 0) || ev.Player.GetBypassMode())
+                                if((ev.Player.Scp079Data.AP > 50 && scp079_boost_cooltime <= 0) || ev.Player.BypassMode)
                                 {
                                     UnityEngine.GameObject gameObject = ev.Player.GetGameObject() as UnityEngine.GameObject;
                                     Scp079PlayerScript ply079 = gameObject.GetComponent<Scp079PlayerScript>();
@@ -3643,7 +3642,7 @@ namespace SanyaPlugin
                                                 NineTailedFoxUnits.host.NewName(out number, out letter);
                                                 plugin.Server.Map.AnnounceNtfEntrance(plugin.Server.Round.Stats.SCPAlive, number, letter);
 
-                                                if(!ev.Player.GetBypassMode())
+                                                if(!ev.Player.BypassMode)
                                                 {
                                                     ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
                                                     scp079_boost_cooltime = 30;
@@ -3679,7 +3678,7 @@ namespace SanyaPlugin
                                                     plugin.Server.Map.Broadcast(10, plugin.scp_containment_unknown_message.Replace("[role]", ev.Player.TeamRole.Name).Replace("[name]", target.Name), false);
 
 
-                                                    if(!ev.Player.GetBypassMode())
+                                                    if(!ev.Player.BypassMode)
                                                     {
                                                         ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
                                                         scp079_boost_cooltime = 30;
@@ -3702,7 +3701,7 @@ namespace SanyaPlugin
                                             Vector3 position = ply079.currentCamera.transform.position;
                                             SanyaPlugin.Explode(ev.Player, new Vector(position.x, position.y, position.z), true);
 
-                                            if(!ev.Player.GetBypassMode())
+                                            if(!ev.Player.BypassMode)
                                             {
                                                 ev.Player.Scp079Data.AP = Mathf.Clamp(ev.Player.Scp079Data.AP - 50f, 0, ev.Player.Scp079Data.AP - 50f);
                                                 scp079_boost_cooltime = 30;
@@ -3722,7 +3721,7 @@ namespace SanyaPlugin
                                 ev.ReturnMessage = plugin.user_command_rejected_miss_condition;
                             }
 
-                            if(ev.Player.GetCurrentItem() != null && ev.Player.GetCurrentItem().ItemType == ItemType.DROPPED_9 && ev.Player.GetBypassMode())
+                            if(ev.Player.GetCurrentItem() != null && ev.Player.GetCurrentItem().ItemType == ItemType.DROPPED_9 && ev.Player.BypassMode)
                             {
                                 GameObject gameObject = ev.Player.GetGameObject() as GameObject;
                                 Scp049PlayerScript scp049sc = gameObject.GetComponent<Scp049PlayerScript>();
@@ -3783,7 +3782,7 @@ namespace SanyaPlugin
                         {
                             if(ev.Player.TeamRole.Role == Role.SCP_079)
                             {
-                                if(ev.Player.Scp079Data.AP > 5 && scp079_attack_cooltime <= 0 || ev.Player.GetBypassMode())
+                                if(ev.Player.Scp079Data.AP > 5 && scp079_attack_cooltime <= 0 || ev.Player.BypassMode)
                                 {
                                     UnityEngine.GameObject gameObject = ev.Player.GetGameObject() as UnityEngine.GameObject;
                                     WeaponManager wpm = gameObject.GetComponent<WeaponManager>();
@@ -3895,7 +3894,7 @@ namespace SanyaPlugin
                                             wpm.CallRpcPlaceDecal(false, 0, raycastHit.point + raycastHit.normal * 0.01f, Quaternion.FromToRotation(Vector3.up, raycastHit.normal));
                                         }
 
-                                        if(!ev.Player.GetBypassMode())
+                                        if(!ev.Player.BypassMode)
                                         {
                                             ev.Player.Scp079Data.AP -= 5f;
                                         }
@@ -3955,7 +3954,7 @@ namespace SanyaPlugin
                                 }
                                 ev.ReturnMessage = "Medkit for Friends.";
                             }
-                            else if(ev.Player.GetCurrentItem() != null && ev.Player.GetCurrentItem().ItemType == ItemType.DROPPED_9 && ev.Player.GetBypassMode())
+                            else if(ev.Player.GetCurrentItem() != null && ev.Player.GetCurrentItem().ItemType == ItemType.DROPPED_9 && ev.Player.BypassMode)
                             {
                                 GameObject gameObject = ev.Player.GetGameObject() as GameObject;
                                 Scp049PlayerScript scp049sc = gameObject.GetComponent<Scp049PlayerScript>();
