@@ -36,7 +36,7 @@ namespace SanyaPlugin
         static internal CommandHandler commandhandler;
 
         //targetbuild
-        public static readonly string SmodTargetBuild = "K";
+        public static readonly string SmodTargetBuild = "L";
 
         //master
         public static readonly string masterserver = "hatsunemiku24.ddo.jp";
