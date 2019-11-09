@@ -36,7 +36,7 @@ SanyaPlugin.txtは自動生成され、それを編集することでゲーム�
 追加で上記のTranslationを「sm_translation」へ入れましょう
 
 # Config
-Ver : 13.3.3
+Ver : 13.7
 
 ## システム系
 設定名 | 値の型 | 初期値 | 説明
