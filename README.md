@@ -46,9 +46,16 @@ sanya_info_sender_to_port | String | 37813 | サーバー情報送信先ポー�
 sanya_steam_kick_limited | Bool | False | Steamの制限付きアカウントをキックします
 sanya_motd_enabled | Bool | False | MOTDの有効化（メッセージはTranslationに）
 sanya_motd_target_role | String | Empty | 特定ロールは別のメッセージを表示
-sanya_event_mode_weight | List<Int> | 1,-1,-1,-1,-1,-1 | モードのランダム比率（通常/Night/実験173/D反乱/中層/実験049）-1で無効 すべて-1の場合は通常になります
+sanya_event_mode_weight | List<Int> | 1,-1,-1,-1,-1,-1,-1 | モードのランダム比率（通常/Night/実験173/D反乱/中層/実験049/939繁殖）-1で無効 すべて-1の場合は通常になります
+sanya_night_generators_recov_amount | Int | 2 | Nightモード時の復旧までに必要な発電機の起動数
 sanya_classd_ins_items | Int | 10 | 反乱時のドロップ数 増やしすぎると重い
+sanya_classd_ins_scientist_ez_spawn | Bool | False | 反乱時に博士が上層でスポーンする
 sanya_hczstart_mtf_and_ci | Int | 3 | 中層モード時のガードの数
+sanya_story049_classd_outside_spawn | Bool | False | 049実験時にクラスDが外でスポーンする
+sanya_breed939_mode1_amount | Int | 15 | SCP-939繁殖モード時のモード1に必要なキル数 
+sanya_breed939_mode2_amount | Int | 20 | SCP-939繁殖モード時のモード2に必要なキル数 
+sanya_breed939_mode3_amount | Int | 30 | SCP-939繁殖モード時のモード3に必要なキル数 
+sanya_breed939_mode_over3_add_amount | Int | 5 | SCPが3体以上いるときの必要キル数増加係数
 sanya_title_timer | Bool | False | Nキーのプレイヤーリストにラウンド経過時間表示
 sanya_cassie_subtitle | Bool | False | 放送に字幕を表示
 sanya_friendly_warn | Bool | False | FFした人に警告を表示
@@ -57,6 +64,8 @@ sanya_endround_all_godmode | Bool | False | ラウンド終了時全員を無敵
 sanya_nuke_start_countdown_door_lock | Bool | False | 核起動開始時に一部(SCP-106、ゲート、チェックポイント)を除きすべてのドアをオープンする
 sanya_ci_and_scp_noend | Bool | False | CIとSCPだけが残ってもラウンドが終了しないようになる
 sanya_first_respawn_time_fast | Float | 1.0 | 最初の増援時間に対する除数（2.0だと半分になる）
+sanya_score_summary_inround | Bool | False | ラウンド中のキル/デス/ダメージを集計してラウンド終了時に表示する
+~~sanya_summary_less_mode~~ | Bool | False | ラウンド終了に結果表示なしで終了させる
   
 ## データ&EXP
 設定名 | 値の型 | 初期値 | 説明
@@ -81,8 +90,10 @@ sanya_user_command_enabled_079nuke | Bool | True | .079nukeコマンドの有効
 sanya_user_command_enabled_939sp | Bool | True | .939spコマンドの有効化
 sanya_user_command_enabled_079sp | Bool | True | .079spコマンドの有効化
 sanya_user_command_enabled_radio | Bool | True | .radioコマンドの有効化
+sanya_user_command_enabled_radio_intercom  | Bool | True | .radioコマンドの無線機放送の有効化
 sanya_user_command_enabled_attack | Bool | True | .attackコマンドの有効化
 sanya_user_command_enabled_boost | Bool | True | .boostコマンドの有効化
+sanya_user_command_enabled_score | Bool | True | .scoreコマンドの有効化
 
 ## SCP系
 設定名 | 値の型 | 初期値 | 説明
@@ -103,6 +114,8 @@ sanya_scp106_portal_warp_scp | Bool | False | 106のポータルを踏むとSCP�
 sanya_scp106_portal_to_human_wait　| Int | 180 | SCP-106ポータルの初回使用可能までの時間
 sanya_scp106_hitmark_pocket_death | Bool | False | ポケットディメンション内で人が死ぬと106にヒットマークが出るように
 sanya_scp106_pocket_medkit_recovery_amount | Int | ポケットディメンション内でのMedkitの回復量
+sanya_scp106_lure_open_time | Int | -1 | SCP-106の囮コンテナが自動で再度開くまでの時間 
+sanya_scp106_lure_intercom_time | Int | -1 | SCP-106の囮コンテナに入った際に放送できる時間 
 sanya_scp173_hurt_blink_percent ｜Int | -1 | 173が被弾時まばたきを発生させる確率
 sanya_scp939_killed_ragdoll_clean | Bool | False | 939がキル時に死体を発生させないように
 sanya_scp939_killed_speedup_multiplier | Float | -1 | 939がキル時に加速する乗算値
@@ -125,7 +138,9 @@ sanya_classd_escaped_additemid | ItemType | -1 | クラスDがカオスとして
 設定名 | 値の型 | 初期値 | 説明
 --- | :---: | :---: | ---
 sanya_outsidezone_termination_time | Int | -1 | 地上エリアの爆発が起こるまでの経過時間
+sanya_outsidezone_termination_time_after_nuke | Int | -1 | 地上エリアの爆発が起こるまでの経過時間（核起爆後からの時間経過）
 sanya_outsidezone_termination_multiplier_scp | Float | 3.0 | 地上エリアの爆発の対SCP倍率
+sanya_outsidezone_termination_check_scp | Bool | False | SCPがいるときにのみ爆撃を実行する
 sanya_scp_disconnect_at_resetrole | Bool | False | SCPで切断された場合元の状態へ復帰
 sanya_suicide_need_weapon | Bool | False | .killコマンド時に武器を持つ必要があるか
 sanya_nuke_button_auto_close | Float | -1f | 核起動ボタンの蓋が自動で閉まる時間 & 核起動室の扉をEXIT_ACC持ちで開けられるように (-1で無効)
@@ -175,3 +190,4 @@ sanya_default_ammo_ntfscientist | List<int> | 80,40,40 | NTF Scientistが初期�
 sanya_default_ammo_cadet | List<int> | 10,10,80 | NTF Cadetが初期で所持する弾数
 sanya_default_ammo_lieutenant | List<int> | 80,40,40 | NTF Lieutenantが初期で所持する弾数
 sanya_default_ammo_commander | List<int> | 130,50,50 | NTF Commanderが初期で所持する弾数
+sanya_default_ammo_tutorial  | List<int> | 0,0,0 | Tutorialが初期で所持する弾数
