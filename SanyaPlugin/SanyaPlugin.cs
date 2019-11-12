@@ -23,7 +23,7 @@ namespace SanyaPlugin
     id = "sanyae2439.sanyaplugin",
     configPrefix = "sanya",
     langFile = nameof(SanyaPlugin),
-    version = "13.7",
+    version = "13.7.1",
     SmodMajor = 3,
     SmodMinor = 6,
     SmodRevision = 0
@@ -36,7 +36,7 @@ namespace SanyaPlugin
         static internal CommandHandler commandhandler;
 
         //targetbuild
-        public static readonly string SmodTargetBuild = "A";
+        public static readonly string SmodTargetBuild = "B";
 
         //master
         public static readonly string masterserver = "hatsunemiku24.ddo.jp";
