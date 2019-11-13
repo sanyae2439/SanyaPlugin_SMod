@@ -4060,14 +4060,31 @@ namespace SanyaPlugin
                     }
                     else if(ev.Command.StartsWith("sonar") && ev.Player.GetRankName() != String.Empty)
                     {
-                        foreach(var i in plugin.Server.GetPlayers())
+                        if(ev.Player.TeamRole.Team == Smod2.API.Team.SCP)
                         {
-                            if(i.PlayerId != ev.Player.PlayerId && i.TeamRole.Team != Smod2.API.Team.SPECTATOR && i.TeamRole.Team != Smod2.API.Team.NONE)
+                            foreach(var i in plugin.Server.GetPlayers())
                             {
-                                SanyaPlugin.CallRpcTarget173SnapSound(i, ev.Player);
+                                if(i.PlayerId != ev.Player.PlayerId 
+                                    && i.TeamRole.Team != Smod2.API.Team.SPECTATOR 
+                                    && i.TeamRole.Team != Smod2.API.Team.NONE 
+                                    && i.TeamRole.Team != Smod2.API.Team.SCP)
+                                {
+                                    SanyaPlugin.CallRpcTarget173SnapSound(i, ev.Player);
+                                }
                             }
                         }
-                        plugin.Warn($"[sonar] {ev.Player.Name}");
+                        else
+                        {
+                            foreach(var i in plugin.Server.GetPlayers())
+                            {
+                                if(i.PlayerId != ev.Player.PlayerId && i.TeamRole.Team == Smod2.API.Team.SCP)
+                                {
+                                    SanyaPlugin.CallRpcTarget173SnapSound(i, ev.Player);
+                                }
+                            }
+                        }
+
+                        plugin.Debug($"[sonar] {ev.Player.Name}:{ev.Player.TeamRole.Team}");
                         ev.ReturnMessage = "Sonar activated.";
                     }
                     else if(ev.Command.StartsWith("test"))
